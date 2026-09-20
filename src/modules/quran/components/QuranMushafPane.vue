@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
   <div
     ref="root"
     class="relative mx-auto w-full overflow-hidden"
-    :class="spread ? '' : 'max-w-[620px]'"
+    :class="spread ? '' : 'max-w-[720px]'"
     @click="handleClick"
   >
     <MushafPage
@@ -197,8 +197,8 @@ onBeforeUnmount(() => {
       class="!my-0 !rounded-none !shadow-none"
       :class="
         spread
-          ? '!max-w-none'
-          : '!max-w-[620px]'
+          ? '!min-h-dvh !max-w-none'
+          : '!max-w-[720px] min-[600px]:!min-h-dvh min-[600px]:!w-full'
       "
     />
 

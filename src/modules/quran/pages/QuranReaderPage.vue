@@ -60,23 +60,22 @@ function clampPage(value: number) {
 function spreadLeftPageNumber(anchor: number): number | null {
   const current = clampPage(anchor)
 
-  if (current === 1) return null
-  if (current === 604) return 604
+  if (current === 1 || current === 604) return null
 
   return current % 2 === 0
-    ? current
-    : current - 1
+    ? current + 1
+    : current
 }
 
 function spreadRightPageNumber(anchor: number) {
   const current = clampPage(anchor)
 
   if (current === 1) return 1
-  if (current === 604) return 603
+  if (current === 604) return 604
 
   return current % 2 === 0
-    ? current + 1
-    : current
+    ? current
+    : current - 1
 }
 
 function spreadCompanionPageNumber(anchor: number) {
@@ -819,7 +818,7 @@ onBeforeUnmount(() => {
 <template>
   <main
     dir="rtl"
-    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
+    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[#fbf7ef] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
       v-if="loading"
@@ -871,7 +870,7 @@ onBeforeUnmount(() => {
       <section
         v-if="!isSpreadViewport"
         ref="mobileViewport"
-        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden"
+        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden min-[600px]:bg-[#fbf7ef]"
         aria-label="صفحة المصحف"
         @click.capture="handleReaderClickCapture"
         @pointerdown="handlePointerDown"
@@ -917,7 +916,7 @@ onBeforeUnmount(() => {
       <section
         v-else
         dir="rtl"
-        class="relative mx-auto min-h-dvh w-full max-w-[1180px] touch-pan-y overflow-hidden px-[16px] py-[16px] [perspective:1800px] lg:px-[24px]"
+        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden bg-[#fbf7ef] p-0 [perspective:1800px]"
         aria-label="صفحتا المصحف"
         @click.capture="handleReaderClickCapture"
         @pointerdown="handlePointerDown"
@@ -928,7 +927,7 @@ onBeforeUnmount(() => {
         <div
           v-if="spreadTurnDirection"
           aria-hidden="true"
-          class="pointer-events-none absolute inset-x-[16px] top-[16px] z-0 grid grid-cols-2 items-start gap-[2px] lg:inset-x-[24px]"
+          class="pointer-events-none absolute inset-0 z-0 grid grid-cols-2 items-start gap-px"
         >
           <QuranMushafPane
             v-if="targetSpreadRightPage"
@@ -954,7 +953,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          class="relative z-10 grid grid-cols-2 items-start gap-[2px]"
+          class="relative z-10 grid grid-cols-2 items-start gap-px"
         >
           <div
             class="min-w-0 bg-[#fbf7ef] [backface-visibility:hidden] [transform-style:preserve-3d] will-change-transform"
