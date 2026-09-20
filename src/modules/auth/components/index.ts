@@ -2,3 +2,5 @@ export { default as OAuthButton } from '@/modules/auth/components/OAuthButton.vu
 export { default as OAuthDivider } from '@/modules/auth/components/OAuthDivider.vue'
 export { default as OAuthOptions } from '@/modules/auth/components/OAuthOptions.vue'
 export type { OAuthProvider } from '@/modules/auth/types/oauth'
+export { default as AuthIntro } from '@/modules/auth/components/AuthIntro.vue'
+export type { AuthIntroVariant } from '@/modules/auth/types/intro'
