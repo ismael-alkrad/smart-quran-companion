@@ -26,9 +26,9 @@ const navRoutes: BaseBottomNavRoutes = {
     class="min-h-dvh w-full bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
-      class="mx-auto min-h-dvh w-full max-w-[1200px] px-[16px] pb-[100px] pt-[24px] sm:px-[24px] lg:px-0 lg:pb-[32px]"
+      class="mx-auto min-h-dvh w-full max-w-[1200px] px-[16px] pb-[100px] pt-[24px] sm:px-[24px] xl:px-0 xl:pb-[32px]"
     >
-      <div class="hidden lg:block">
+      <div class="hidden xl:block">
         <BaseBottomNav
           model-value="home"
           :routes="navRoutes"
@@ -38,7 +38,7 @@ const navRoutes: BaseBottomNavRoutes = {
 
       <header
         dir="ltr"
-        class="flex h-[64px] w-full items-center justify-between overflow-hidden lg:mt-[24px]"
+        class="flex h-[64px] w-full items-center justify-between overflow-hidden xl:mt-[24px]"
       >
         <BaseAvatar
           type="placeholder"
@@ -66,12 +66,12 @@ const navRoutes: BaseBottomNavRoutes = {
         </div>
       </header>
 
-      <div class="mt-[16px] lg:mt-[32px]">
+      <div class="mt-[16px] xl:mt-[32px]">
         <slot />
       </div>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-50 lg:hidden">
+    <div class="fixed inset-x-0 bottom-0 z-50 xl:hidden">
       <BaseBottomNav
         model-value="home"
         :routes="navRoutes"
