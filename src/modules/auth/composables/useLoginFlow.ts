@@ -22,9 +22,14 @@ export function useLoginFlow() {
   const requestError = ref<string>()
 
   const loginCall = useAuthMutation('login')
-  const { refreshSession } = useAuthSession()
+  const {
+    loading: sessionLoading,
+    refreshSession,
+  } = useAuthSession()
 
-  const loading = computed(() => loginCall.loading)
+  const loading = computed(
+    () => loginCall.loading || sessionLoading.value,
+  )
 
   const routeEmail = route.query.email
   if (!email.value && typeof routeEmail === 'string') {
