@@ -36,7 +36,7 @@ const navRoutes: BaseBottomNavRoutes = {
           class="flex h-[64px] w-full items-center justify-between overflow-hidden"
         >
           <div
-            class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right"
+            class="flex shrink-0 flex-col items-start gap-[2px] overflow-hidden text-right"
           >
             <h1
               dir="rtl"
