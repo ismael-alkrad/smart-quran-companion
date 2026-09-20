@@ -349,9 +349,19 @@ def main() -> int:
 
         for page_number in range(1, PAGE_COUNT + 1):
             page_lines = pages[page_number]
-            if len(page_lines) != LINES_PER_PAGE:
+
+            # QPC V2 is a 15-line Mushaf, but the opening spread is intentionally
+            # shorter: page 1 (Al-Fatihah) and page 2 use fewer printed content
+            # lines. The QUL layout export stores only real content lines, not
+            # synthetic blank rows. All regular pages must still contain 15 rows.
+            expected_lines = None if page_number in (1, 2) else LINES_PER_PAGE
+            if not page_lines or len(page_lines) > LINES_PER_PAGE:
                 raise RuntimeError(
-                    f"Page {page_number} has {len(page_lines)} layout lines; expected {LINES_PER_PAGE}."
+                    f"Page {page_number} has invalid layout line count: {len(page_lines)}."
+                )
+            if expected_lines is not None and len(page_lines) != expected_lines:
+                raise RuntimeError(
+                    f"Page {page_number} has {len(page_lines)} layout lines; expected {expected_lines}."
                 )
 
             page = build_page(page_number, page_lines, words)
