@@ -1,31 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { AuthActions, AuthForm } from '@/modules/auth/components'
+import { useLoginFlow } from '@/modules/auth/composables'
+import {
+  AuthActions,
+  AuthCredentialsFields,
+  AuthForm,
+} from '@/modules/auth/components'
 import {
   BaseAppBar,
   BaseBanner,
-  BaseInput,
 } from '@/shared/components'
 
-const route = useRoute()
-const router = useRouter()
-
-const email = ref(typeof route.query.email === 'string' ? route.query.email : '')
-const password = ref('')
-const passwordInput = ref<InstanceType<typeof BaseInput> | null>(null)
-
-function goToLogin() {
-  void router.push('/auth/login')
-}
-
-function goToForgotPassword() {
-  void router.push('/auth/forgot-password')
-}
-
-onMounted(() => {
-  passwordInput.value?.focus()
-})
+const {
+  email,
+  password,
+  requestError,
+  loading,
+  login,
+  goToLogin,
+  goToForgotPassword,
+} = useLoginFlow()
 </script>
 
 <template>
@@ -57,29 +50,32 @@ onMounted(() => {
           body="البريد الإلكتروني أو كلمة المرور غير صحيحة. حاول مرة أخرى."
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر تنفيذ الطلب"
+          :body="requestError"
+        />
+
         <AuthForm
           footer-text="نسيت كلمة المرور؟"
           footer-variant="action"
           @footer="goToForgotPassword"
         >
-          <BaseInput
-            v-model="email"
-            type="email"
-            label="البريد الإلكتروني"
-            placeholder="name@example.com"
-          />
-
-          <BaseInput
-            ref="passwordInput"
-            v-model="password"
-            type="password"
-            label="كلمة المرور"
-            placeholder="••••••••"
-            error="أعد التحقق من كلمة المرور"
+          <AuthCredentialsFields
+            v-model:email="email"
+            v-model:password="password"
+            password-error="أعد التحقق من كلمة المرور"
+            autofocus-password
           />
         </AuthForm>
 
-        <AuthActions primary-label="إعادة المحاولة" />
+        <AuthActions
+          primary-label="إعادة المحاولة"
+          :primary-loading="loading"
+          primary-loading-text="جارٍ تسجيل الدخول"
+          @primary="login"
+        />
       </div>
     </div>
   </main>
