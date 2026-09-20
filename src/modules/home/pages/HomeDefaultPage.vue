@@ -21,10 +21,10 @@ function resumeQuran() {
   <HomePageScaffold subtitle="هذه خطتك القرآنية لليوم">
     <div
       dir="ltr"
-      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[416px_minmax(0,760px)] lg:items-start lg:gap-x-[24px]"
+      class="flex flex-col gap-[16px] xl:grid xl:grid-cols-[416px_minmax(0,760px)] xl:items-start xl:gap-x-[24px]"
     >
       <div
-        class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
+        class="contents xl:col-start-2 xl:row-start-1 xl:flex xl:flex-col xl:gap-[24px]"
       >
         <section
           dir="rtl"
@@ -74,7 +74,7 @@ function resumeQuran() {
       </div>
 
       <div
-        class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
+        class="contents xl:col-start-1 xl:row-start-1 xl:flex xl:flex-col xl:gap-[24px]"
       >
         <HomeTasmeeCta dir="rtl" />
 
