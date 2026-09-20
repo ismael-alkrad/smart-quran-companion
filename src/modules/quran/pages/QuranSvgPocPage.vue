@@ -1,170 +1,163 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
-import page67Raw from '@/modules/quran/poc/assets/067.svg?raw'
-import page68Raw from '@/modules/quran/poc/assets/068.svg?raw'
+import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
+import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
+import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
+import type { MushafWord } from '@/modules/quran/types/mushaf'
+import { toArabicNumber } from '@/modules/quran/utils/number'
 
-interface SelectedWord {
-  pageNumber: number
-  surahNumber: number
-  ayahNumber: number
-  wordIndex: number
-  hafs: string
-  imlaey: string
-}
+const POC_PAGE_NUMBER = 31
 
-interface HighlightedPath {
-  element: SVGPathElement
-  inlineFill: string
-}
+const selectedLocation = ref<string | null>(null)
+const pageQuery = useMushafPage(POC_PAGE_NUMBER)
 
-const page67Image = 'https://equran.me/assets/images/pages/0067.jpg'
-const page68Image = 'https://equran.me/assets/images/pages/0068.jpg'
+const page = computed(() => pageQuery.data.value ?? null)
 
-const selectedWord = ref<SelectedWord | null>(null)
+const surahName = computed(() => {
+  const surahNumber = page.value?.chapters[0]
 
-let highlightedPaths: HighlightedPath[] = []
+  return surahNumber
+    ? getSurahNameArabic(surahNumber)
+    : ''
+})
 
-function prepareInlineSvg(markup: string) {
-  return markup
-    .replace(/^\uFEFF/, '')
-    .replace(/^<\?xml[^>]*>\s*/i, '')
-}
+const fontFamily = computed(() =>
+  getQcfV2FontFamily(POC_PAGE_NUMBER),
+)
 
-const page67Svg = prepareInlineSvg(page67Raw)
-const page68Svg = prepareInlineSvg(page68Raw)
+function selectWord(word: MushafWord) {
+  selectedLocation.value = word.location
 
-function clearHighlight() {
-  for (const { element, inlineFill } of highlightedPaths) {
-    if (inlineFill) {
-      element.style.fill = inlineFill
-    } else {
-      element.style.removeProperty('fill')
-    }
-  }
-
-  highlightedPaths = []
-}
-
-function highlightWord(word: Element) {
-  clearHighlight()
-
-  const paths = word.querySelectorAll<SVGPathElement>('path')
-
-  highlightedPaths = Array.from(paths, (element) => ({
-    element,
-    inlineFill: element.style.fill,
-  }))
-
-  for (const { element } of highlightedPaths) {
-    element.style.fill = 'var(--sqc-color-mushaf-accent)'
-  }
-}
-
-function readIntegerAttribute(
-  element: Element,
-  attribute: string,
-) {
-  const value = Number(element.getAttribute(attribute))
-
-  return Number.isInteger(value)
-    ? value
-    : null
-}
-
-function handleWordClick(
-  event: MouseEvent,
-  pageNumber: number,
-) {
-  const target = event.target
-
-  if (!(target instanceof Element)) return
-
-  const word = target.closest('[id^="md-word-"]')
-
-  if (!word) return
-
-  const surahNumber = readIntegerAttribute(word, 'data-surah')
-  const ayahNumber = readIntegerAttribute(word, 'data-aya')
-  const wordIndex = readIntegerAttribute(
-    word,
-    'data-word-index-in-ayah',
-  )
-
-  if (
-    surahNumber === null
-    || ayahNumber === null
-    || wordIndex === null
-  ) {
-    return
-  }
-
-  highlightWord(word)
-
-  selectedWord.value = {
-    pageNumber,
-    surahNumber,
-    ayahNumber,
-    wordIndex,
-    hafs: word.getAttribute('data-hafs') ?? '',
-    imlaey: word.getAttribute('data-imlaey') ?? '',
-  }
-
-  console.info('[Quran Hybrid PoC] selected word', {
-    page: pageNumber,
-    surah: surahNumber,
-    ayah: ayahNumber,
-    wordIndex,
-    hafs: selectedWord.value.hafs,
-    imlaey: selectedWord.value.imlaey,
+  console.info('[Quran Reading PoC] selected word', {
+    page: word.pageNumber,
+    verseKey: word.verseKey,
+    wordPosition: word.position,
+    location: word.location,
   })
 }
 </script>
 
 <template>
   <main
-    class="h-dvh w-full overflow-hidden bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
+    class="h-dvh w-full overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)]"
   >
-    <section
-      dir="rtl"
-      class="grid h-full w-full grid-cols-1 overflow-hidden lg:landscape:grid-cols-2"
-      aria-label="تجربة المصحف الهجين للصفحتين ٦٧ و٦٨"
+    <div
+      v-if="pageQuery.isPending.value"
+      class="grid h-full place-items-center px-[24px]"
     >
-      <article
-        class="relative flex h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-background-primary)]"
-        aria-label="صفحة ٦٧"
+      <span
+        class="text-[14px] text-[color:var(--sqc-color-mushaf-muted)]"
       >
-        <img
-          :src="page67Image"
-          alt="صفحة ٦٧ من مصحف المدينة"
-          draggable="false"
-          class="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
-        >
+        جاري تجهيز المصحف…
+      </span>
+    </div>
 
-        <div
-          class="absolute inset-0 h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:select-none [&>svg_path]:fill-transparent"
-          v-html="page67Svg"
-          @click="handleWordClick($event, 67)"
-        />
-      </article>
-
-      <article
-        class="relative hidden h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-background-primary)] lg:landscape:flex"
-        aria-label="صفحة ٦٨"
+    <div
+      v-else-if="pageQuery.isError.value || !page"
+      class="grid h-full place-items-center px-[24px]"
+    >
+      <span
+        class="text-center text-[14px] leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
       >
-        <img
-          :src="page68Image"
-          alt="صفحة ٦٨ من مصحف المدينة"
-          draggable="false"
-          class="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
-        >
+        تعذر تحميل صفحة المصحف المحلية.
+      </span>
+    </div>
 
+    <article
+      v-else
+      dir="rtl"
+      translate="no"
+      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)]"
+      aria-label="تجربة صفحة المصحف على الهاتف"
+    >
+      <header
+        class="mx-[14px] mt-[max(10px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[14px] text-[color:var(--sqc-color-mushaf-ink)]"
+      >
+        <span
+          class="min-w-0 flex-1 truncate text-right text-[13px] font-medium"
+        >
+          سورة {{ surahName }}
+        </span>
+
+        <span
+          class="mx-[10px] shrink-0 text-[11px] text-[color:var(--sqc-color-mushaf-muted)]"
+        >
+          الصفحة {{ toArabicNumber(page.pageNumber) }}
+        </span>
+
+        <span
+          class="min-w-0 flex-1 truncate text-left text-[13px] font-medium"
+        >
+          الجزء {{ toArabicNumber(page.juzNumber) }}
+        </span>
+      </header>
+
+      <section
+        class="grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[18px] pb-[6px] pt-[10px]"
+        aria-label="نص صفحة المصحف"
+      >
         <div
-          class="absolute inset-0 h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:select-none [&>svg_path]:fill-transparent"
-          v-html="page68Svg"
-          @click="handleWordClick($event, 68)"
-        />
-      </article>
-    </section>
+          v-for="line in page.lines"
+          :key="line.lineNumber"
+          class="flex min-h-0 w-full items-center justify-center overflow-visible"
+          :data-line-number="line.lineNumber"
+          :data-line-type="line.type"
+        >
+          <div
+            v-if="line.type === 'ayah'"
+            class="flex w-full min-w-0 items-baseline whitespace-nowrap text-[clamp(1.78rem,8.2vw,2.35rem)] leading-[1.12] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            :class="
+              line.centered
+                ? 'justify-center gap-[0.1em]'
+                : 'justify-between'
+            "
+            :style="{ fontFamily }"
+          >
+            <button
+              v-for="word in line.words"
+              :key="word.location"
+              type="button"
+              translate="no"
+              class="inline-block shrink-0 rounded-[5px] border-0 bg-transparent p-0 text-inherit transition-colors duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--sqc-color-border-focus)]"
+              :class="
+                selectedLocation === word.location
+                  ? 'bg-[var(--sqc-color-action-primary)]/15 text-[color:var(--sqc-color-action-primary)]'
+                  : ''
+              "
+              :data-location="word.location"
+              :data-verse-key="word.verseKey"
+              :data-word-position="word.position"
+              @click="selectWord(word)"
+              v-html="word.codeV2"
+            />
+          </div>
+
+          <div
+            v-else-if="line.type === 'surah_name'"
+            class="flex h-[34px] w-full items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] text-center text-[15px] font-semibold text-[color:var(--sqc-color-mushaf-ink)]"
+          >
+            سورة {{ getSurahNameArabic(line.surahNumber ?? 0) }}
+          </div>
+
+          <div
+            v-else
+            class="text-center text-[24px] leading-none text-[color:var(--sqc-color-mushaf-ink)] [font-family:'Amiri_Quran','Noto_Naskh_Arabic',serif]"
+          >
+            ﷽
+          </div>
+        </div>
+      </section>
+
+      <footer
+        class="flex h-[48px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[4px]"
+      >
+        <span
+          class="flex min-h-[30px] min-w-[58px] items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[12px] text-[12px] font-medium text-[color:var(--sqc-color-mushaf-muted)]"
+        >
+          {{ toArabicNumber(page.pageNumber) }}
+        </span>
+      </footer>
+    </article>
   </main>
 </template>
