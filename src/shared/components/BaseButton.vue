@@ -27,7 +27,7 @@ const sizeClasses = computed(() => {
       'py-[var(--sqc-dimension-spacing-16)]',
       'text-[length:var(--sqc-typography-title-font-size)]',
       'leading-[var(--sqc-typography-title-line-height)]',
-      'font-[var(--sqc-typography-title-font-weight)]',
+      '[font-weight:var(--sqc-typography-title-font-weight)]',
     ]
   }
 
@@ -37,7 +37,7 @@ const sizeClasses = computed(() => {
       'py-[var(--sqc-dimension-spacing-8)]',
       'text-[length:var(--sqc-typography-label-font-size)]',
       'leading-[var(--sqc-typography-label-line-height)]',
-      'font-[var(--sqc-typography-label-font-weight)]',
+      '[font-weight:var(--sqc-typography-label-font-weight)]',
     ]
   }
 
@@ -46,7 +46,7 @@ const sizeClasses = computed(() => {
     'py-[var(--sqc-dimension-spacing-12)]',
     'text-[length:var(--sqc-typography-label-font-size)]',
     'leading-[var(--sqc-typography-label-line-height)]',
-    'font-[var(--sqc-typography-label-font-weight)]',
+    '[font-weight:var(--sqc-typography-label-font-weight)]',
   ]
 })
 
