@@ -67,7 +67,7 @@ async function fitAyahLine() {
 
     if (!wrapper || !content) return
 
-    const availableWidth = wrapper.clientWidth
+    const availableWidth = content.clientWidth
     const naturalWidth = content.scrollWidth
 
     if (
@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="host"
-    class="flex w-full min-w-0 items-center justify-center overflow-hidden"
+    class="flex w-full min-w-0 items-center justify-center overflow-visible"
     :class="{ 'justify-center': line.type !== 'ayah' }"
     dir="rtl"
     translate="no"
@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
             : 'text-[clamp(1.48rem,6vw,1.9rem)] leading-[1.5] max-[380px]:text-[clamp(1.36rem,6.15vw,1.62rem)]',
           line.centered
             ? 'w-auto justify-center gap-[0.12em]'
-            : 'w-full justify-between',
+            : 'w-[calc(100%_-_8px)] justify-between',
         ]"
         :style="{
           fontFamily,
