@@ -3,23 +3,37 @@ import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSession } from '@/modules/auth/composables'
 import { resolvePostAuthDestination } from '@/modules/auth/navigation'
+import { useAuthFlowStore } from '@/modules/auth/stores'
 import { BaseLoading } from '@/shared/components'
 
 const route = useRoute()
 const router = useRouter()
+const authFlow = useAuthFlowStore()
 const { refreshSession } = useAuthSession()
 
 onMounted(async () => {
   const session = await refreshSession()
 
   if (!session) {
+    void router.replace('/auth')
     return
   }
 
   if (session.authenticated) {
+    authFlow.reset()
     void router.replace(
       resolvePostAuthDestination(route.query.redirect),
     )
+    return
+  }
+
+  if (session.expired) {
+    void router.replace({
+      path: '/auth/session-expired',
+      query: typeof route.query.redirect === 'string'
+        ? { redirect: route.query.redirect }
+        : undefined,
+    })
     return
   }
 
