@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { buildLoginLocation } from '@/modules/auth/navigation'
-import { useAuthSessionStore } from '@/modules/auth/stores'
+import {
+  buildLoginLocation,
+  getSafeInternalRedirect,
+} from '@/modules/auth/navigation'
+import {
+  useAuthFlowStore,
+  useAuthSessionStore,
+} from '@/modules/auth/stores'
 import {
   BaseBanner,
   BaseButton,
@@ -9,13 +15,19 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const authFlow = useAuthFlowStore()
 const sessionStore = useAuthSessionStore()
+
+const routeRedirect = getSafeInternalRedirect(route.query.redirect)
+if (routeRedirect) {
+  authFlow.setPostAuthRedirect(routeRedirect)
+}
 
 sessionStore.clear()
 
 function goToLogin() {
   void router.push(
-    buildLoginLocation(route.query.redirect),
+    buildLoginLocation(authFlow.postAuthRedirect),
   )
 }
 </script>
