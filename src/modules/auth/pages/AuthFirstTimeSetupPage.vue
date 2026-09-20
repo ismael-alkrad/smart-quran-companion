@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { AuthActions, AuthIntro } from '@/modules/auth/components'
+import { useFirstTimeSetup } from '@/modules/auth/composables'
 import {
   BaseAppBar,
+  BaseBanner,
   BaseSegmentedControl,
   type BaseSegmentedOption,
 } from '@/shared/components'
 
-const router = useRouter()
-
-const focus = ref<BaseSegmentedOption['value']>('both')
-const pace = ref<BaseSegmentedOption['value']>('balanced')
+const {
+  focus,
+  pace,
+  requestError,
+  loading,
+  completeSetup,
+  goBack,
+} = useFirstTimeSetup()
 
 const focusOptions: BaseSegmentedOption[] = [
   { value: 'hifz', label: 'حفظ' },
@@ -24,14 +28,6 @@ const paceOptions: BaseSegmentedOption[] = [
   { value: 'balanced', label: 'متوازن' },
   { value: 'intensive', label: 'مكثف' },
 ]
-
-function goBack() {
-  void router.push('/auth/account-ready')
-}
-
-function goToStartup() {
-  void router.push('/auth/startup')
-}
 </script>
 
 <template>
@@ -53,6 +49,13 @@ function goToStartup() {
         <AuthIntro
           title="خلّينا نضبط خطتك"
           description="اختيارات البداية تساعدنا على ترتيب Home والمراجعة. يمكنك تغييرها لاحقًا من الإعدادات."
+        />
+
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر حفظ الإعداد"
+          :body="requestError"
         />
 
         <section class="flex w-full flex-col items-end gap-[8px] overflow-hidden">
@@ -94,7 +97,9 @@ function goToStartup() {
 
         <AuthActions
           primary-label="ابدأ الاستخدام"
-          @primary="goToStartup"
+          :primary-loading="loading"
+          primary-loading-text="جارٍ حفظ الإعداد"
+          @primary="completeSetup"
         />
       </div>
     </div>

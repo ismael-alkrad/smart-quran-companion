@@ -3,6 +3,8 @@ export {
   useAuthSessionStatus,
 } from '@/modules/auth/api/useAuthApi'
 export type {
+  AuthCompleteOnboardingParams,
+  AuthCompleteOnboardingResponse,
   AuthEmailParams,
   AuthLoginParams,
   AuthLoginResponse,
@@ -28,4 +30,6 @@ export type {
   AuthStatusResponse,
   AuthVerificationParams,
   AuthVerificationResponse,
+  OnboardingFocus,
+  OnboardingPace,
 } from '@/modules/auth/api/contracts'

@@ -34,6 +34,26 @@ export interface AuthOAuthLinkParams extends Record<string, unknown> {
   link_token: string
 }
 
+export type OnboardingFocus = 'hifz' | 'review' | 'both'
+export type OnboardingPace = 'light' | 'balanced' | 'intensive'
+
+export interface AuthCompleteOnboardingParams extends Record<string, unknown> {
+  focus: OnboardingFocus
+  pace: OnboardingPace
+}
+
+export type AuthCompleteOnboardingResponse =
+  | {
+      ok: true
+      status: 'completed'
+      focus: OnboardingFocus
+      pace: OnboardingPace
+    }
+  | {
+      ok: false
+      status: 'invalid_preferences'
+    }
+
 export interface AuthStatusResponse<TStatus extends string> {
   ok: boolean
   status: TStatus
@@ -156,6 +176,7 @@ export interface AuthSessionUser {
   last_name?: string | null
   user_image?: string | null
   user_type?: string | null
+  onboarding_completed: boolean
 }
 
 export type AuthSessionStatusResponse =
@@ -214,6 +235,10 @@ export interface AuthMutationContract {
   oauthLink: {
     params: AuthOAuthLinkParams
     response: AuthOAuthLinkResponse
+  }
+  completeOnboarding: {
+    params: AuthCompleteOnboardingParams
+    response: AuthCompleteOnboardingResponse
   }
 }
 
