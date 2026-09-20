@@ -5,12 +5,16 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthMutation } from '@/modules/auth/api'
 import { useAuthSession } from '@/modules/auth/composables/useAuthSession'
 import {
+  buildOAuthErrorLocation,
+  getOAuthFailureReason,
+  getOAuthProvider,
   getSafeInternalRedirect,
   resolvePostAuthDestination,
 } from '@/modules/auth/navigation'
 import { createOAuthPkcePair } from '@/modules/auth/oauth/pkce'
 import { useAuthFlowStore } from '@/modules/auth/stores'
 import type {
+  OAuthFailureReason,
   OAuthPlatform,
   OAuthProvider,
 } from '@/modules/auth/types/oauth'
@@ -51,6 +55,15 @@ export function useOAuthFlow() {
   const starting = computed(() => oauthStartCall.loading)
   const completing = computed(() => oauthCompleteCall.loading)
 
+  function goToOAuthError(
+    provider: OAuthProvider | undefined,
+    reason: OAuthFailureReason,
+  ) {
+    authFlow.clearOAuthState()
+    completionPhase.value = 'error'
+    void router.replace(buildOAuthErrorLocation(provider, reason))
+  }
+
   async function beginOAuth(provider: OAuthProvider) {
     oauthError.value = undefined
 
@@ -85,13 +98,14 @@ export function useOAuthFlow() {
         return
       }
 
-      authFlow.clearOAuthState()
-      oauthError.value =
-        'تعذر بدء تسجيل الدخول باستخدام مزود الحساب الآن. حاول مرة أخرى.'
+      goToOAuthError(
+        provider,
+        response?.status === 'provider_unavailable'
+          ? 'provider_unavailable'
+          : 'provider_error',
+      )
     } catch {
-      authFlow.clearOAuthState()
-      oauthError.value =
-        'تعذر بدء تسجيل الدخول الآمن على هذا الجهاز. حاول مرة أخرى.'
+      goToOAuthError(provider, 'provider_error')
     }
   }
 
@@ -99,36 +113,39 @@ export function useOAuthFlow() {
     completionPhase.value = 'connecting'
     oauthError.value = undefined
 
+    const callbackProvider =
+      getOAuthProvider(route.query.provider)
+      ?? (authFlow.oauthProvider || undefined)
+
     if (queryString(route.query.oauth_error)) {
-      authFlow.clearOAuthState()
-      completionPhase.value = 'error'
-      oauthError.value =
-        'لم يكتمل تسجيل الدخول باستخدام مزود الحساب.'
+      const reason = getOAuthFailureReason(route.query.oauth_error)
+      goToOAuthError(callbackProvider, reason)
       return
     }
 
     const state = queryString(route.query.state)
     if (!state) {
-      authFlow.clearOAuthState()
-      completionPhase.value = 'error'
-      oauthError.value =
-        'محاولة تسجيل الدخول غير صالحة أو انتهت صلاحيتها.'
+      goToOAuthError(callbackProvider, 'invalid_state')
       return
     }
 
-    const response = await oauthCompleteCall.submit({
-      state,
-      code_verifier: authFlow.oauthCodeVerifier,
-    })
+    let response
+
+    try {
+      response = await oauthCompleteCall.submit({
+        state,
+        code_verifier: authFlow.oauthCodeVerifier,
+      })
+    } catch {
+      goToOAuthError(callbackProvider, 'provider_error')
+      return
+    }
 
     if (response?.ok && response.status === 'authenticated') {
       const session = await refreshSession()
 
       if (!session?.authenticated) {
-        authFlow.clearOAuthState()
-        completionPhase.value = 'error'
-        oauthError.value =
-          'اكتمل تسجيل الدخول، لكن تعذر إنشاء الجلسة المحلية.'
+        goToOAuthError(response.provider, 'session_failed')
         return
       }
 
@@ -163,10 +180,49 @@ export function useOAuthFlow() {
       return
     }
 
-    authFlow.clearOAuthState()
-    completionPhase.value = 'error'
-    oauthError.value =
-      'تعذر إكمال تسجيل الدخول باستخدام مزود الحساب.'
+    const provider =
+      response?.provider
+      ?? callbackProvider
+
+    if (!response) {
+      goToOAuthError(provider, 'provider_error')
+      return
+    }
+
+    if (response.status === 'provider_unavailable') {
+      goToOAuthError(provider, 'provider_unavailable')
+      return
+    }
+
+    if (
+      response.status === 'invalid_or_expired_oauth_state'
+      || response.status === 'invalid_pkce_verifier'
+    ) {
+      goToOAuthError(provider, 'invalid_state')
+      return
+    }
+
+    if (response.status === 'token_exchange_failed') {
+      goToOAuthError(provider, 'token_exchange_failed')
+      return
+    }
+
+    if (response.status === 'identity_verification_failed') {
+      goToOAuthError(provider, 'identity_verification_failed')
+      return
+    }
+
+    if (response.status === 'account_unavailable') {
+      goToOAuthError(provider, 'account_unavailable')
+      return
+    }
+
+    if (response.status === 'provider_already_linked') {
+      goToOAuthError(provider, 'provider_already_linked')
+      return
+    }
+
+    goToOAuthError(provider, 'provider_error')
   }
 
   return {
