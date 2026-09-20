@@ -18,8 +18,8 @@ function goBack() {
   void router.push('/auth')
 }
 
-function goToRegister() {
-  void router.push('/auth/register')
+function goToLogin() {
+  void router.push('/auth/login')
 }
 </script>
 
@@ -34,21 +34,20 @@ function goToRegister() {
       >
         <BaseAppBar
           type="back"
-          title="تسجيل الدخول"
+          title="إنشاء حساب"
           back-label="رجوع"
           @back="goBack"
         />
 
         <AuthIntro
-          title="مرحبًا بعودتك"
-          description="ادخل إلى حسابك لمتابعة الحفظ والمراجعة من آخر موضع."
+          title="أنشئ حسابك"
+          description="احفظ تقدمك وارجع إلى خطتك من أي جهاز."
         />
 
         <OAuthOptions />
 
         <AuthForm
-          footer-text="نسيت كلمة المرور؟"
-          footer-variant="action"
+          footer-text="بإنشاء الحساب، يمكنك لاحقًا التحكم في إعدادات الخصوصية والذكاء الاصطناعي من داخل التطبيق."
         >
           <BaseInput
             v-model="email"
@@ -66,9 +65,9 @@ function goToRegister() {
         </AuthForm>
 
         <AuthActions
-          primary-label="دخول"
-          secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
-          @secondary="goToRegister"
+          primary-label="إنشاء الحساب"
+          secondary-label="لديك حساب؟ تسجيل الدخول"
+          @secondary="goToLogin"
         />
       </div>
     </div>

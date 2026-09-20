@@ -15,6 +15,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthLoginPage.vue'),
     },
     {
+      path: '/auth/register',
+      name: 'auth-register',
+      component: () => import('@/modules/auth/pages/AuthRegisterPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),

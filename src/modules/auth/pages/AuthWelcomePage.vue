@@ -11,6 +11,10 @@ const router = useRouter()
 function goToLogin() {
   void router.push('/auth/login')
 }
+
+function goToRegister() {
+  void router.push('/auth/register')
+}
 </script>
 
 <template>
@@ -36,6 +40,7 @@ function goToLogin() {
           primary-label="تسجيل الدخول بالبريد الإلكتروني"
           secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
           @primary="goToLogin"
+          @secondary="goToRegister"
         />
 
         <p
