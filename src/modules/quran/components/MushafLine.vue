@@ -30,9 +30,19 @@ function cancelScheduledMeasure() {
   }
 }
 
+function shouldFitAyahLine() {
+  if (typeof window === 'undefined') return true
+
+  return !window.matchMedia('(min-width: 600px)').matches
+}
+
 async function fitAyahLine() {
-  if (props.line.type !== 'ayah') {
+  if (
+    props.line.type !== 'ayah'
+    || !shouldFitAyahLine()
+  ) {
     fittedFontSize.value = undefined
+    cancelScheduledMeasure()
     return
   }
 
