@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc -b --force",
     "lint": "oxlint src",
-    "quran:prepare": "node scripts/prepare-quran-assets.mjs",
+    "quran:prepare": "python scripts/prepare_quran_core.py",
+    "quran:verify": "python scripts/verify_quran_core.py",
     "cap:sync": "cap sync",
     "android": "cap open android",
     "ios": "cap open ios"

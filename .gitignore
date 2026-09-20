@@ -5,8 +5,16 @@ dist/
 .env.*.local
 .DS_Store
 *.log
+
+# Capacitor generated/local state
 android/.gradle/
 android/local.properties
 ios/App/Pods/
 ios/App/App.xcworkspace/xcuserdata/
-public/quran/fonts/
+
+# Downloaded Quran source packages and generated offline core.
+.quran-source/
+public/quran/core/*
+!public/quran/core/.gitkeep
+public/quran/fonts/v2/*
+!public/quran/fonts/v2/.gitkeep

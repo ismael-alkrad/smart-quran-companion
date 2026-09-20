@@ -1,15 +1,20 @@
-const loadedFonts = new Map<number, Promise<string>>()
-const FONT_BASE = 'https://verses.quran.foundation/fonts/quran/hafs/v2/woff2'
-
-function getFontUrl(pageNumber: number) {
-  if (import.meta.env.VITE_QURAN_FONT_SOURCE === 'local') {
-    return `/quran/fonts/v2/p${pageNumber}.woff2`
+export class QuranFontNotPreparedError extends Error {
+  constructor(pageNumber: number) {
+    super(
+      `QCF V2 font for Mushaf page ${pageNumber} is missing from the local Quran Core assets.`,
+    )
+    this.name = 'QuranFontNotPreparedError'
   }
-  return `${FONT_BASE}/p${pageNumber}.woff2`
 }
+
+const loadedFonts = new Map<number, Promise<string>>()
 
 export function getQcfV2FontFamily(pageNumber: number) {
   return `p${pageNumber}-v2`
+}
+
+function getLocalFontUrl(pageNumber: number) {
+  return `/quran/fonts/v2/p${pageNumber}.woff2`
 }
 
 export async function loadQcfV2PageFont(pageNumber: number): Promise<string> {
@@ -18,15 +23,23 @@ export async function loadQcfV2PageFont(pageNumber: number): Promise<string> {
 
   const promise = (async () => {
     const family = getQcfV2FontFamily(pageNumber)
-    const fontFace = new FontFace(family, `url("${getFontUrl(pageNumber)}") format("woff2")`, {
-      display: 'block',
-    })
+    const response = await fetch(getLocalFontUrl(pageNumber), { cache: 'force-cache' })
+
+    if (!response.ok) {
+      throw new QuranFontNotPreparedError(pageNumber)
+    }
+
+    const fontData = await response.arrayBuffer()
+    const fontFace = new FontFace(family, fontData, { display: 'block' })
+
     await fontFace.load()
     document.fonts.add(fontFace)
+
     return family
   })()
 
   loadedFonts.set(pageNumber, promise)
+
   try {
     return await promise
   } catch (error) {

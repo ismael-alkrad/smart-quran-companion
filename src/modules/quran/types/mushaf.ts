@@ -8,8 +8,6 @@ export interface MushafWord {
   pageNumber: number
   lineNumber: number
   codeV2: string
-  textQpcHafs?: string
-  charTypeName?: string
 }
 
 export interface MushafLine {
@@ -20,16 +18,21 @@ export interface MushafLine {
   words: MushafWord[]
 }
 
-export interface MushafChapter {
-  number: number
-  nameArabic: string
-}
-
 export interface MushafPage {
   pageNumber: number
-  juzNumber: number | null
-  chapters: MushafChapter[]
+  juzNumber: number
+  chapters: number[]
   lines: MushafLine[]
-  source: 'quran-foundation'
+  source: 'qul-local'
   mushaf: 'qcf-v2'
+}
+
+export interface QuranCoreManifest {
+  version: number
+  mushaf: 'qcf-v2'
+  source: 'qul'
+  pages: number
+  linesPerPage: number
+  generatedAt: string
+  fontsIncluded: boolean
 }

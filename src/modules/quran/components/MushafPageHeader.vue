@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { MushafChapter } from '@/modules/quran/types/mushaf'
+
+import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
-const props = defineProps<{ chapters: MushafChapter[]; juzNumber: number | null }>()
+const props = defineProps<{
+  chapters: number[]
+  juzNumber: number
+}>()
+
 const surahTitle = computed(() => {
-  const names = props.chapters.map((chapter) => chapter.nameArabic).filter(Boolean)
-  return names.length ? `سورة ${names.join(' / ')}` : 'القرآن الكريم'
+  if (!props.chapters.length) return 'القرآن الكريم'
+  return props.chapters.map((number) => `سورة ${getSurahNameArabic(number)}`).join(' / ')
 })
 </script>
 
 <template>
   <header class="mushaf-header" aria-label="معلومات الصفحة">
     <span class="mushaf-header__surah">{{ surahTitle }}</span>
-    <span v-if="juzNumber" class="mushaf-header__juz">الجزء {{ toArabicNumber(juzNumber) }}</span>
+    <span class="mushaf-header__juz">الجزء {{ toArabicNumber(juzNumber) }}</span>
   </header>
 </template>
 
@@ -29,9 +34,11 @@ const surahTitle = computed(() => {
   border-radius: 18px;
   padding: 7px 22px;
   color: #292521;
-  font-size: .93rem;
+  font-size: 0.93rem;
 }
-.mushaf-header::before, .mushaf-header::after {
+
+.mushaf-header::before,
+.mushaf-header::after {
   position: absolute;
   top: 50%;
   width: 9px;
@@ -41,8 +48,25 @@ const surahTitle = computed(() => {
   content: "";
   transform: translateY(-50%) rotate(45deg);
 }
-.mushaf-header::before { right: -5px; }
-.mushaf-header::after { left: -5px; }
-.mushaf-header__surah { font-weight: 600; }
-.mushaf-header__juz { color: #665a49; white-space: nowrap; }
+
+.mushaf-header::before {
+  right: -5px;
+}
+
+.mushaf-header::after {
+  left: -5px;
+}
+
+.mushaf-header__surah {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mushaf-header__juz {
+  flex: 0 0 auto;
+  color: #665a49;
+  white-space: nowrap;
+}
 </style>
