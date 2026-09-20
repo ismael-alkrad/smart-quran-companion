@@ -14,6 +14,8 @@ const AUTH_MUTATION_METHODS = {
   logout: 'auth.logout',
   requestPasswordReset: 'auth.request_password_reset',
   resetPassword: 'auth.reset_password',
+  oauthStart: 'oauth.start',
+  oauthComplete: 'oauth.complete',
 } as const satisfies Record<AuthMutationKey, string>
 
 const AUTH_QUERY_METHODS = {
