@@ -46,9 +46,16 @@ const chipClasses = computed(() => {
     class="flex h-[132px] w-full flex-col items-start gap-[var(--sqc-dimension-spacing-12)] rounded-[var(--sqc-dimension-radius-12)] bg-[var(--sqc-color-background-elevated)] p-[var(--sqc-dimension-spacing-16)] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
-      dir="ltr"
+      dir="rtl"
       class="flex h-[30px] w-full shrink-0 items-center justify-between overflow-hidden"
     >
+      <h3
+        dir="rtl"
+        class="shrink-0 whitespace-nowrap text-right text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
+      >
+        {{ title }}
+      </h3>
+
       <span
         dir="rtl"
         class="shrink-0 rounded-[var(--sqc-dimension-radius-999)] px-[var(--sqc-dimension-spacing-8)] py-[var(--sqc-dimension-spacing-4)] text-[12px] font-medium leading-[18px]"
@@ -56,24 +63,17 @@ const chipClasses = computed(() => {
       >
         {{ metric }}
       </span>
-
-      <h3
-        dir="rtl"
-        class="shrink-0 whitespace-nowrap text-right text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
-      >
-        {{ title }}
-      </h3>
     </div>
 
     <p
-      dir="auto"
+      dir="rtl"
       class="w-full text-right text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
     >
       {{ location }}
     </p>
 
     <p
-      dir="auto"
+      dir="rtl"
       class="w-full text-right text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-tertiary)]"
     >
       أضيف تلقائيًا إلى المراجعة الذكية
