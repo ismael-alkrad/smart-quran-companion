@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
+import { buildLoginLocation } from '@/modules/auth/navigation'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 import {
   BaseBanner,
   BaseButton,
@@ -7,28 +9,14 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const sessionStore = useAuthSessionStore()
 
-function getSafeRedirect() {
-  const redirect = route.query.redirect
-
-  if (
-    typeof redirect !== 'string'
-    || !redirect.startsWith('/')
-    || redirect.startsWith('//')
-  ) {
-    return undefined
-  }
-
-  return redirect
-}
+sessionStore.clear()
 
 function goToLogin() {
-  const redirect = getSafeRedirect()
-
-  void router.push({
-    path: '/auth/login',
-    query: redirect ? { redirect } : undefined,
-  })
+  void router.push(
+    buildLoginLocation(route.query.redirect),
+  )
 }
 </script>
 
