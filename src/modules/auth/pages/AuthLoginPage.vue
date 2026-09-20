@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { useLoginFlow } from '@/modules/auth/composables'
+import {
+  useLoginFlow,
+  useOAuthFlow,
+} from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthCredentialsFields,
@@ -22,6 +25,12 @@ const {
   goToRegister,
   goToForgotPassword,
 } = useLoginFlow()
+
+const {
+  oauthError,
+  starting: oauthStarting,
+  beginOAuth,
+} = useOAuthFlow()
 </script>
 
 <template>
@@ -45,7 +54,17 @@ const {
           description="ادخل إلى حسابك لمتابعة الحفظ والمراجعة من آخر موضع."
         />
 
-        <OAuthOptions />
+        <OAuthOptions
+          :disabled="oauthStarting"
+          @select="beginOAuth"
+        />
+
+        <BaseBanner
+          v-if="oauthError"
+          tone="error"
+          title="تعذر بدء تسجيل الدخول"
+          :body="oauthError"
+        />
 
         <BaseBanner
           v-if="requestError"
