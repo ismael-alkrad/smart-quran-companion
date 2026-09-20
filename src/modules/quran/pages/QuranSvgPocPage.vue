@@ -200,11 +200,11 @@ onBeforeUnmount(() => {
       aria-label="تجربة صفحة المصحف على الهاتف"
     >
       <MushafOrnamentalFrame
-        class="pointer-events-none absolute inset-[6px] z-20"
+        class="pointer-events-none absolute inset-[5px] z-20"
       />
 
       <header
-        class="relative z-30 mx-[22px] mt-[max(18px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 mx-[24px] mt-[max(18px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
           class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
 
       <section
         ref="textSurface"
-        class="relative z-10 grid min-h-0 flex-1 translate-x-[2px] grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[8px] pt-[10px]"
+        class="relative z-10 grid min-h-0 flex-1 translate-x-[6px] grid-rows-[repeat(15,minmax(0,1fr))] px-[31px] pb-[8px] pt-[10px]"
         aria-label="نص صفحة المصحف"
       >
         <div
