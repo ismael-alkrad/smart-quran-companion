@@ -32,17 +32,10 @@ const navRoutes: BaseBottomNavRoutes = {
         class="mx-auto w-full sm:max-w-[720px] lg:max-w-[1130px]"
       >
         <header
-          dir="ltr"
+          dir="rtl"
           class="flex h-[64px] w-full items-center justify-between overflow-hidden"
         >
-          <BaseAvatar
-            type="placeholder"
-            size="medium"
-            aria-label="صورة الحساب"
-          />
-
           <div
-            dir="rtl"
             class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right"
           >
             <h1
@@ -59,6 +52,12 @@ const navRoutes: BaseBottomNavRoutes = {
               {{ subtitle }}
             </p>
           </div>
+
+          <BaseAvatar
+            type="placeholder"
+            size="medium"
+            aria-label="صورة الحساب"
+          />
         </header>
 
         <div class="mt-[16px] lg:mt-[24px]">
