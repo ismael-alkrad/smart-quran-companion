@@ -21,6 +21,10 @@ function goBack() {
 function goToLogin() {
   void router.push('/auth/login')
 }
+
+function goToVerifyEmail() {
+  void router.push('/auth/verify-email')
+}
 </script>
 
 <template>
@@ -67,6 +71,7 @@ function goToLogin() {
         <AuthActions
           primary-label="إنشاء الحساب"
           secondary-label="لديك حساب؟ تسجيل الدخول"
+          @primary="goToVerifyEmail"
           @secondary="goToLogin"
         />
       </div>

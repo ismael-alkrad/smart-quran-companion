@@ -20,6 +20,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthRegisterPage.vue'),
     },
     {
+      path: '/auth/verify-email',
+      name: 'auth-verify-email',
+      component: () => import('@/modules/auth/pages/AuthVerifyEmailPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
