@@ -28,6 +28,7 @@ export default defineConfig({
         changeOrigin: true,
         headers: {
           Host: 'quran.localhost:8000',
+          'X-Frappe-Site-Name': 'quran.localhost',
         },
       },
     },
