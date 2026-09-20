@@ -18,21 +18,11 @@ function exploreQuran() {
 <template>
   <HomePageScaffold subtitle="ابدأ بخطة بسيطة ويمكنك تعديلها لاحقًا">
     <div
-      dir="ltr"
-      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-start lg:gap-x-[24px] lg:gap-y-[24px]"
+      dir="rtl"
+      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-x-[24px] lg:gap-y-[24px]"
     >
-      <BaseEmptyState
-        dir="rtl"
-        title="ابدأ رحلتك القرآنية"
-        body="حدد وردك اليومي والحفظ والمراجعة، وسنبني لك تقدمًا واضحًا مع الوقت."
-        action-label="استكشاف"
-        class="!w-full lg:col-start-1 lg:row-start-1"
-        @action="exploreQuran"
-      />
-
       <section
-        dir="rtl"
-        class="flex w-full flex-col items-end gap-[16px] lg:col-start-2 lg:row-span-2 lg:row-start-1"
+        class="flex w-full flex-col items-end gap-[16px] lg:col-start-1 lg:row-span-2 lg:row-start-1"
       >
         <h2
           dir="rtl"
@@ -57,9 +47,18 @@ function exploreQuran() {
         />
       </section>
 
+      <BaseEmptyState
+        dir="rtl"
+        title="ابدأ رحلتك القرآنية"
+        body="حدد وردك اليومي والحفظ والمراجعة، وسنبني لك تقدمًا واضحًا مع الوقت."
+        action-label="استكشاف"
+        class="!w-full lg:col-start-2 lg:row-start-1"
+        @action="exploreQuran"
+      />
+
       <HomeTasmeeCta
         dir="rtl"
-        class="lg:col-start-1 lg:row-start-2"
+        class="lg:col-start-2 lg:row-start-2"
       />
     </div>
   </HomePageScaffold>
