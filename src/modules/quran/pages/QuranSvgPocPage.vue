@@ -27,6 +27,31 @@ let fitFrame = 0
 
 const page = computed(() => pageQuery.data.value ?? null)
 
+const verseMarkerLocations = computed(() => {
+  const currentPage = page.value
+  if (!currentPage) return new Set<string>()
+
+  const words = currentPage.lines.flatMap(line => line.words)
+  const markers = new Set<string>()
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index]
+    const nextWord = words[index + 1]
+
+    if (!word) continue
+
+    if (!nextWord || nextWord.verseKey !== word.verseKey) {
+      markers.add(word.location)
+    }
+  }
+
+  return markers
+})
+
+function isVerseMarker(word: MushafWord) {
+  return verseMarkerLocations.value.has(word.location)
+}
+
 const surahName = computed(() => {
   const surahNumber = page.value?.chapters[0]
 
@@ -170,7 +195,7 @@ onBeforeUnmount(() => {
       v-else
       dir="rtl"
       translate="no"
-      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd]"
+      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
       aria-label="تجربة صفحة المصحف على الهاتف"
     >
       <header
@@ -222,11 +247,14 @@ onBeforeUnmount(() => {
               type="button"
               translate="no"
               class="inline-block shrink-0 rounded-[4px] border-0 bg-transparent p-0 text-inherit [font:inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--sqc-color-border-focus)]"
-              :class="
+              :class="[
+                isVerseMarker(word)
+                  ? 'text-[color:var(--sqc-poc-marker)]'
+                  : '',
                 selectedLocation === word.location
                   ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
-                  : ''
-              "
+                  : '',
+              ]"
               :data-location="word.location"
               :data-verse-key="word.verseKey"
               :data-word-position="word.position"
