@@ -9,7 +9,7 @@ import { useAuthSessionStore } from '@/modules/auth/stores'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', redirect: '/quran/31' },
+    { path: '/', redirect: '/home' },
     {
       path: '/auth',
       name: 'auth-welcome',
@@ -114,6 +114,12 @@ const router = createRouter({
       name: 'auth-session-expired',
       meta: { guestOnly: true },
       component: () => import('@/modules/auth/pages/AuthSessionExpiredPage.vue'),
+    },
+    {
+      path: '/home',
+      name: 'home',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/home/pages/HomeNewUserPage.vue'),
     },
     {
       path: '/quran/:page(\\d+)',
