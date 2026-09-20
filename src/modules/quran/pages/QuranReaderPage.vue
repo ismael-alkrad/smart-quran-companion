@@ -47,6 +47,8 @@ const suppressNextClick = ref(false)
 const spreadTurnDirection = ref<ReaderDirection | null>(null)
 const spreadTurnProgress = ref(0)
 const spreadSettling = ref(false)
+const frozenSpreadTargetLeftPage = ref<MushafPage | null>(null)
+const frozenSpreadTargetRightPage = ref<MushafPage | null>(null)
 
 const readingPositionCall = useQuranReadingPositionQuery()
 const savePositionCall = useSaveQuranReadingPositionMutation()
@@ -222,29 +224,28 @@ const previousSpreadRightPage = computed(() =>
   ),
 )
 
-const targetSpreadLeftPage = computed(() => {
-  if (spreadTurnDirection.value === 'next') {
-    return nextSpreadLeftPage.value
-  }
+const targetSpreadLeftPage = computed(() =>
+  frozenSpreadTargetLeftPage.value,
+)
 
-  if (spreadTurnDirection.value === 'previous') {
-    return previousSpreadLeftPage.value
-  }
+const targetSpreadRightPage = computed(() =>
+  frozenSpreadTargetRightPage.value,
+)
 
-  return null
-})
+function prepareSpreadTarget(direction: ReaderDirection) {
+  frozenSpreadTargetLeftPage.value = direction === 'next'
+    ? nextSpreadLeftPage.value
+    : previousSpreadLeftPage.value
 
-const targetSpreadRightPage = computed(() => {
-  if (spreadTurnDirection.value === 'next') {
-    return nextSpreadRightPage.value
-  }
+  frozenSpreadTargetRightPage.value = direction === 'next'
+    ? nextSpreadRightPage.value
+    : previousSpreadRightPage.value
+}
 
-  if (spreadTurnDirection.value === 'previous') {
-    return previousSpreadRightPage.value
-  }
-
-  return null
-})
+function clearSpreadTarget() {
+  frozenSpreadTargetLeftPage.value = null
+  frozenSpreadTargetRightPage.value = null
+}
 
 const firstVerseAnchor = computed(() => {
   for (const line of primaryPage.value?.lines ?? []) {
@@ -480,6 +481,7 @@ async function settleSpreadTurn(
   spreadTurnDirection.value = null
   spreadTurnProgress.value = 0
   spreadSettling.value = false
+  clearSpreadTarget()
   isTurning.value = false
 }
 
@@ -487,6 +489,7 @@ async function animateSpreadTurn(direction: ReaderDirection) {
   if (isTurning.value || !canNavigate(direction)) return
 
   isTurning.value = true
+  prepareSpreadTarget(direction)
   spreadTurnDirection.value = direction
   spreadTurnProgress.value = 0
   spreadSettling.value = true
@@ -502,6 +505,7 @@ async function animateSpreadTurn(direction: ReaderDirection) {
   spreadTurnDirection.value = null
   spreadTurnProgress.value = 0
   spreadSettling.value = false
+  clearSpreadTarget()
   isTurning.value = false
 }
 
@@ -579,6 +583,7 @@ function handlePointerMove(event: PointerEvent) {
       mobileDragX.value = 0
       spreadTurnDirection.value = null
       spreadTurnProgress.value = 0
+      clearSpreadTarget()
       return
     }
 
@@ -595,6 +600,10 @@ function handlePointerMove(event: PointerEvent) {
       spreadTurnDirection.value = null
       spreadTurnProgress.value = 0
       return
+    }
+
+    if (spreadTurnDirection.value !== direction) {
+      prepareSpreadTarget(direction)
     }
 
     spreadTurnDirection.value = direction
@@ -721,6 +730,7 @@ function updateSpreadViewport(matches: boolean) {
   spreadTurnDirection.value = null
   spreadTurnProgress.value = 0
   spreadSettling.value = false
+  clearSpreadTarget()
   isTurning.value = false
 }
 
