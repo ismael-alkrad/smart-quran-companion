@@ -55,6 +55,27 @@ export type AuthPasswordResetResponse = AuthStatusResponse<
   'password_updated' | 'invalid_or_expired_code'
 >
 
+export interface AuthSessionUser {
+  name: string
+  email?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  user_image?: string | null
+  user_type?: string | null
+}
+
+export type AuthSessionStatusResponse =
+  | {
+      ok: true
+      authenticated: false
+      user?: never
+    }
+  | {
+      ok: true
+      authenticated: true
+      user: AuthSessionUser | null
+    }
+
 export interface AuthMutationContract {
   register: {
     params: AuthRegisterParams
