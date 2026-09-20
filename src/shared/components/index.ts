@@ -24,3 +24,5 @@ export type {
 } from '@/shared/components/BaseBottomNav.vue'
 export { default as BaseModal } from '@/shared/components/BaseModal.vue'
 export type { BaseModalTone } from '@/shared/components/BaseModal.vue'
+export { default as BaseBottomSheet } from '@/shared/components/BaseBottomSheet.vue'
+export type { BaseBottomSheetSize } from '@/shared/components/BaseBottomSheet.vue'
