@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
       />
 
       <header
-        class="relative z-30 mx-[26px] mt-[max(18px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 mx-[32px] mt-[max(18px,env(safe-area-inset-top))] flex h-[38px] shrink-0 items-center justify-between px-[8px] text-[color:var(--sqc-poc-accent-strong)]"
       >
         <span
           class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
@@ -285,10 +285,10 @@ onBeforeUnmount(() => {
       </section>
 
       <footer
-        class="relative z-30 flex h-[48px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px] before:absolute before:start-[calc(50%_-_44px)] before:top-[11px] before:size-[6px] before:rotate-45 before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[calc(50%_-_44px)] after:top-[11px] after:size-[6px] after:rotate-45 after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 flex h-[42px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[4px]"
       >
         <span
-          class="flex min-h-[28px] min-w-[54px] items-center justify-center rounded-[12px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[12px] text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)]"
+          class="flex min-h-[24px] min-w-[42px] items-center justify-center px-[8px] text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
         >
           {{ toArabicNumber(page.pageNumber) }}
         </span>
