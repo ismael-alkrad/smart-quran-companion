@@ -1,26 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { usePasswordResetFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
+  AuthCodeField,
   AuthForm,
   AuthIntro,
+  AuthNewPasswordFields,
 } from '@/modules/auth/components'
-import { BaseAppBar, BaseInput } from '@/shared/components'
+import {
+  BaseAppBar,
+  BaseBanner,
+} from '@/shared/components'
 
-const router = useRouter()
-
-const recoveryCode = ref('')
-const password = ref('')
-const passwordConfirmation = ref('')
-
-function goBack() {
-  void router.push('/auth/forgot-password')
-}
-
-function goToResetSuccess() {
-  void router.push('/auth/password-reset-success')
-}
+const {
+  passwordResetCode,
+  password,
+  confirmation,
+  requestError,
+  codeError,
+  passwordError,
+  confirmationError,
+  resetting,
+  resetPassword,
+  goToForgotPassword,
+} = usePasswordResetFlow()
 </script>
 
 <template>
@@ -36,7 +39,7 @@ function goToResetSuccess() {
           type="back"
           title="كلمة مرور جديدة"
           back-label="رجوع"
-          @back="goBack"
+          @back="goToForgotPassword"
         />
 
         <AuthIntro
@@ -44,31 +47,33 @@ function goToResetSuccess() {
           description="استخدم كلمة مرور قوية ومختلفة للحفاظ على حسابك."
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر تحديث كلمة المرور"
+          :body="requestError"
+        />
+
         <AuthForm>
-          <BaseInput
-            v-model="recoveryCode"
+          <AuthCodeField
+            v-model="passwordResetCode"
             label="رمز الاستعادة"
-            placeholder="— — — — — —"
+            :error="codeError"
           />
 
-          <BaseInput
-            v-model="password"
-            type="password"
-            label="كلمة المرور الجديدة"
-            placeholder="••••••••"
-          />
-
-          <BaseInput
-            v-model="passwordConfirmation"
-            type="password"
-            label="تأكيد كلمة المرور"
-            placeholder="••••••••"
+          <AuthNewPasswordFields
+            v-model:password="password"
+            v-model:confirmation="confirmation"
+            :password-error="passwordError"
+            :confirmation-error="confirmationError"
           />
         </AuthForm>
 
         <AuthActions
           primary-label="تحديث كلمة المرور"
-          @primary="goToResetSuccess"
+          :primary-loading="resetting"
+          primary-loading-text="جارٍ تحديث كلمة المرور"
+          @primary="resetPassword"
         />
       </div>
     </div>
