@@ -11,105 +11,35 @@ defineProps<{
 
 <template>
   <div
-    class="mushaf-line"
-    :class="{
-      'mushaf-line--centered': line.centered,
-      'mushaf-line--surah': line.type === 'surah_name',
-      'mushaf-line--basmallah': line.type === 'basmallah',
-    }"
+    class="flex w-full min-w-0 items-center"
+    :class="{ 'justify-center': line.type !== 'ayah' }"
     dir="rtl"
     translate="no"
     :data-line-number="line.lineNumber"
     :data-line-type="line.type"
   >
     <template v-if="line.type === 'ayah'">
-      <div class="mushaf-line__glyphs" :style="{ fontFamily }">
+      <div
+        class="flex min-w-0 items-baseline whitespace-nowrap text-[#11100f] [font-kerning:normal] [text-rendering:optimizeLegibility] text-[clamp(1.48rem,6vw,1.9rem)] leading-[1.5] max-[380px]:text-[clamp(1.36rem,6.15vw,1.62rem)]"
+        :class="line.centered ? 'mx-auto w-auto justify-center gap-[0.12em]' : 'w-full justify-between'"
+        :style="{ fontFamily }"
+      >
         <MushafWord v-for="word in line.words" :key="word.location" :word="word" />
       </div>
     </template>
 
-    <div v-else-if="line.type === 'surah_name'" class="mushaf-line__surah-name">
+    <div
+      v-else-if="line.type === 'surah_name'"
+      class="relative w-[min(84%,320px)] py-[5px] text-center text-[0.98rem] font-semibold text-[#302a23] [font-family:'Noto_Naskh_Arabic','Amiri',serif] before:absolute before:top-px before:right-0 before:left-0 before:h-px before:bg-[#b8a27f]/70 before:content-[''] after:absolute after:right-0 after:bottom-px after:left-0 after:h-px after:bg-[#b8a27f]/70 after:content-['']"
+    >
       {{ getSurahNameArabic(line.surahNumber ?? 0) }}
     </div>
 
-    <div v-else class="mushaf-line__basmallah">﷽</div>
+    <div
+      v-else
+      class="text-center text-[1.28rem] leading-[1.55] text-[#1a1815] [font-family:'Amiri_Quran','Noto_Naskh_Arabic',serif]"
+    >
+      ﷽
+    </div>
   </div>
 </template>
-
-<style scoped>
-.mushaf-line {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  align-items: center;
-}
-
-.mushaf-line__glyphs {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  align-items: baseline;
-  justify-content: space-between;
-  white-space: nowrap;
-  color: #11100f;
-  font-size: clamp(1.48rem, 6vw, 1.9rem);
-  line-height: 1.5;
-  font-kerning: normal;
-  text-rendering: optimizeLegibility;
-}
-
-.mushaf-line--centered .mushaf-line__glyphs {
-  width: auto;
-  justify-content: center;
-  gap: 0.12em;
-  margin-inline: auto;
-}
-
-.mushaf-line--surah,
-.mushaf-line--basmallah {
-  justify-content: center;
-}
-
-.mushaf-line__surah-name {
-  position: relative;
-  width: min(84%, 320px);
-  padding-block: 5px;
-  color: #302a23;
-  font-family: "Noto Naskh Arabic", "Amiri", serif;
-  font-size: 0.98rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.mushaf-line__surah-name::before,
-.mushaf-line__surah-name::after {
-  position: absolute;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: color-mix(in srgb, var(--sqc-color-mushaf-border) 68%, transparent);
-  content: "";
-}
-
-.mushaf-line__surah-name::before {
-  top: 1px;
-}
-
-.mushaf-line__surah-name::after {
-  bottom: 1px;
-}
-
-.mushaf-line__basmallah {
-  color: #1a1815;
-  font-family: "Amiri Quran", "Noto Naskh Arabic", serif;
-  font-size: 1.28rem;
-  line-height: 1.55;
-  text-align: center;
-}
-
-@media (max-width: 380px) {
-  .mushaf-line__glyphs {
-    font-size: clamp(1.36rem, 6.15vw, 1.62rem);
-  }
-}
-</style>
