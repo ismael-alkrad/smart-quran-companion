@@ -1,0 +1,26 @@
+import { useSmartQuranCall } from '@/shared/api'
+import type {
+  AuthMutationKey,
+  AuthMutationParams,
+  AuthMutationResponse,
+} from '@/modules/auth/api/contracts'
+
+const AUTH_MUTATION_METHODS = {
+  register: 'auth.register',
+  verifyEmail: 'auth.verify_email',
+  resendVerificationCode: 'auth.resend_verification_code',
+  login: 'auth.login',
+  logout: 'auth.logout',
+  requestPasswordReset: 'auth.request_password_reset',
+  resetPassword: 'auth.reset_password',
+} as const satisfies Record<AuthMutationKey, string>
+
+export function useAuthMutation<K extends AuthMutationKey>(key: K) {
+  return useSmartQuranCall<
+    AuthMutationResponse<K>,
+    AuthMutationParams<K>
+  >(AUTH_MUTATION_METHODS[key], {
+    method: 'POST',
+    immediate: false,
+  })
+}
