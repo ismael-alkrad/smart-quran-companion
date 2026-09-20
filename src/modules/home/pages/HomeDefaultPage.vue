@@ -20,14 +20,13 @@ function resumeQuran() {
 <template>
   <HomePageScaffold subtitle="هذه خطتك القرآنية لليوم">
     <div
-      dir="ltr"
-      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-start lg:gap-x-[24px]"
+      dir="rtl"
+      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-x-[24px]"
     >
       <div
-        class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
+        class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
         <section
-          dir="rtl"
           class="flex w-full flex-col items-end gap-[16px]"
         >
           <h2
@@ -54,7 +53,6 @@ function resumeQuran() {
         </section>
 
         <section
-          dir="rtl"
           class="flex w-full flex-col items-end gap-[16px]"
         >
           <h2
@@ -74,12 +72,11 @@ function resumeQuran() {
       </div>
 
       <div
-        class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
+        class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
         <HomeTasmeeCta dir="rtl" />
 
         <section
-          dir="rtl"
           class="flex w-full flex-col items-end gap-[16px]"
         >
           <h2
@@ -93,7 +90,6 @@ function resumeQuran() {
         </section>
 
         <section
-          dir="rtl"
           class="flex w-full flex-col items-end gap-[16px]"
         >
           <h2
