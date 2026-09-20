@@ -22,3 +22,5 @@ export type {
   BaseBottomNavRoutes,
   BaseBottomNavValue,
 } from '@/shared/components/BaseBottomNav.vue'
+export { default as BaseModal } from '@/shared/components/BaseModal.vue'
+export type { BaseModalTone } from '@/shared/components/BaseModal.vue'
