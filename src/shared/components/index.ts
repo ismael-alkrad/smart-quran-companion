@@ -12,3 +12,5 @@ export { default as BaseCircularProgress } from '@/shared/components/BaseCircula
 export { default as BaseSearch } from '@/shared/components/BaseSearch.vue'
 export { default as BaseTabs } from '@/shared/components/BaseTabs.vue'
 export type { BaseTabItem } from '@/shared/components/BaseTabs.vue'
+export { default as BaseSegmentedControl } from '@/shared/components/BaseSegmentedControl.vue'
+export type { BaseSegmentedOption } from '@/shared/components/BaseSegmentedControl.vue'
