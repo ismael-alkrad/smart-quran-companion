@@ -1,3 +1,4 @@
+export { default as HomeDayOverview } from '@/modules/home/components/HomeDayOverview.vue'
 export { default as HomePageScaffold } from '@/modules/home/components/HomePageScaffold.vue'
 export { default as HomeTodayTaskRow } from '@/modules/home/components/HomeTodayTaskRow.vue'
 export { default as HomeTasmeeCta } from '@/modules/home/components/HomeTasmeeCta.vue'
