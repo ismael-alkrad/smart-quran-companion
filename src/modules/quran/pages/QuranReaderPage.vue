@@ -874,7 +874,7 @@ onBeforeUnmount(() => {
 <template>
   <main
     dir="rtl"
-    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[#fbf7ef] [font-family:var(--sqc-font-family-ui)]"
+    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
       v-if="loading"
@@ -926,7 +926,7 @@ onBeforeUnmount(() => {
       <section
         v-if="!isSpreadViewport"
         ref="mobileViewport"
-        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden min-[600px]:bg-[#fbf7ef]"
+        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden min-[600px]:h-dvh min-[600px]:min-h-0 min-[600px]:bg-[var(--sqc-color-mushaf-paper)]"
         aria-label="صفحة المصحف"
         @click.capture="handleReaderClickCapture"
         @pointerdown="handlePointerDown"
@@ -972,7 +972,7 @@ onBeforeUnmount(() => {
       <section
         v-else
         dir="rtl"
-        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden bg-[#fbf7ef] p-0 [perspective:1800px]"
+        class="relative mx-auto h-dvh min-h-0 w-full touch-pan-y overflow-hidden bg-[var(--sqc-color-mushaf-paper)] p-0 [perspective:1800px]"
         aria-label="صفحتا المصحف"
         @click.capture="handleReaderClickCapture"
         @pointerdown="handlePointerDown"
@@ -1012,7 +1012,7 @@ onBeforeUnmount(() => {
           class="relative z-10 grid grid-cols-2 items-start gap-px"
         >
           <div
-            class="min-w-0 bg-[#fbf7ef] [backface-visibility:hidden] [transform-style:preserve-3d] will-change-transform"
+            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)] [backface-visibility:hidden] [transform-style:preserve-3d] will-change-transform"
             :style="currentRightPaneStyle"
           >
             <QuranMushafPane
@@ -1036,7 +1036,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div
-            class="min-w-0 bg-[#fbf7ef] [backface-visibility:hidden] [transform-style:preserve-3d] will-change-transform"
+            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)] [backface-visibility:hidden] [transform-style:preserve-3d] will-change-transform"
             :style="currentLeftPaneStyle"
           >
             <QuranMushafPane
@@ -1066,11 +1066,11 @@ onBeforeUnmount(() => {
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] bg-[var(--sqc-color-background-elevated)]/95 px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%_-_32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
+          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] bg-[var(--sqc-color-mushaf-overlay)] px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%_-_32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
         >
           <button
             type="button"
-            class="flex size-[40px] shrink-0 items-center justify-center rounded-[var(--sqc-dimension-radius-999)] text-[20px] text-[color:var(--sqc-color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-color-border-focus)]"
+            class="flex size-[40px] shrink-0 items-center justify-center rounded-[var(--sqc-dimension-radius-999)] text-[20px] text-[color:var(--sqc-color-mushaf-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-color-border-focus)]"
             aria-label="العودة"
             @click="goBack"
           >
@@ -1080,7 +1080,7 @@ onBeforeUnmount(() => {
           <div class="flex min-w-0 flex-1 flex-col items-center gap-[2px] text-center">
             <strong
               dir="rtl"
-              class="max-w-full truncate text-[14px] font-semibold leading-[24px] text-[color:var(--sqc-color-text-primary)]"
+              class="max-w-full truncate text-[14px] font-semibold leading-[24px] text-[color:var(--sqc-color-mushaf-ink)]"
             >
               {{ metadataLabel }}
             </strong>
@@ -1088,7 +1088,7 @@ onBeforeUnmount(() => {
             <span
               v-if="savedPositionLabel"
               dir="rtl"
-              class="max-w-full truncate text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-text-brand)]"
+              class="max-w-full truncate text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-mushaf-accent)]"
             >
               آخر موضع · {{ savedPositionLabel }}
             </span>
@@ -1103,12 +1103,12 @@ onBeforeUnmount(() => {
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%_-_32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] bg-[var(--sqc-color-background-elevated)]/95 px-[8px] shadow-lg backdrop-blur"
+          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%_-_32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] border border-[var(--sqc-color-mushaf-border-subtle)] bg-[var(--sqc-color-mushaf-overlay)] px-[8px] shadow-lg backdrop-blur"
         >
           <button
             type="button"
             dir="rtl"
-            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
+            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-accent)] disabled:opacity-40"
             :disabled="!canNavigate('next')"
             @click="goNext"
           >
@@ -1117,7 +1117,7 @@ onBeforeUnmount(() => {
 
           <span
             dir="rtl"
-            class="text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-secondary)]"
+            class="text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-muted)]"
           >
             {{ toArabicNumber(pageNumber) }} / ٦٠٤
           </span>
@@ -1125,7 +1125,7 @@ onBeforeUnmount(() => {
           <button
             type="button"
             dir="rtl"
-            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
+            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-accent)] disabled:opacity-40"
             :disabled="!canNavigate('previous')"
             @click="goPrevious"
           >
