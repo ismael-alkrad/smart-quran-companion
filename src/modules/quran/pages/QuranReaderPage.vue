@@ -1,55 +1,109 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { HifzOverviewResponse } from '@/modules/quran/api'
 import {
-  useHifzOverviewQuery,
+  type QuranReadingPosition,
+  useQuranReadingPositionQuery,
   useSaveQuranReadingPositionMutation,
 } from '@/modules/quran/api'
-import MushafPage from '@/modules/quran/components/MushafPage.vue'
-import QuranHifzStatusBadge, {
-  type QuranHifzDisplayStatus,
-} from '@/modules/quran/components/QuranHifzStatusBadge.vue'
+import QuranMushafPane from '@/modules/quran/components/QuranMushafPane.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
-import {
-  BaseAppBar,
-  BaseBanner,
-  BaseBottomNav,
-  BaseButton,
-  BaseSegmentedControl,
-  type BaseBottomNavRoutes,
-  type BaseSegmentedOption,
-} from '@/shared/components'
+import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
+import { toArabicNumber } from '@/modules/quran/utils/number'
+import { BaseButton } from '@/shared/components'
 
 const route = useRoute()
 const router = useRouter()
 
-const pageNumber = computed(() => {
-  const value = Number(route.params.page)
-  return Number.isFinite(value) ? Math.min(604, Math.max(1, value)) : 1
-})
-
-const { data: page, isPending, isError, error, refetch } = useMushafPage(pageNumber)
-
-const hifzOverviewCall = useHifzOverviewQuery()
+const controlsVisible = ref(true)
+const savedPosition = ref<QuranReadingPosition | null>(null)
+const readingPositionCall = useQuranReadingPositionQuery()
 const savePositionCall = useSaveQuranReadingPositionMutation()
 
-const hifzOverview = ref<HifzOverviewResponse | null>(null)
-const lastSavedPositionKey = ref('')
+const pageNumber = computed(() => {
+  const value = Number(route.params.page)
+  return Number.isFinite(value)
+    ? Math.min(604, Math.max(1, Math.trunc(value)))
+    : 1
+})
 
-const navRoutes: BaseBottomNavRoutes = {
-  home: '/home',
-  quran: '/quran',
-}
+const tabletLeftPageNumber = computed<number | null>(() => {
+  const current = pageNumber.value
 
-const modeOptions: BaseSegmentedOption[] = [
-  { value: 'reading', label: 'قراءة' },
-  { value: 'hifz', label: 'حفظ' },
-]
+  if (current === 1) return null
+  if (current === 604) return 604
+
+  return current % 2 === 0
+    ? current
+    : current - 1
+})
+
+const tabletRightPageNumber = computed(() => {
+  const current = pageNumber.value
+
+  if (current === 1) return 1
+  if (current === 604) return 603
+
+  return current % 2 === 0
+    ? current + 1
+    : current
+})
+
+const companionPageNumber = computed(() => {
+  const current = pageNumber.value
+
+  if (current === 1) return 2
+  if (current === 604) return 603
+
+  return current % 2 === 0
+    ? current + 1
+    : current - 1
+})
+
+const primaryQuery = useMushafPage(pageNumber)
+const companionQuery = useMushafPage(companionPageNumber)
+
+const primaryPage = computed(() => primaryQuery.data.value ?? null)
+const companionPage = computed(() => companionQuery.data.value ?? null)
+
+const tabletLeftPage = computed(() => {
+  const leftNumber = tabletLeftPageNumber.value
+
+  if (leftNumber === null) return null
+
+  if (primaryPage.value?.pageNumber === leftNumber) {
+    return primaryPage.value
+  }
+
+  if (companionPage.value?.pageNumber === leftNumber) {
+    return companionPage.value
+  }
+
+  return null
+})
+
+const tabletRightPage = computed(() => {
+  const rightNumber = tabletRightPageNumber.value
+
+  if (primaryPage.value?.pageNumber === rightNumber) {
+    return primaryPage.value
+  }
+
+  if (companionPage.value?.pageNumber === rightNumber) {
+    return companionPage.value
+  }
+
+  return null
+})
 
 const firstVerseAnchor = computed(() => {
-  for (const line of page.value?.lines ?? []) {
+  for (const line of primaryPage.value?.lines ?? []) {
     const word = line.words[0]
 
     if (!word) continue
@@ -72,67 +126,154 @@ const firstVerseAnchor = computed(() => {
   return null
 })
 
-const hifzStatus = computed<QuranHifzDisplayStatus>(() => {
+const currentSurahName = computed(() => {
   const surahNumber = firstVerseAnchor.value?.surahNumber
+    ?? primaryPage.value?.chapters[0]
 
-  if (!surahNumber) return 'new'
+  if (!surahNumber) return ''
 
-  return (
-    hifzOverview.value?.items.find(
-      item => item.surah_number === surahNumber,
-    )?.status ?? 'new'
-  )
+  return getSurahNameArabic(surahNumber)
 })
+
+const juzNumber = computed(() => primaryPage.value?.juzNumber ?? null)
+
+const savedVerseKey = computed(() => {
+  const position = savedPosition.value
+
+  if (!position) return null
+
+  return `${position.surah_number}:${position.ayah_number}`
+})
+
+const savedPositionLabel = computed(() => {
+  const position = savedPosition.value
+
+  if (!position) return ''
+
+  return `الآية ${toArabicNumber(position.ayah_number)} · الصفحة ${toArabicNumber(position.page_number)}`
+})
+
+const metadataLabel = computed(() => {
+  const parts: string[] = []
+
+  if (currentSurahName.value) {
+    parts.push(`سورة ${currentSurahName.value}`)
+  }
+
+  if (juzNumber.value) {
+    parts.push(`الجزء ${toArabicNumber(juzNumber.value)}`)
+  }
+
+  parts.push(`صفحة ${toArabicNumber(pageNumber.value)}`)
+
+  return parts.join(' · ')
+})
+
+const loading = computed(
+  () => primaryQuery.isPending.value || companionQuery.isPending.value,
+)
+
+const failed = computed(
+  () => primaryQuery.isError.value,
+)
 
 function goBack() {
   void router.push('/quran')
 }
 
-function updateMode(value: BaseSegmentedOption['value']) {
-  if (value === 'hifz') {
-    void router.push('/quran/hifz/daily-plan')
+function toggleControls() {
+  controlsVisible.value = !controlsVisible.value
+}
+
+function navigationStep() {
+  if (typeof window === 'undefined') return 1
+
+  return window.matchMedia('(min-width: 768px)').matches
+    ? 2
+    : 1
+}
+
+function goPrevious() {
+  const target = Math.max(1, pageNumber.value - navigationStep())
+
+  if (target !== pageNumber.value) {
+    void router.push(`/quran/${target}`)
+  }
+}
+
+function goNext() {
+  const target = Math.min(604, pageNumber.value + navigationStep())
+
+  if (target !== pageNumber.value) {
+    void router.push(`/quran/${target}`)
+  }
+}
+
+async function savePosition(
+  page: number,
+  surahNumber: number,
+  ayahNumber: number,
+) {
+  const response = await savePositionCall.submit({
+    page_number: page,
+    surah_number: surahNumber,
+    ayah_number: ayahNumber,
+  })
+
+  if (response?.ok && response.status === 'saved') {
+    savedPosition.value = response.position
+  }
+}
+
+async function selectAyah(payload: {
+  pageNumber: number
+  surahNumber: number
+  ayahNumber: number
+}) {
+  try {
+    await savePosition(
+      payload.pageNumber,
+      payload.surahNumber,
+      payload.ayahNumber,
+    )
+  } catch {
+    // Keep the Mushaf usable if persistence temporarily fails.
   }
 }
 
 watch(
-  () => ({
-    pageNumber: page.value?.pageNumber,
-    anchor: firstVerseAnchor.value,
-  }),
-  async ({ pageNumber: currentPage, anchor }) => {
-    if (!currentPage || !anchor) return
+  () => primaryPage.value?.pageNumber,
+  async (loadedPage) => {
+    if (!loadedPage) return
 
-    const key = [
-      currentPage,
-      anchor.surahNumber,
-      anchor.ayahNumber,
-    ].join(':')
+    const existing = savedPosition.value
 
-    if (lastSavedPositionKey.value === key) return
+    if (existing?.page_number === loadedPage) {
+      return
+    }
 
-    lastSavedPositionKey.value = key
+    const anchor = firstVerseAnchor.value
+
+    if (!anchor) return
 
     try {
-      await savePositionCall.submit({
-        page_number: currentPage,
-        surah_number: anchor.surahNumber,
-        ayah_number: anchor.ayahNumber,
-      })
+      await savePosition(
+        loadedPage,
+        anchor.surahNumber,
+        anchor.ayahNumber,
+      )
     } catch {
-      lastSavedPositionKey.value = ''
+      // Reading remains available offline even if backend persistence fails.
     }
-  },
-  {
-    immediate: true,
-    deep: true,
   },
 )
 
 onMounted(async () => {
   try {
-    hifzOverview.value = await hifzOverviewCall.fetch() ?? null
+    const response = await readingPositionCall.fetch()
+    savedPosition.value = response?.position ?? null
   } catch {
-    hifzOverview.value = null
+    savedPosition.value = null
   }
 })
 </script>
@@ -140,101 +281,185 @@ onMounted(async () => {
 <template>
   <main
     dir="rtl"
-    class="min-h-dvh min-w-[320px] overflow-x-clip bg-[var(--sqc-color-background-primary)] pb-[100px] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] [font-family:var(--sqc-font-family-ui)]"
+    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
-      class="mx-auto flex w-full max-w-[720px] flex-col items-start gap-[16px] px-[16px] pt-[24px] sm:px-[24px]"
+      v-if="loading"
+      class="grid min-h-dvh place-items-center px-[24px]"
     >
-      <BaseAppBar
-        title="القراءة"
-        type="back"
-        @back="goBack"
-      />
-
-      <BaseSegmentedControl
-        model-value="reading"
-        :options="modeOptions"
-        aria-label="وضع القرآن"
-        @update:model-value="updateMode"
-      />
-
-      <p
+      <span
         dir="rtl"
-        class="w-full text-right text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
+        class="text-[14px] leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
       >
-        حفص عن عاصم
-      </p>
-
-      <QuranHifzStatusBadge
-        v-if="hifzStatus !== 'new'"
-        :status="hifzStatus"
-      />
-
-      <h2
-        dir="rtl"
-        class="w-full text-right text-[18px] font-medium leading-[28px] text-[color:var(--sqc-color-text-primary)]"
-      >
-        موضع القراءة
-      </h2>
+        جاري تجهيز المصحف…
+      </span>
     </div>
 
     <div
-      v-if="isPending"
-      class="grid min-h-[60dvh] place-items-center content-center gap-[10px] p-[32px] text-center text-[color:var(--sqc-color-text-secondary)]"
-      role="status"
+      v-else-if="failed || !primaryPage"
+      class="flex min-h-dvh items-center justify-center px-[24px]"
     >
-      جاري تجهيز صفحة المصحف…
+      <div class="flex w-full max-w-[420px] flex-col items-start gap-[16px] text-right">
+        <h1
+          dir="rtl"
+          class="w-full text-right text-[20px] font-semibold leading-[32px] text-[color:var(--sqc-color-text-primary)]"
+        >
+          المصحف المحلي غير جاهز
+        </h1>
+
+        <p
+          dir="rtl"
+          class="w-full text-right text-[14px] leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
+        >
+          {{
+            primaryQuery.error.value instanceof Error
+              ? primaryQuery.error.value.message
+              : 'حدث خطأ غير متوقع.'
+          }}
+        </p>
+
+        <BaseButton
+          size="large"
+          variant="primary"
+          class="w-full"
+          @click="primaryQuery.refetch()"
+        >
+          إعادة المحاولة
+        </BaseButton>
+      </div>
     </div>
 
-    <div
-      v-else-if="isError"
-      class="mx-auto flex min-h-[60dvh] w-full max-w-[480px] flex-col items-center justify-center gap-[12px] px-[24px] text-center"
-      role="alert"
-    >
-      <strong
-        class="text-[18px] font-semibold leading-[28px] text-[color:var(--sqc-color-text-primary)]"
+    <template v-else>
+      <section
+        class="mx-auto w-full md:hidden"
+        aria-label="صفحة المصحف"
       >
-        المصحف المحلي غير جاهز
-      </strong>
+        <QuranMushafPane
+          :page="primaryPage"
+          :saved-verse-key="
+            savedPosition?.page_number === primaryPage.pageNumber
+              ? savedVerseKey
+              : null
+          "
+          @select-ayah="selectAyah"
+          @toggle-controls="toggleControls"
+        />
+      </section>
 
-      <p
+      <section
         dir="rtl"
-        class="m-0 text-[14px] leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
+        class="mx-auto hidden min-h-dvh w-full max-w-[1180px] grid-cols-2 items-start gap-[2px] px-[16px] py-[16px] md:grid lg:px-[24px]"
+        aria-label="صفحتا المصحف"
       >
-        {{ error instanceof Error ? error.message : 'حدث خطأ غير متوقع.' }}
-      </p>
+        <QuranMushafPane
+          v-if="tabletRightPage"
+          :page="tabletRightPage"
+          :saved-verse-key="
+            savedPosition?.page_number === tabletRightPage.pageNumber
+              ? savedVerseKey
+              : null
+          "
+          @select-ayah="selectAyah"
+          @toggle-controls="toggleControls"
+        />
 
-      <BaseButton
-        size="large"
-        variant="primary"
-        @click="refetch()"
+        <div
+          v-else
+          aria-hidden="true"
+          class="min-h-[90dvh]"
+        />
+
+        <QuranMushafPane
+          v-if="tabletLeftPage"
+          :page="tabletLeftPage"
+          :saved-verse-key="
+            savedPosition?.page_number === tabletLeftPage.pageNumber
+              ? savedVerseKey
+              : null
+          "
+          @select-ayah="selectAyah"
+          @toggle-controls="toggleControls"
+        />
+
+        <div
+          v-else
+          aria-hidden="true"
+          class="min-h-[90dvh]"
+        />
+      </section>
+
+      <div
+        class="pointer-events-none fixed inset-x-0 top-0 z-40 transition-opacity duration-200"
+        :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
-        إعادة المحاولة
-      </BaseButton>
-    </div>
+        <div
+          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] bg-[var(--sqc-color-background-elevated)]/95 px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%-32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
+        >
+          <button
+            type="button"
+            class="flex size-[40px] shrink-0 items-center justify-center rounded-[var(--sqc-dimension-radius-999)] text-[20px] text-[color:var(--sqc-color-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-color-border-focus)]"
+            aria-label="العودة"
+            @click="goBack"
+          >
+            ‹
+          </button>
 
-    <div
-      v-else-if="page"
-      class="mx-auto mt-[16px] w-full max-w-[560px] px-[8px]"
-    >
-      <MushafPage :page="page" />
-    </div>
+          <div class="flex min-w-0 flex-1 flex-col items-center gap-[2px] text-center">
+            <strong
+              dir="rtl"
+              class="max-w-full truncate text-[14px] font-semibold leading-[24px] text-[color:var(--sqc-color-text-primary)]"
+            >
+              {{ metadataLabel }}
+            </strong>
 
-    <div class="mx-auto mt-[16px] w-full max-w-[720px] px-[16px] sm:px-[24px]">
-      <BaseBanner
-        title="الحفظ منفصل عن التجويد"
-        body="ألوان الحالات هنا تعبّر عن حالة الحفظ والمراجعة فقط، وليست حكمًا على التجويد."
-        tone="info"
-        class="!w-full"
-      />
-    </div>
+            <span
+              v-if="savedPositionLabel"
+              dir="rtl"
+              class="max-w-full truncate text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-text-brand)]"
+            >
+              آخر موضع · {{ savedPositionLabel }}
+            </span>
+          </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-50">
-      <BaseBottomNav
-        model-value="quran"
-        :routes="navRoutes"
-        class="!static"
-      />
-    </div>
+          <div class="size-[40px] shrink-0" aria-hidden="true" />
+        </div>
+      </div>
+
+      <div
+        class="pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-opacity duration-200"
+        :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
+      >
+        <div
+          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%-32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] bg-[var(--sqc-color-background-elevated)]/95 px-[8px] shadow-lg backdrop-blur"
+        >
+          <button
+            type="button"
+            dir="rtl"
+            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
+            :disabled="pageNumber >= 604"
+            @click="goNext"
+          >
+            التالي
+          </button>
+
+          <span
+            dir="rtl"
+            class="text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-secondary)]"
+          >
+            {{ toArabicNumber(pageNumber) }} / ٦٠٤
+          </span>
+
+          <button
+            type="button"
+            dir="rtl"
+            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
+            :disabled="pageNumber <= 1"
+            @click="goPrevious"
+          >
+            السابق
+          </button>
+        </div>
+      </div>
+    </template>
   </main>
 </template>
