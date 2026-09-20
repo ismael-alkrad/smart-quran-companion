@@ -12,3 +12,4 @@ export type {
 export { default as AuthForm } from '@/modules/auth/components/AuthForm.vue'
 export type { AuthFormFooterVariant } from '@/modules/auth/types/form'
 export { default as AuthVerificationCodeField } from '@/modules/auth/components/AuthVerificationCodeField.vue'
+export { default as AuthCredentialsFields } from '@/modules/auth/components/AuthCredentialsFields.vue'
