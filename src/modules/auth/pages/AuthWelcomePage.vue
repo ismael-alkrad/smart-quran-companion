@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+
+import { useOAuthFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthIntro,
   OAuthOptions,
 } from '@/modules/auth/components'
+import { BaseBanner } from '@/shared/components'
 
 const router = useRouter()
+const {
+  oauthError,
+  starting: oauthStarting,
+  beginOAuth,
+} = useOAuthFlow()
 
 function goToLogin() {
   void router.push('/auth/login')
@@ -33,7 +41,17 @@ function goToRegister() {
           description="حفظ ومراجعة وتسميع ذكي في تجربة هادئة تحافظ على تركيزك."
         />
 
-        <OAuthOptions />
+        <OAuthOptions
+          :disabled="oauthStarting"
+          @select="beginOAuth"
+        />
+
+        <BaseBanner
+          v-if="oauthError"
+          tone="error"
+          title="تعذر بدء تسجيل الدخول"
+          :body="oauthError"
+        />
 
         <AuthActions
           variant="welcome"
