@@ -194,11 +194,12 @@ onBeforeUnmount(() => {
   >
     <MushafPage
       :page="page"
+      :spread="spread"
       class="!my-0 !rounded-none !shadow-none"
       :class="
         spread
-          ? '!min-h-dvh !max-w-none'
-          : '!max-w-[720px] min-[600px]:!min-h-dvh min-[600px]:!w-full'
+          ? '!h-dvh !min-h-0 !max-w-none'
+          : '!max-w-[720px] min-[600px]:!h-dvh min-[600px]:!min-h-0 min-[600px]:!w-full'
       "
     />
 
