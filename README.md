@@ -50,14 +50,14 @@ Place the downloaded files under `.quran-source/` (ignored by git), then run:
 
 ```bash
 yarn quran:prepare -- \
-  --layout .quran-source/kfgqpc-v2-layout.db \
-  --script .quran-source/qpc-v2-word-by-word.db \
-  --fonts .quran-source/qpc-v2-woff2.zip
+  --layout ".quran-source/qpc-v2-15-lines.db.zip" \
+  --script ".quran-source/qpc-v2.db.zip" \
+  --fonts ".quran-source/QPC V2 Font.woff2.bz2"
 
 yarn quran:verify
 ```
 
-Use the actual downloaded filenames if QUL names them differently.
+The preparation script accepts the compressed QUL downloads directly; do not unzip them manually.
 
 The generated Quran data/fonts are also ignored by git. They become normal static assets in the Vite/Capacitor build and therefore work offline at runtime.
 
