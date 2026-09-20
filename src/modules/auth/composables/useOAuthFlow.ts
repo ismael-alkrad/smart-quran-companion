@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthMutation } from '@/modules/auth/api'
 import { useAuthSession } from '@/modules/auth/composables/useAuthSession'
 import {
+  buildOAuthAccountLinkLocation,
   buildOAuthErrorLocation,
   getOAuthFailureReason,
   getOAuthProvider,
@@ -177,6 +178,7 @@ export function useOAuthFlow() {
         response.link_token,
       )
       completionPhase.value = 'link_required'
+      void router.replace(buildOAuthAccountLinkLocation())
       return
     }
 
