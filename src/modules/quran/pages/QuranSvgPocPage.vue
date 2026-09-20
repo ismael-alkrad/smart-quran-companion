@@ -144,7 +144,7 @@ function handleWordClick(
   >
     <section
       dir="rtl"
-      class="grid h-full w-full grid-cols-2 items-center gap-px overflow-hidden bg-[var(--sqc-color-mushaf-border-subtle)]"
+      class="grid h-full w-full grid-cols-1 items-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)] lg:landscape:grid-cols-2 lg:landscape:gap-px lg:landscape:bg-[var(--sqc-color-mushaf-border-subtle)]"
       aria-label="تجربة مصحف SVG للصفحتين ٦٧ و٦٨"
     >
       <article
@@ -159,7 +159,7 @@ function handleWordClick(
       </article>
 
       <article
-        class="flex h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)]"
+        class="hidden h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)] lg:landscape:flex"
         aria-label="صفحة ٦٨"
       >
         <div
