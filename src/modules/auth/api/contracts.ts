@@ -40,11 +40,20 @@ export type AuthVerificationResponse = AuthStatusResponse<
 export type AuthResendVerificationResponse =
   AuthExpiringStatusResponse<'sent'>
 
-export type AuthLoginResponse = AuthStatusResponse<
-  'authenticated' | 'invalid_credentials'
-> & {
-  user?: string
-}
+export type AuthLoginResponse =
+  | {
+      ok: true
+      status: 'authenticated'
+      user: string
+    }
+  | {
+      ok: false
+      status:
+        | 'invalid_credentials'
+        | 'second_factor_required'
+        | 'password_reset_required'
+        | 'authentication_incomplete'
+    }
 
 export type AuthLogoutResponse = AuthStatusResponse<'logged_out'>
 
@@ -68,11 +77,14 @@ export type AuthSessionStatusResponse =
   | {
       ok: true
       authenticated: false
+      expired: boolean
       user?: never
+      csrf_token?: never
     }
   | {
       ok: true
       authenticated: true
+      expired: false
       user: AuthSessionUser | null
       csrf_token: string
     }
