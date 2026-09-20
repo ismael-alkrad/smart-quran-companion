@@ -59,7 +59,7 @@ const placeholderClasses = computed(() => {
   >
     <span
       v-if="type === 'initials'"
-      dir="auto"
+      dir="rtl"
       class="block whitespace-nowrap text-center text-[color:var(--sqc-color-text-brand)]"
       :class="initialsClasses"
     >
