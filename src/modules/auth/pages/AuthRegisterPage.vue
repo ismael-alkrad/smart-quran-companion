@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthMutation } from '@/modules/auth/api'
 import {
   AuthActions,
+  AuthCredentialsFields,
   AuthForm,
   AuthIntro,
   OAuthOptions,
@@ -12,7 +13,6 @@ import { useAuthFlowStore } from '@/modules/auth/stores'
 import {
   BaseAppBar,
   BaseBanner,
-  BaseInput,
 } from '@/shared/components'
 
 const router = useRouter()
@@ -95,18 +95,9 @@ async function register() {
         <AuthForm
           footer-text="بإنشاء الحساب، يمكنك لاحقًا التحكم في إعدادات الخصوصية والذكاء الاصطناعي من داخل التطبيق."
         >
-          <BaseInput
-            v-model="email"
-            type="email"
-            label="البريد الإلكتروني"
-            placeholder="name@example.com"
-          />
-
-          <BaseInput
-            v-model="password"
-            type="password"
-            label="كلمة المرور"
-            placeholder="••••••••"
+          <AuthCredentialsFields
+            v-model:email="email"
+            v-model:password="password"
           />
         </AuthForm>
 
