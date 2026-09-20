@@ -35,13 +35,13 @@ const toneClasses = computed(() => {
       ]
     case 'warning':
       return [
-        '!bg-[var(--sqc-color-potential-issue-hesitation-background)]',
-        '!text-[color:var(--sqc-color-potential-issue-hesitation-foreground)]',
+        '!bg-[var(--sqc-color-potentialissue-hesitation-background)]',
+        '!text-[color:var(--sqc-color-potentialissue-hesitation-foreground)]',
       ]
     case 'error':
       return [
-        '!bg-[var(--sqc-color-potential-issue-substitution-background)]',
-        '!text-[color:var(--sqc-color-potential-issue-substitution-foreground)]',
+        '!bg-[var(--sqc-color-potentialissue-substitution-background)]',
+        '!text-[color:var(--sqc-color-potentialissue-substitution-foreground)]',
       ]
     case 'success':
       return [
