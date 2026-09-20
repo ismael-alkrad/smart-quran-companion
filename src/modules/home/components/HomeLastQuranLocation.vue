@@ -1,12 +1,7 @@
 <script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    locationText?: string
-  }>(),
-  {
-    locationText: 'سورة البقرة · متابعة من آخر موضع',
-  },
-)
+defineProps<{
+  locationText: string
+}>()
 
 const emit = defineEmits<{
   resume: []
@@ -32,7 +27,7 @@ const emit = defineEmits<{
         dir="rtl"
         class="max-w-full truncate text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
       >
-        {{ props.locationText }}
+        {{ locationText }}
       </span>
     </span>
 

@@ -26,6 +26,8 @@ const props = withDefaults(
     weakSpotLocation?: string
     weakSpotType?: 'ayah' | 'transition' | 'similar-passage'
     showReading?: boolean
+    readingPageNumber?: number
+    readingLocationText?: string
     showAttention?: boolean
   }>(),
   {
@@ -36,7 +38,9 @@ const props = withDefaults(
     weakSpotMetric: 'أولوية مراجعة',
     weakSpotLocation: 'من آخر جلسة مراجعة',
     weakSpotType: 'transition',
-    showReading: true,
+    showReading: false,
+    readingPageNumber: undefined,
+    readingLocationText: undefined,
     showAttention: true,
   },
 )
@@ -44,7 +48,9 @@ const props = withDefaults(
 const router = useRouter()
 
 function resumeQuran() {
-  void router.push('/quran/31')
+  if (!props.readingPageNumber) return
+
+  void router.push(`/quran/${props.readingPageNumber}`)
 }
 </script>
 
@@ -58,7 +64,6 @@ function resumeQuran() {
         class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
         <section
-          v-if="showReading"
           class="flex w-full flex-col items-start gap-[16px]"
         >
           <h2
@@ -106,7 +111,10 @@ function resumeQuran() {
       >
         <HomeTasmeeCta />
 
-        <section class="flex w-full flex-col items-start gap-[16px]">
+        <section
+          v-if="showReading && readingLocationText && readingPageNumber"
+          class="flex w-full flex-col items-start gap-[16px]"
+        >
           <h2
             dir="rtl"
             class="w-full text-right text-[18px] font-medium leading-[28px] text-[color:var(--sqc-color-text-primary)]"
@@ -114,7 +122,10 @@ function resumeQuran() {
             {{ readingSectionTitle }}
           </h2>
 
-          <HomeLastQuranLocation @resume="resumeQuran" />
+          <HomeLastQuranLocation
+            :location-text="readingLocationText"
+            @resume="resumeQuran"
+          />
         </section>
 
         <section

@@ -22,12 +22,20 @@ export interface HomeSummaryPlan {
   total_tasks: number
 }
 
+export interface HomeReadingPosition {
+  name: string
+  page_number: number
+  surah_number: number
+  ayah_number: number
+  modified: string
+}
+
 export interface HomeSummaryResponse {
   ok: true
   status: 'ready'
   view_state: HomeViewState
   date: string
   plan: HomeSummaryPlan
-  reading: null
+  reading: HomeReadingPosition | null
   weak_spot: null
 }

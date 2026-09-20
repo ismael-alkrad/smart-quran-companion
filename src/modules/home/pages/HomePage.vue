@@ -4,6 +4,8 @@ import { computed, onMounted } from 'vue'
 import HomeDayOverview from '@/modules/home/components/HomeDayOverview.vue'
 import HomeNewUserPage from '@/modules/home/pages/HomeNewUserPage.vue'
 import { useHomeSummary } from '@/modules/home/composables'
+import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
+import { toArabicNumber } from '@/modules/quran/utils/number'
 import type {
   HomeTodayTaskState,
   HomeTodayTaskType,
@@ -66,6 +68,14 @@ const copy = computed(() => {
     readingSectionTitle: 'القراءة',
     attentionSectionTitle: 'يحتاج انتباهًا',
   }
+})
+
+const readingLocationText = computed(() => {
+  const reading = summary.value?.reading
+
+  if (!reading) return ''
+
+  return `سورة ${getSurahNameArabic(reading.surah_number)} · الآية ${toArabicNumber(reading.ayah_number)} · الصفحة ${toArabicNumber(reading.page_number)}`
 })
 
 function taskState(type: HomeTodayTaskType): HomeTodayTaskState {
@@ -134,6 +144,8 @@ function taskState(type: HomeTodayTaskType): HomeTodayTaskState {
     :reading-section-title="copy.readingSectionTitle"
     :attention-section-title="copy.attentionSectionTitle"
     :show-reading="summary.reading !== null"
+    :reading-page-number="summary.reading?.page_number"
+    :reading-location-text="readingLocationText"
     :show-attention="summary.weak_spot !== null"
   />
 </template>

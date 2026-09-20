@@ -68,3 +68,30 @@ export interface HifzDailyPlanResponse {
   assignment: HifzDailyAssignment | null
   progress: HifzSurahProgress | null
 }
+
+
+export interface QuranReadingPosition {
+  name: string
+  page_number: number
+  surah_number: number
+  ayah_number: number
+  modified: string
+}
+
+export interface QuranReadingPositionResponse {
+  ok: true
+  status: 'ready' | 'empty'
+  position: QuranReadingPosition | null
+}
+
+export type SaveQuranReadingPositionParams = {
+  page_number: number
+  surah_number: number
+  ayah_number: number
+}
+
+export interface SaveQuranReadingPositionResponse {
+  ok: true
+  status: 'saved'
+  position: QuranReadingPosition
+}
