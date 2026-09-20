@@ -9,17 +9,17 @@ const emit = defineEmits<{
 <template>
   <section
     dir="rtl"
-    class="flex w-full flex-col items-end gap-[10px] rounded-[20px] bg-[var(--sqc-color-background-subtle)] p-[var(--sqc-dimension-spacing-16)] [font-family:var(--sqc-font-family-ui)]"
+    class="flex w-full flex-col items-start gap-[10px] rounded-[20px] bg-[var(--sqc-color-background-subtle)] p-[var(--sqc-dimension-spacing-16)] [font-family:var(--sqc-font-family-ui)]"
   >
     <h2
-      dir="auto"
+      dir="rtl"
       class="w-full text-right text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
     >
       جاهز للتسميع؟
     </h2>
 
     <p
-      dir="auto"
+      dir="rtl"
       class="w-full text-right text-[14px] font-normal leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
     >
       ابدأ جلسة تسميع فردية أو مع رفيق أو محفّظ.
