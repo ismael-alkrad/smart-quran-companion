@@ -1,5 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import {
+  AUTHENTICATED_FALLBACK_ROUTE,
+  ONBOARDING_ENTRY_ROUTE,
+} from '@/modules/auth/navigation'
 import { useAuthSessionStore } from '@/modules/auth/stores'
 
 const router = createRouter({
@@ -45,11 +49,13 @@ const router = createRouter({
     {
       path: '/auth/account-ready',
       name: 'auth-account-ready',
+      meta: { onboardingOnly: true },
       component: () => import('@/modules/auth/pages/AuthAccountReadyPage.vue'),
     },
     {
       path: '/auth/setup',
       name: 'auth-first-time-setup',
+      meta: { onboardingOnly: true },
       component: () => import('@/modules/auth/pages/AuthFirstTimeSetupPage.vue'),
     },
     {
@@ -112,6 +118,7 @@ const router = createRouter({
     {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
+      meta: { requiresOnboarding: true },
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
     },
   ],
@@ -119,28 +126,68 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  if (!to.meta.guestOnly) {
-    return true
-  }
-
   const sessionStore = useAuthSessionStore()
 
-  if (sessionStore.authenticated === true) {
+  if (to.meta.guestOnly) {
+    if (sessionStore.authenticated === true) {
+      return {
+        path: sessionStore.user?.onboarding_completed
+          ? AUTHENTICATED_FALLBACK_ROUTE
+          : ONBOARDING_ENTRY_ROUTE,
+        replace: true,
+      }
+    }
+
+    if (sessionStore.authenticated === false) {
+      return true
+    }
+
     return {
-      path: '/quran/31',
+      path: '/auth/startup',
+      query: { returnTo: to.fullPath },
       replace: true,
     }
   }
 
-  if (sessionStore.authenticated === false) {
-    return true
+  if (to.meta.onboardingOnly) {
+    if (sessionStore.authenticated === true) {
+      if (sessionStore.user?.onboarding_completed) {
+        return {
+          path: AUTHENTICATED_FALLBACK_ROUTE,
+          replace: true,
+        }
+      }
+
+      return true
+    }
+
+    return {
+      path: '/auth/startup',
+      query: { returnTo: to.fullPath },
+      replace: true,
+    }
   }
 
-  return {
-    path: '/auth/startup',
-    query: { returnTo: to.fullPath },
-    replace: true,
+  if (to.meta.requiresOnboarding) {
+    if (sessionStore.authenticated === true) {
+      if (!sessionStore.user?.onboarding_completed) {
+        return {
+          path: ONBOARDING_ENTRY_ROUTE,
+          replace: true,
+        }
+      }
+
+      return true
+    }
+
+    return {
+      path: '/auth/startup',
+      query: { redirect: to.fullPath },
+      replace: true,
+    }
   }
+
+  return true
 })
 
 export default router

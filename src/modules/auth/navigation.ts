@@ -6,6 +6,7 @@ import type {
 } from '@/modules/auth/types/oauth'
 
 export const AUTHENTICATED_FALLBACK_ROUTE = '/quran/31'
+export const ONBOARDING_ENTRY_ROUTE = '/auth/account-ready'
 export const OAUTH_ACCOUNT_LINK_ROUTE = '/auth/oauth/link'
 
 const OAUTH_PROVIDERS = new Set<OAuthProvider>(['google', 'apple'])
@@ -23,6 +24,10 @@ const GUEST_AUTH_RETURN_PATHS = new Set([
   '/auth/code-resent',
   '/auth/password-reset-success',
   '/auth/session-expired',
+])
+const ONBOARDING_RETURN_PATHS = new Set([
+  '/auth/account-ready',
+  '/auth/setup',
 ])
 const OAUTH_FAILURE_REASONS = new Set<OAuthFailureReason>([
   'cancelled',
@@ -70,6 +75,24 @@ export function getSafeGuestAuthReturn(value: unknown) {
   const path = candidate.split(/[?#]/, 1)[0]
 
   return path && GUEST_AUTH_RETURN_PATHS.has(path)
+    ? candidate
+    : undefined
+}
+
+export function getSafeOnboardingReturn(value: unknown) {
+  const candidate = firstQueryValue(value)
+
+  if (
+    typeof candidate !== 'string'
+    || !candidate.startsWith('/')
+    || candidate.startsWith('//')
+  ) {
+    return undefined
+  }
+
+  const path = candidate.split(/[?#]/, 1)[0]
+
+  return path && ONBOARDING_RETURN_PATHS.has(path)
     ? candidate
     : undefined
 }

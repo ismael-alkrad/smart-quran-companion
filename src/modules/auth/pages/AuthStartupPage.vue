@@ -5,6 +5,8 @@ import { useAuthSession } from '@/modules/auth/composables'
 import {
   getSafeGuestAuthReturn,
   getSafeInternalRedirect,
+  getSafeOnboardingReturn,
+  ONBOARDING_ENTRY_ROUTE,
   resolvePostAuthDestination,
 } from '@/modules/auth/navigation'
 import { useAuthFlowStore } from '@/modules/auth/stores'
@@ -17,6 +19,7 @@ const { refreshSession } = useAuthSession()
 
 const routeRedirect = getSafeInternalRedirect(route.query.redirect)
 const guestReturnTo = getSafeGuestAuthReturn(route.query.returnTo)
+const onboardingReturnTo = getSafeOnboardingReturn(route.query.returnTo)
 
 if (routeRedirect) {
   authFlow.setPostAuthRedirect(routeRedirect)
@@ -31,6 +34,13 @@ onMounted(async () => {
   }
 
   if (session.authenticated) {
+    if (!session.user?.onboarding_completed) {
+      void router.replace(
+        onboardingReturnTo ?? ONBOARDING_ENTRY_ROUTE,
+      )
+      return
+    }
+
     const destination = resolvePostAuthDestination(
       authFlow.postAuthRedirect,
     )
