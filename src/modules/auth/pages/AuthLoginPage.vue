@@ -1,30 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useLoginFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
+  AuthCredentialsFields,
   AuthForm,
   AuthIntro,
   OAuthOptions,
 } from '@/modules/auth/components'
-import { BaseAppBar, BaseInput } from '@/shared/components'
+import {
+  BaseAppBar,
+  BaseBanner,
+} from '@/shared/components'
 
-const router = useRouter()
-
-const email = ref('')
-const password = ref('')
-
-function goBack() {
-  void router.push('/auth')
-}
-
-function goToRegister() {
-  void router.push('/auth/register')
-}
-
-function goToForgotPassword() {
-  void router.push('/auth/forgot-password')
-}
+const {
+  email,
+  password,
+  requestError,
+  loading,
+  login,
+  goToWelcome,
+  goToRegister,
+  goToForgotPassword,
+} = useLoginFlow()
 </script>
 
 <template>
@@ -40,7 +37,7 @@ function goToForgotPassword() {
           type="back"
           title="تسجيل الدخول"
           back-label="رجوع"
-          @back="goBack"
+          @back="goToWelcome"
         />
 
         <AuthIntro
@@ -50,29 +47,30 @@ function goToForgotPassword() {
 
         <OAuthOptions />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر تسجيل الدخول"
+          :body="requestError"
+        />
+
         <AuthForm
           footer-text="نسيت كلمة المرور؟"
           footer-variant="action"
           @footer="goToForgotPassword"
         >
-          <BaseInput
-            v-model="email"
-            type="email"
-            label="البريد الإلكتروني"
-            placeholder="name@example.com"
-          />
-
-          <BaseInput
-            v-model="password"
-            type="password"
-            label="كلمة المرور"
-            placeholder="••••••••"
+          <AuthCredentialsFields
+            v-model:email="email"
+            v-model:password="password"
           />
         </AuthForm>
 
         <AuthActions
           primary-label="دخول"
           secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
+          :primary-loading="loading"
+          primary-loading-text="جارٍ تسجيل الدخول"
+          @primary="login"
           @secondary="goToRegister"
         />
       </div>
