@@ -43,30 +43,30 @@ const dotClass = computed(() => {
 
 <template>
   <div
-    dir="ltr"
+    dir="rtl"
     class="flex h-[64px] w-full items-center justify-between rounded-[var(--sqc-dimension-radius-16)] px-[var(--sqc-dimension-spacing-16)] py-[10px] [font-family:var(--sqc-font-family-ui)]"
     :class="surfaceClass"
   >
-    <span
-      aria-hidden="true"
-      class="size-[8px] shrink-0 rounded-full"
-      :class="dotClass"
-    />
-
-    <div dir="rtl" class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
+    <div class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
       <p
-        dir="auto"
+        dir="rtl"
         class="whitespace-nowrap text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
       >
         {{ title }}
       </p>
 
       <p
-        dir="auto"
+        dir="rtl"
         class="whitespace-nowrap text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
       >
         {{ stateLabel }}
       </p>
     </div>
+
+    <span
+      aria-hidden="true"
+      class="size-[8px] shrink-0 rounded-full"
+      :class="dotClass"
+    />
   </div>
 </template>
