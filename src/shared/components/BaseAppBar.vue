@@ -41,18 +41,9 @@ function handleAction() {
 
 <template>
   <header
-    dir="ltr"
+    dir="rtl"
     class="flex h-[56px] w-full items-center justify-between bg-[var(--sqc-color-background-primary)] px-[var(--sqc-dimension-spacing-16)] [font-family:var(--sqc-font-family-ui)]"
   >
-    <span aria-hidden="true" class="block size-[40px] shrink-0" />
-
-    <h1
-      dir="auto"
-      class="min-w-0 truncate text-center text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
-    >
-      {{ title }}
-    </h1>
-
     <span
       v-if="type === 'default'"
       aria-hidden="true"
@@ -83,5 +74,14 @@ function handleAction() {
         />
       </template>
     </FrappeButton>
+
+    <h1
+      dir="rtl"
+      class="min-w-0 truncate text-center text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
+    >
+      {{ title }}
+    </h1>
+
+    <span aria-hidden="true" class="block size-[40px] shrink-0" />
   </header>
 </template>
