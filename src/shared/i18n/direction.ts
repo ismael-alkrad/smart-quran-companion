@@ -1,16 +1,13 @@
-export type TextDirection = 'ltr' | 'rtl'
+export type TextDirection = 'rtl'
 
-const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur'])
-
-export function getTextDirection(locale: string): TextDirection {
-  const language = locale.trim().toLowerCase().split(/[-_]/)[0] ?? ''
-  return RTL_LANGUAGES.has(language) ? 'rtl' : 'ltr'
+export function getTextDirection(_locale: string): TextDirection {
+  return 'rtl'
 }
 
 export function applyDocumentLocale(
-  locale: string,
+  _locale: string,
   root: HTMLElement = document.documentElement,
 ) {
-  root.lang = locale
-  root.dir = getTextDirection(locale)
+  root.lang = 'ar'
+  root.dir = 'rtl'
 }
