@@ -1,0 +1,37 @@
+export type HifzStatus =
+  | 'initial_hifz'
+  | 'memorizing'
+  | 'pending_tasmee'
+  | 'pending_approval'
+  | 'approved'
+  | 'needs_review'
+  | 'mastered'
+
+export type HifzStrength =
+  | 'weak'
+  | 'developing'
+  | 'strong'
+  | 'mastered'
+
+export interface HifzAyahProgress {
+  ayah_number: number
+  status: HifzStatus
+}
+
+export interface HifzSurahProgress {
+  name: string
+  user: string
+  surah_number: number
+  status: HifzStatus
+  memory_strength: HifzStrength | null
+  transition_strength: HifzStrength | null
+  ayahs: HifzAyahProgress[]
+  tracked_ayahs: number
+}
+
+export interface HifzOverviewResponse {
+  ok: true
+  status: 'ready'
+  tracked_surahs: number
+  items: HifzSurahProgress[]
+}
