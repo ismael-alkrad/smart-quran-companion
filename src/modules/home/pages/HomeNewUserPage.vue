@@ -22,7 +22,7 @@ function exploreQuran() {
       class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start lg:gap-x-[24px] lg:gap-y-[24px]"
     >
       <section
-        class="flex w-full flex-col items-end gap-[16px] lg:col-start-1 lg:row-span-2 lg:row-start-1"
+        class="flex w-full flex-col items-start gap-[16px] lg:col-start-1 lg:row-span-2 lg:row-start-1"
       >
         <h2
           dir="rtl"
