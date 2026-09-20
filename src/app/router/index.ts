@@ -60,6 +60,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthEmailAlreadyUsedPage.vue'),
     },
     {
+      path: '/auth/verification-error',
+      name: 'auth-verification-error',
+      component: () => import('@/modules/auth/pages/AuthVerificationErrorPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
