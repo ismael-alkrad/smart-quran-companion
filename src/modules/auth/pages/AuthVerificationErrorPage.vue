@@ -19,6 +19,10 @@ function goBack() {
   void router.push('/auth/verify-email')
 }
 
+function goToCodeResent() {
+  void router.push('/auth/code-resent')
+}
+
 onMounted(() => {
   codeInput.value?.focus()
 })
@@ -76,6 +80,7 @@ onMounted(() => {
             size="large"
             variant="secondary"
             class="w-full"
+            @click="goToCodeResent"
           >
             إرسال رمز جديد
           </BaseButton>
