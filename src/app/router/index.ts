@@ -146,6 +146,12 @@ const router = createRouter({
       component: () => import('@/modules/quran/pages/QuranHifzOverviewPage.vue'),
     },
     {
+      path: '/quran/svg-poc',
+      name: 'quran-svg-poc',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/quran/pages/QuranSvgPocPage.vue'),
+    },
+    {
       path: '/quran/hifz/daily-plan',
       name: 'quran-daily-hifz-plan',
       meta: { requiresOnboarding: true },
