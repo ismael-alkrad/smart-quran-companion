@@ -34,16 +34,16 @@ const initialsClasses = computed(() => {
   return 'text-[12px] font-medium leading-[18px]'
 })
 
-const placeholderSource = computed(() => {
-  if (props.size === 'large') return '/assets/avatar/avatar-placeholder-24.svg'
-  if (props.size === 'medium') return '/assets/avatar/avatar-placeholder-20.svg'
-  return '/assets/avatar/avatar-placeholder-16.svg'
-})
+const placeholderClasses = computed(() => {
+  if (props.size === 'large') {
+    return "size-[24px] [mask-image:url('/assets/avatar/avatar-placeholder-24.svg')] [-webkit-mask-image:url('/assets/avatar/avatar-placeholder-24.svg')]"
+  }
 
-const placeholderSizeClass = computed(() => {
-  if (props.size === 'large') return 'size-[24px]'
-  if (props.size === 'medium') return 'size-[20px]'
-  return 'size-[16px]'
+  if (props.size === 'medium') {
+    return "size-[20px] [mask-image:url('/assets/avatar/avatar-placeholder-20.svg')] [-webkit-mask-image:url('/assets/avatar/avatar-placeholder-20.svg')]"
+  }
+
+  return "size-[16px] [mask-image:url('/assets/avatar/avatar-placeholder-16.svg')] [-webkit-mask-image:url('/assets/avatar/avatar-placeholder-16.svg')]"
 })
 </script>
 
@@ -66,13 +66,11 @@ const placeholderSizeClass = computed(() => {
       {{ initials }}
     </span>
 
-    <img
+    <span
       v-else
-      alt=""
       aria-hidden="true"
-      :src="placeholderSource"
-      class="block max-w-none"
-      :class="placeholderSizeClass"
+      class="block shrink-0 bg-[var(--sqc-color-text-tertiary)] [mask-repeat:no-repeat] [mask-position:center] [mask-size:100%_100%] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:center] [-webkit-mask-size:100%_100%]"
+      :class="placeholderClasses"
     />
   </FrappeAvatar>
 </template>
