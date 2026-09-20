@@ -10,7 +10,6 @@ import {
   BaseBottomNav,
   BaseEmptyState,
   type BaseBottomNavRoutes,
-  type BaseBottomNavValue,
 } from '@/shared/components'
 
 const router = useRouter()
@@ -22,12 +21,6 @@ const navRoutes: BaseBottomNavRoutes = {
 
 function exploreQuran() {
   void router.push('/quran/31')
-}
-
-function handleNavSelect(value: BaseBottomNavValue) {
-  if (value === 'quran') {
-    void router.push('/quran/31')
-  }
 }
 </script>
 
@@ -103,7 +96,6 @@ function handleNavSelect(value: BaseBottomNavValue) {
         model-value="home"
         :routes="navRoutes"
         class="absolute inset-x-0 bottom-0"
-        @select="handleNavSelect"
       />
     </div>
   </main>
