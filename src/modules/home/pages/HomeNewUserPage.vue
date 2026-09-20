@@ -31,9 +31,10 @@ function exploreQuran() {
   >
     <div class="relative mx-auto h-dvh w-full max-w-[390px] overflow-hidden">
       <div
-        class="absolute inset-x-0 bottom-[76px] top-[24px] flex flex-col items-start gap-[16px] overflow-x-hidden overflow-y-auto px-[16px] pb-[24px]"
+        class="absolute inset-x-0 bottom-[76px] top-[24px] flex flex-col items-start gap-[16px] overflow-x-hidden overflow-y-auto px-[16px] pb-[24px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <header
+          dir="ltr"
           class="flex h-[64px] w-full shrink-0 items-center justify-between overflow-hidden"
         >
           <BaseAvatar
@@ -42,7 +43,7 @@ function exploreQuran() {
             aria-label="صورة الحساب"
           />
 
-          <div class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
+          <div dir="rtl" class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
             <h1
               dir="auto"
               class="whitespace-nowrap text-[24px] font-semibold leading-[36px] text-[color:var(--sqc-color-text-primary)]"
