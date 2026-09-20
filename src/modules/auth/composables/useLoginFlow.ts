@@ -1,10 +1,12 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
 import { useAuthMutation } from '@/modules/auth/api'
 import { useAuthSession } from '@/modules/auth/composables/useAuthSession'
 import {
   buildLoginErrorLocation,
   buildLoginLocation,
+  buildOAuthErrorLocation,
   getSafeInternalRedirect,
   resolvePostAuthDestination,
 } from '@/modules/auth/navigation'
@@ -23,13 +25,18 @@ export function useLoginFlow() {
   const requestError = ref<string>()
 
   const loginCall = useAuthMutation('login')
+  const oauthLinkCall = useAuthMutation('oauthLink')
   const {
     loading: sessionLoading,
     refreshSession,
+    logout,
   } = useAuthSession()
 
   const loading = computed(
-    () => loginCall.loading || sessionLoading.value,
+    () =>
+      loginCall.loading
+      || oauthLinkCall.loading
+      || sessionLoading.value,
   )
 
   const routeEmail = route.query.email
@@ -42,18 +49,25 @@ export function useLoginFlow() {
     authFlow.setPostAuthRedirect(routeRedirect)
   }
 
-  async function login() {
-    requestError.value = undefined
+  async function finishAuthenticatedLogin() {
+    const session = await refreshSession()
 
-    const response = await loginCall.submit({
-      email: email.value,
-      password: password.value,
-    })
+    if (!session?.authenticated) {
+      requestError.value =
+        'تعذر تأكيد الجلسة بعد تسجيل الدخول. حاول مرة أخرى.'
+      return
+    }
 
-    if (response?.ok && response.status === 'authenticated') {
-      const session = await refreshSession()
+    if (authFlow.oauthLinkToken) {
+      const linkToken = authFlow.oauthLinkToken
+      const linkProvider = authFlow.oauthProvider || undefined
+      const linkEmail = authFlow.oauthLinkEmail
 
-      if (session?.authenticated) {
+      const linkResponse = await oauthLinkCall.submit({
+        link_token: linkToken,
+      })
+
+      if (linkResponse?.ok && linkResponse.status === 'linked') {
         const destination = resolvePostAuthDestination(
           authFlow.postAuthRedirect,
         )
@@ -64,7 +78,61 @@ export function useLoginFlow() {
         return
       }
 
-      requestError.value = 'تعذر تأكيد الجلسة بعد تسجيل الدخول. حاول مرة أخرى.'
+      if (linkResponse?.status === 'account_mismatch') {
+        await logout()
+        password.value = ''
+
+        if (linkEmail) {
+          authFlow.setEmail(linkEmail)
+        }
+
+        requestError.value =
+          'سجّل الدخول بالحساب الحالي المرتبط بهذا البريد لإكمال الربط.'
+        return
+      }
+
+      await logout()
+      password.value = ''
+      authFlow.clearOAuthState()
+
+      const reason =
+        linkResponse?.status === 'account_unavailable'
+          ? 'account_unavailable'
+          : linkResponse?.status === 'provider_already_linked'
+            || linkResponse?.status === 'identity_already_linked'
+            ? 'provider_already_linked'
+            : linkResponse?.status === 'authentication_required'
+              ? 'session_failed'
+              : 'invalid_state'
+
+      void router.replace(
+        buildOAuthErrorLocation(
+          linkResponse?.provider ?? linkProvider,
+          reason,
+        ),
+      )
+      return
+    }
+
+    const destination = resolvePostAuthDestination(
+      authFlow.postAuthRedirect,
+    )
+
+    password.value = ''
+    authFlow.reset()
+    void router.replace(destination)
+  }
+
+  async function login() {
+    requestError.value = undefined
+
+    const response = await loginCall.submit({
+      email: email.value,
+      password: password.value,
+    })
+
+    if (response?.ok && response.status === 'authenticated') {
+      await finishAuthenticatedLogin()
       return
     }
 
@@ -84,11 +152,13 @@ export function useLoginFlow() {
 
     if (response?.status === 'second_factor_required') {
       password.value = ''
-      requestError.value = 'هذا الحساب يتطلب خطوة تحقق إضافية قبل تسجيل الدخول.'
+      requestError.value =
+        'هذا الحساب يتطلب خطوة تحقق إضافية قبل تسجيل الدخول.'
       return
     }
 
-    requestError.value = 'تعذر إكمال تسجيل الدخول الآن. حاول مرة أخرى.'
+    requestError.value =
+      'تعذر إكمال تسجيل الدخول الآن. حاول مرة أخرى.'
   }
 
   function goToLogin() {
@@ -98,10 +168,18 @@ export function useLoginFlow() {
   }
 
   function goToWelcome() {
+    if (authFlow.oauthLinkToken) {
+      authFlow.clearOAuthState()
+    }
+
     void router.push('/auth')
   }
 
   function goToRegister() {
+    if (authFlow.oauthLinkToken) {
+      authFlow.clearOAuthState()
+    }
+
     void router.push('/auth/register')
   }
 
