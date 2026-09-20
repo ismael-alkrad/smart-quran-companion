@@ -1,4 +1,7 @@
-export { useAuthMutation } from '@/modules/auth/api/useAuthApi'
+export {
+  useAuthMutation,
+  useAuthSessionStatus,
+} from '@/modules/auth/api/useAuthApi'
 export type {
   AuthEmailParams,
   AuthLoginParams,
@@ -13,6 +16,8 @@ export type {
   AuthRegisterParams,
   AuthRegisterResponse,
   AuthResendVerificationResponse,
+  AuthSessionStatusResponse,
+  AuthSessionUser,
   AuthResetPasswordParams,
   AuthStatusResponse,
   AuthVerificationParams,
