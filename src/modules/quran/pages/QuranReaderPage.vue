@@ -27,8 +27,9 @@ const route = useRoute()
 const router = useRouter()
 
 const controlsVisible = ref(true)
-const savedPosition = ref<QuranReadingPosition | null>(null)
+const markerPosition = ref<QuranReadingPosition | null>(null)
 const positionLoaded = ref(false)
+const lastAutoSavedKey = ref('')
 const isSpreadViewport = ref(false)
 const isTurning = ref(false)
 
@@ -52,6 +53,7 @@ const savePositionCall = useSaveQuranReadingPositionMutation()
 
 let spreadMedia: MediaQueryList | null = null
 let suppressClickTimer = 0
+let autoSaveTimer = 0
 
 function clampPage(value: number) {
   return Math.min(604, Math.max(1, Math.trunc(value)))
@@ -280,7 +282,7 @@ const currentSurahName = computed(() => {
 const juzNumber = computed(() => primaryPage.value?.juzNumber ?? null)
 
 const savedVerseKey = computed(() => {
-  const position = savedPosition.value
+  const position = markerPosition.value
 
   if (!position) return null
 
@@ -288,7 +290,7 @@ const savedVerseKey = computed(() => {
 })
 
 const savedPositionLabel = computed(() => {
-  const position = savedPosition.value
+  const position = markerPosition.value
 
   if (!position) return ''
 
@@ -722,11 +724,20 @@ function updateSpreadViewport(matches: boolean) {
   isTurning.value = false
 }
 
-async function savePosition(
+function clearAutoSaveTimer() {
+  if (!autoSaveTimer) return
+
+  window.clearTimeout(autoSaveTimer)
+  autoSaveTimer = 0
+}
+
+async function saveSelectedPosition(
   page: number,
   surahNumber: number,
   ayahNumber: number,
 ) {
+  clearAutoSaveTimer()
+
   const response = await savePositionCall.submit({
     page_number: page,
     surah_number: surahNumber,
@@ -734,8 +745,44 @@ async function savePosition(
   })
 
   if (response?.ok && response.status === 'saved') {
-    savedPosition.value = response.position
+    markerPosition.value = response.position
+    lastAutoSavedKey.value = [
+      response.position.page_number,
+      response.position.surah_number,
+      response.position.ayah_number,
+    ].join(':')
   }
+}
+
+function queueAutoSave(
+  page: number,
+  surahNumber: number,
+  ayahNumber: number,
+) {
+  const key = [
+    page,
+    surahNumber,
+    ayahNumber,
+  ].join(':')
+
+  if (lastAutoSavedKey.value === key) return
+
+  clearAutoSaveTimer()
+
+  autoSaveTimer = window.setTimeout(() => {
+    autoSaveTimer = 0
+    lastAutoSavedKey.value = key
+
+    void savePositionCall.submit({
+      page_number: page,
+      surah_number: surahNumber,
+      ayah_number: ayahNumber,
+    }).catch(() => {
+      if (lastAutoSavedKey.value === key) {
+        lastAutoSavedKey.value = ''
+      }
+    })
+  }, 220)
 }
 
 async function selectAyah(payload: {
@@ -744,7 +791,7 @@ async function selectAyah(payload: {
   ayahNumber: number
 }) {
   try {
-    await savePosition(
+    await saveSelectedPosition(
       payload.pageNumber,
       payload.surahNumber,
       payload.ayahNumber,
@@ -762,25 +809,25 @@ watch(
   async ([loadedPage, isPositionLoaded]) => {
     if (!loadedPage || !isPositionLoaded) return
 
-    const existing = savedPosition.value
+    const visibleMarker = markerPosition.value
 
-    if (existing?.page_number === loadedPage) {
+    if (visibleMarker?.page_number === loadedPage) {
       return
+    }
+
+    if (visibleMarker) {
+      markerPosition.value = null
     }
 
     const anchor = firstVerseAnchor.value
 
     if (!anchor) return
 
-    try {
-      await savePosition(
-        loadedPage,
-        anchor.surahNumber,
-        anchor.ayahNumber,
-      )
-    } catch {
-      // Reading remains available offline even if backend persistence fails.
-    }
+    queueAutoSave(
+      loadedPage,
+      anchor.surahNumber,
+      anchor.ayahNumber,
+    )
   },
 )
 
@@ -797,9 +844,17 @@ onMounted(async () => {
 
   try {
     const response = await readingPositionCall.fetch()
-    savedPosition.value = response?.position ?? null
+    markerPosition.value = response?.position ?? null
+
+    if (response?.position) {
+      lastAutoSavedKey.value = [
+        response.position.page_number,
+        response.position.surah_number,
+        response.position.ayah_number,
+      ].join(':')
+    }
   } catch {
-    savedPosition.value = null
+    markerPosition.value = null
   } finally {
     positionLoaded.value = true
   }
@@ -807,6 +862,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearSuppressClickTimer()
+  clearAutoSaveTimer()
 
   spreadMedia?.removeEventListener(
     'change',
@@ -903,7 +959,7 @@ onBeforeUnmount(() => {
           <QuranMushafPane
             :page="primaryPage"
             :saved-verse-key="
-              savedPosition?.page_number === primaryPage.pageNumber
+              markerPosition?.page_number === primaryPage.pageNumber
                 ? savedVerseKey
                 : null
             "
@@ -964,7 +1020,7 @@ onBeforeUnmount(() => {
               spread
               :page="currentRightPage"
               :saved-verse-key="
-                savedPosition?.page_number === currentRightPage.pageNumber
+                markerPosition?.page_number === currentRightPage.pageNumber
                   ? savedVerseKey
                   : null
               "
@@ -988,7 +1044,7 @@ onBeforeUnmount(() => {
               spread
               :page="currentLeftPage"
               :saved-verse-key="
-                savedPosition?.page_number === currentLeftPage.pageNumber
+                markerPosition?.page_number === currentLeftPage.pageNumber
                   ? savedVerseKey
                   : null
               "
