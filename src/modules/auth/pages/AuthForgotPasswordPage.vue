@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { usePasswordResetFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthForm,
   AuthIntro,
 } from '@/modules/auth/components'
-import { BaseAppBar, BaseInput } from '@/shared/components'
+import {
+  BaseAppBar,
+  BaseBanner,
+  BaseInput,
+} from '@/shared/components'
 
-const router = useRouter()
-
-const email = ref('')
-
-function goToLogin() {
-  void router.push('/auth/login')
-}
-
-function goToResetPassword() {
-  void router.push('/auth/reset-password')
-}
+const {
+  email,
+  requestError,
+  requesting,
+  requestResetCode,
+  goToLogin,
+} = usePasswordResetFlow()
 </script>
 
 <template>
@@ -42,6 +41,13 @@ function goToResetPassword() {
           description="أدخل بريدك الإلكتروني وسنرسل لك رمزًا آمنًا لإعادة تعيين كلمة المرور."
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر إرسال رمز الاستعادة"
+          :body="requestError"
+        />
+
         <AuthForm>
           <BaseInput
             v-model="email"
@@ -55,7 +61,9 @@ function goToResetPassword() {
           primary-label="إرسال رمز الاستعادة"
           secondary-label="تذكرت كلمة المرور؟ تسجيل الدخول"
           secondary-size="small"
-          @primary="goToResetPassword"
+          :primary-loading="requesting"
+          primary-loading-text="جارٍ إرسال الرمز"
+          @primary="requestResetCode"
           @secondary="goToLogin"
         />
       </div>
