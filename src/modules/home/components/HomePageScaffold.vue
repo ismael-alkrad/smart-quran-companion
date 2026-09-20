@@ -26,52 +26,48 @@ const navRoutes: BaseBottomNavRoutes = {
     class="min-h-dvh w-full bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
   >
     <div
-      class="mx-auto min-h-dvh w-full max-w-[1200px] px-[16px] pb-[100px] pt-[24px] sm:px-[24px] xl:px-0 xl:pb-[32px]"
+      class="min-h-dvh w-full px-[16px] pb-[100px] pt-[24px] sm:px-[24px]"
     >
-      <div class="hidden xl:block">
-        <BaseBottomNav
-          model-value="home"
-          :routes="navRoutes"
-          class="!static"
-        />
-      </div>
-
-      <header
-        dir="ltr"
-        class="flex h-[64px] w-full items-center justify-between overflow-hidden xl:mt-[24px]"
+      <div
+        class="mx-auto w-full sm:max-w-[720px] lg:max-w-[1130px]"
       >
-        <BaseAvatar
-          type="placeholder"
-          size="medium"
-          aria-label="صورة الحساب"
-        />
-
-        <div
-          dir="rtl"
-          class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right"
+        <header
+          dir="ltr"
+          class="flex h-[64px] w-full items-center justify-between overflow-hidden"
         >
-          <h1
-            dir="rtl"
-            class="whitespace-nowrap text-[24px] font-semibold leading-[36px] text-[color:var(--sqc-color-text-primary)]"
-          >
-            السلام عليكم
-          </h1>
+          <BaseAvatar
+            type="placeholder"
+            size="medium"
+            aria-label="صورة الحساب"
+          />
 
-          <p
+          <div
             dir="rtl"
-            class="whitespace-nowrap text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
+            class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right"
           >
-            {{ subtitle }}
-          </p>
+            <h1
+              dir="rtl"
+              class="whitespace-nowrap text-[24px] font-semibold leading-[36px] text-[color:var(--sqc-color-text-primary)]"
+            >
+              السلام عليكم
+            </h1>
+
+            <p
+              dir="rtl"
+              class="whitespace-nowrap text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
+            >
+              {{ subtitle }}
+            </p>
+          </div>
+        </header>
+
+        <div class="mt-[16px] lg:mt-[24px]">
+          <slot />
         </div>
-      </header>
-
-      <div class="mt-[16px] xl:mt-[32px]">
-        <slot />
       </div>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-50 xl:hidden">
+    <div class="fixed inset-x-0 bottom-0 z-50">
       <BaseBottomNav
         model-value="home"
         :routes="navRoutes"
