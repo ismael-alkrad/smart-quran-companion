@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import MushafPage from '@/modules/quran/components/MushafPage.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 
 const route = useRoute()
-const router = useRouter()
 
 const pageNumber = computed(() => {
   const value = Number(route.params.page)
@@ -14,11 +13,6 @@ const pageNumber = computed(() => {
 })
 
 const { data: page, isPending, isError, error, refetch } = useMushafPage(pageNumber)
-
-function movePage(delta: number) {
-  const next = Math.min(604, Math.max(1, pageNumber.value + delta))
-  void router.push({ name: 'quran-reader', params: { page: next } })
-}
 </script>
 
 <template>
@@ -37,17 +31,13 @@ function movePage(delta: number) {
     </div>
 
     <MushafPage v-else-if="page" :page="page" />
-
-    <nav v-if="page" class="reader-nav" aria-label="التنقل بين صفحات المصحف">
-      <button type="button" :disabled="pageNumber <= 1" @click="movePage(-1)">السابق</button>
-      <button type="button" :disabled="pageNumber >= 604" @click="movePage(1)">التالي</button>
-    </nav>
   </main>
 </template>
 
 <style scoped>
 .reader {
   position: relative;
+  overflow-x: clip;
   background: var(--sqc-color-background-mushaf);
 }
 
@@ -72,35 +62,11 @@ function movePage(delta: number) {
   color: var(--sqc-color-text-tertiary);
 }
 
-.reader-state--error button,
-.reader-nav button {
+.reader-state--error button {
   border: 1px solid var(--sqc-color-border-subtle);
   border-radius: 12px;
   background: white;
   padding: 10px 16px;
   color: var(--sqc-color-text-primary);
-}
-
-.reader-nav {
-  position: fixed;
-  z-index: 10;
-  right: max(14px, env(safe-area-inset-right));
-  bottom: max(14px, env(safe-area-inset-bottom));
-  left: max(14px, env(safe-area-inset-left));
-  display: flex;
-  max-width: 492px;
-  justify-content: space-between;
-  margin-inline: auto;
-  pointer-events: none;
-}
-
-.reader-nav button {
-  box-shadow: 0 6px 24px rgb(45 38 28 / 10%);
-  opacity: 0.82;
-  pointer-events: auto;
-}
-
-.reader-nav button:disabled {
-  opacity: 0.28;
 }
 </style>
