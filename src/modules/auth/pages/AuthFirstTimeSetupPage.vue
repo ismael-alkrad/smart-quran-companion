@@ -28,6 +28,10 @@ const paceOptions: BaseSegmentedOption[] = [
 function goBack() {
   void router.push('/auth/account-ready')
 }
+
+function goToStartup() {
+  void router.push('/auth/startup')
+}
 </script>
 
 <template>
@@ -88,7 +92,10 @@ function goBack() {
           لن نستخدم هذه الخيارات كدرجات أو ضغط؛ فقط لترتيب الخطة اليومية.
         </p>
 
-        <AuthActions primary-label="ابدأ الاستخدام" />
+        <AuthActions
+          primary-label="ابدأ الاستخدام"
+          @primary="goToStartup"
+        />
       </div>
     </div>
   </main>
