@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import {
   AuthActions,
   AuthIntro,
   OAuthOptions,
 } from '@/modules/auth/components'
+
+const router = useRouter()
+
+function goToLogin() {
+  void router.push('/auth/login')
+}
 </script>
 
 <template>
@@ -28,6 +35,7 @@ import {
           variant="welcome"
           primary-label="تسجيل الدخول بالبريد الإلكتروني"
           secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
+          @primary="goToLogin"
         />
 
         <p

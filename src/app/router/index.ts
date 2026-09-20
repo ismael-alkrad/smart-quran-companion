@@ -10,6 +10,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthWelcomePage.vue'),
     },
     {
+      path: '/auth/login',
+      name: 'auth-login',
+      component: () => import('@/modules/auth/pages/AuthLoginPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
