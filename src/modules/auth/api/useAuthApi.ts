@@ -3,6 +3,7 @@ import type {
   AuthMutationKey,
   AuthMutationParams,
   AuthMutationResponse,
+  AuthSessionStatusResponse,
 } from '@/modules/auth/api/contracts'
 
 const AUTH_MUTATION_METHODS = {
@@ -15,6 +16,10 @@ const AUTH_MUTATION_METHODS = {
   resetPassword: 'auth.reset_password',
 } as const satisfies Record<AuthMutationKey, string>
 
+const AUTH_QUERY_METHODS = {
+  sessionStatus: 'auth.session_status',
+} as const
+
 export function useAuthMutation<K extends AuthMutationKey>(key: K) {
   return useSmartQuranCall<
     AuthMutationResponse<K>,
@@ -23,4 +28,14 @@ export function useAuthMutation<K extends AuthMutationKey>(key: K) {
     method: 'POST',
     immediate: false,
   })
+}
+
+export function useAuthSessionStatus() {
+  return useSmartQuranCall<AuthSessionStatusResponse>(
+    AUTH_QUERY_METHODS.sessionStatus,
+    {
+      method: 'GET',
+      immediate: false,
+    },
+  )
 }
