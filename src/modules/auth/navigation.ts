@@ -6,6 +6,7 @@ import type {
 } from '@/modules/auth/types/oauth'
 
 export const AUTHENTICATED_FALLBACK_ROUTE = '/quran/31'
+export const OAUTH_ACCOUNT_LINK_ROUTE = '/auth/oauth/link'
 
 const OAUTH_PROVIDERS = new Set<OAuthProvider>(['google', 'apple'])
 const OAUTH_FAILURE_REASONS = new Set<OAuthFailureReason>([
@@ -101,4 +102,8 @@ export function buildOAuthErrorLocation(
       ...(provider ? { provider } : {}),
     },
   }
+}
+
+export function buildOAuthAccountLinkLocation(): RouteLocationRaw {
+  return OAUTH_ACCOUNT_LINK_ROUTE
 }
