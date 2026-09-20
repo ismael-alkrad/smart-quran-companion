@@ -203,17 +203,17 @@ onBeforeUnmount(() => {
         <div
           v-for="line in page.lines"
           :key="line.lineNumber"
-          class="flex min-h-0 w-full items-center justify-center overflow-visible"
+          class="relative flex min-h-0 w-full items-center overflow-visible"
           :data-line-number="line.lineNumber"
           :data-line-type="line.type"
         >
           <div
             v-if="line.type === 'ayah'"
             :data-qcf-line="line.lineNumber"
-            class="inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            class="absolute left-1/2 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
             :style="{
               fontFamily,
-              transform: `scaleX(${pageLineScale})`,
+              transform: `translateX(-50%) scaleX(${pageLineScale})`,
             }"
           >
             <button
