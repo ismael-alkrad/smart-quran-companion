@@ -122,6 +122,12 @@ const router = createRouter({
       component: () => import('@/modules/home/pages/HomeNewUserPage.vue'),
     },
     {
+      path: '/home/default-preview',
+      name: 'home-default-preview',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/home/pages/HomeDefaultPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       meta: { requiresOnboarding: true },
