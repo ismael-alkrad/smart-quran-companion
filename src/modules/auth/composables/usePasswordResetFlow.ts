@@ -23,6 +23,7 @@ export function usePasswordResetFlow() {
   const confirmation = ref('')
   const requestError = ref<string>()
   const codeError = ref<string>()
+  const passwordError = ref<string>()
   const confirmationError = ref<string>()
 
   const requestCall = useAuthMutation('requestPasswordReset')
@@ -34,6 +35,7 @@ export function usePasswordResetFlow() {
   function clearErrors() {
     requestError.value = undefined
     codeError.value = undefined
+    passwordError.value = undefined
     confirmationError.value = undefined
   }
 
@@ -48,6 +50,11 @@ export function usePasswordResetFlow() {
 
   async function requestResetCode() {
     clearErrors()
+
+    if (!email.value.trim()) {
+      requestError.value = 'أدخل بريدك الإلكتروني.'
+      return
+    }
 
     const response = await requestCall.submit({
       email: email.value,
@@ -71,8 +78,25 @@ export function usePasswordResetFlow() {
 
     clearErrors()
 
-    if (password.value !== confirmation.value) {
+    if (!passwordResetCode.value.trim()) {
+      codeError.value = 'أدخل رمز الاستعادة'
+    }
+
+    if (!password.value) {
+      passwordError.value = 'أدخل كلمة مرور جديدة'
+    }
+
+    if (!confirmation.value) {
+      confirmationError.value = 'أكد كلمة المرور الجديدة'
+    } else if (password.value !== confirmation.value) {
       confirmationError.value = 'كلمتا المرور غير متطابقتين'
+    }
+
+    if (
+      codeError.value
+      || passwordError.value
+      || confirmationError.value
+    ) {
       return
     }
 
@@ -113,6 +137,7 @@ export function usePasswordResetFlow() {
     confirmation,
     requestError,
     codeError,
+    passwordError,
     confirmationError,
     requesting,
     resetting,
