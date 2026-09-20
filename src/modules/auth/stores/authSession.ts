@@ -30,9 +30,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
   function applyStatus(status: AuthSessionStatusResponse) {
     authenticated.value = status.authenticated
     user.value = status.authenticated ? status.user : null
-    setBrowserCsrfToken(
-      status.authenticated ? status.csrf_token : undefined,
-    )
+    setBrowserCsrfToken(status.csrf_token)
   }
 
   function clear() {
