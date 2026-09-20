@@ -55,6 +55,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthLoginErrorPage.vue'),
     },
     {
+      path: '/auth/email-already-used',
+      name: 'auth-email-already-used',
+      component: () => import('@/modules/auth/pages/AuthEmailAlreadyUsedPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
