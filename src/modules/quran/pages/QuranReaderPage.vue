@@ -2,10 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type {
-  HifzOverviewResponse,
-  HifzStatus,
-} from '@/modules/quran/api'
+import type { HifzOverviewResponse } from '@/modules/quran/api'
 import {
   useHifzOverviewQuery,
   useSaveQuranReadingPositionMutation,
