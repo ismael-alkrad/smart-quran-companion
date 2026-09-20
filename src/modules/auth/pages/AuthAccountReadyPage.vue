@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { BaseButton } from '@/shared/components'
+
+const router = useRouter()
+
+function goToSetup() {
+  void router.push('/auth/setup')
+}
 </script>
 
 <template>
@@ -37,6 +44,7 @@ import { BaseButton } from '@/shared/components'
             size="large"
             variant="primary"
             class="w-full"
+            @click="goToSetup"
           >
             إعداد البداية
           </BaseButton>
