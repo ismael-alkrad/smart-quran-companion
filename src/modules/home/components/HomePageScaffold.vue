@@ -32,6 +32,7 @@ const navRoutes: BaseBottomNavRoutes = {
         <BaseBottomNav
           model-value="home"
           :routes="navRoutes"
+          class="!static"
         />
       </div>
 
@@ -74,6 +75,7 @@ const navRoutes: BaseBottomNavRoutes = {
       <BaseBottomNav
         model-value="home"
         :routes="navRoutes"
+        class="!static"
       />
     </div>
   </main>
