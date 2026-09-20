@@ -8,6 +8,7 @@ import {
   watch,
 } from 'vue'
 
+import MushafOrnamentalFrame from '@/modules/quran/components/MushafOrnamentalFrame.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
@@ -195,11 +196,15 @@ onBeforeUnmount(() => {
       v-else
       dir="rtl"
       translate="no"
-      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
+      class="relative mx-auto flex h-full w-full max-w-[520px] flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
       aria-label="تجربة صفحة المصحف على الهاتف"
     >
+      <MushafOrnamentalFrame
+        class="pointer-events-none absolute inset-[3px] z-20"
+      />
+
       <header
-        class="relative mx-[14px] mt-[max(10px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 mx-[20px] mt-[max(16px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
           class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
@@ -222,7 +227,7 @@ onBeforeUnmount(() => {
 
       <section
         ref="textSurface"
-        class="grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[22px] pb-[6px] pt-[10px]"
+        class="relative z-10 grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[28px] pb-[8px] pt-[10px]"
         aria-label="نص صفحة المصحف"
       >
         <div
@@ -280,7 +285,7 @@ onBeforeUnmount(() => {
       </section>
 
       <footer
-        class="relative flex h-[44px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px] before:absolute before:start-[calc(50%_-_44px)] before:top-[11px] before:size-[6px] before:rotate-45 before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[calc(50%_-_44px)] after:top-[11px] after:size-[6px] after:rotate-45 after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 flex h-[46px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px] before:absolute before:start-[calc(50%_-_44px)] before:top-[11px] before:size-[6px] before:rotate-45 before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[calc(50%_-_44px)] after:top-[11px] after:size-[6px] after:rotate-45 after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
           class="flex min-h-[28px] min-w-[54px] items-center justify-center rounded-[12px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[12px] text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)]"
