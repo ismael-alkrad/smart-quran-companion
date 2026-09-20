@@ -45,6 +45,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthFirstTimeSetupPage.vue'),
     },
     {
+      path: '/auth/startup',
+      name: 'auth-startup',
+      component: () => import('@/modules/auth/pages/AuthStartupPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
