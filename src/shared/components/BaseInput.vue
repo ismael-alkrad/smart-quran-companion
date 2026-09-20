@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   TextInput as FrappeTextInput,
-  type FrappeUIError,
   type TextInputExposed,
   type TextInputProps,
 } from 'frappe-ui'
@@ -12,7 +11,7 @@ const props = withDefaults(
     modelValue?: string | number
     label?: string
     helper?: string
-    error?: string | FrappeUIError
+    error?: TextInputProps['error']
     placeholder?: string
     type?: TextInputProps['type']
     id?: string
