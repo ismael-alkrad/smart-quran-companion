@@ -15,6 +15,10 @@ const email = ref('')
 function goToLogin() {
   void router.push('/auth/login')
 }
+
+function goToResetPassword() {
+  void router.push('/auth/reset-password')
+}
 </script>
 
 <template>
@@ -51,6 +55,7 @@ function goToLogin() {
           primary-label="إرسال رمز الاستعادة"
           secondary-label="تذكرت كلمة المرور؟ تسجيل الدخول"
           secondary-size="small"
+          @primary="goToResetPassword"
           @secondary="goToLogin"
         />
       </div>

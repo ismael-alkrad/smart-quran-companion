@@ -30,6 +30,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthForgotPasswordPage.vue'),
     },
     {
+      path: '/auth/reset-password',
+      name: 'auth-reset-password',
+      component: () => import('@/modules/auth/pages/AuthResetPasswordPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
