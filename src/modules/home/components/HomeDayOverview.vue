@@ -25,6 +25,7 @@ const props = withDefaults(
     weakSpotMetric?: string
     weakSpotLocation?: string
     weakSpotType?: 'ayah' | 'transition' | 'similar-passage'
+    showReading?: boolean
     showAttention?: boolean
   }>(),
   {
@@ -35,6 +36,7 @@ const props = withDefaults(
     weakSpotMetric: 'أولوية مراجعة',
     weakSpotLocation: 'من آخر جلسة مراجعة',
     weakSpotType: 'transition',
+    showReading: true,
     showAttention: true,
   },
 )
@@ -55,7 +57,10 @@ function resumeQuran() {
       <div
         class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
-        <section class="flex w-full flex-col items-start gap-[16px]">
+        <section
+          v-if="showReading"
+          class="flex w-full flex-col items-start gap-[16px]"
+        >
           <h2
             dir="rtl"
             class="w-full text-right text-[18px] font-medium leading-[28px] text-[color:var(--sqc-color-text-primary)]"
