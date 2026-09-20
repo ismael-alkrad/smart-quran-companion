@@ -54,7 +54,7 @@ const variantClasses = computed(() => {
   if (props.variant === 'secondary') {
     return [
       'bg-[var(--sqc-color-background-elevated)]',
-      'text-[var(--sqc-color-text-brand)]',
+      'text-[color:var(--sqc-color-text-brand)]',
       'active:bg-[var(--sqc-color-background-tertiary)]',
     ]
   }
@@ -62,14 +62,14 @@ const variantClasses = computed(() => {
   if (props.variant === 'destructive') {
     return [
       'bg-[var(--sqc-color-action-destructive)]',
-      'text-[var(--sqc-color-text-inverse)]',
+      'text-[color:var(--sqc-color-text-inverse)]',
       'active:bg-[var(--sqc-color-action-destructive)]',
     ]
   }
 
   return [
     'bg-[var(--sqc-color-action-primary)]',
-    'text-[var(--sqc-color-text-inverse)]',
+    'text-[color:var(--sqc-color-text-inverse)]',
     'active:bg-[var(--sqc-color-action-primarypressed)]',
   ]
 })
@@ -79,7 +79,7 @@ const variantClasses = computed(() => {
   <button
     :type="type"
     :disabled="disabled"
-    class="relative inline-flex items-center justify-center gap-[var(--sqc-dimension-spacing-8)] rounded-[var(--sqc-dimension-radius-12)] text-center whitespace-nowrap [font-family:var(--sqc-font-family-ui)] disabled:cursor-not-allowed disabled:bg-[var(--sqc-color-action-disabled)] disabled:text-[var(--sqc-color-text-disabled)]"
+    class="relative inline-flex items-center justify-center gap-[var(--sqc-dimension-spacing-8)] rounded-[var(--sqc-dimension-radius-12)] text-center whitespace-nowrap [font-family:var(--sqc-font-family-ui)] disabled:cursor-not-allowed disabled:bg-[var(--sqc-color-action-disabled)] disabled:text-[color:var(--sqc-color-text-disabled)]"
     :class="[sizeClasses, variantClasses]"
   >
     <slot />
