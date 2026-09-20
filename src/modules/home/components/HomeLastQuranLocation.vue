@@ -16,7 +16,7 @@ const emit = defineEmits<{
 <template>
   <button
     type="button"
-    dir="rtl"
+    dir="ltr"
     class="flex h-[108px] w-full items-center justify-between rounded-[18px] bg-[var(--sqc-color-background-elevated)] p-[var(--sqc-dimension-spacing-16)] text-right [font-family:var(--sqc-font-family-ui)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-color-border-focus)]"
     @click="emit('resume')"
   >
@@ -27,7 +27,7 @@ const emit = defineEmits<{
       متابعة
     </span>
 
-    <span class="flex min-w-0 flex-col items-end gap-[4px] overflow-hidden">
+    <span dir="rtl" class="flex min-w-0 flex-col items-end gap-[4px] overflow-hidden">
       <span
         dir="auto"
         class="whitespace-nowrap text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
