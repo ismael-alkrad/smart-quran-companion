@@ -9,6 +9,21 @@ export const AUTHENTICATED_FALLBACK_ROUTE = '/quran/31'
 export const OAUTH_ACCOUNT_LINK_ROUTE = '/auth/oauth/link'
 
 const OAUTH_PROVIDERS = new Set<OAuthProvider>(['google', 'apple'])
+const GUEST_AUTH_RETURN_PATHS = new Set([
+  '/auth',
+  '/auth/login',
+  '/auth/register',
+  '/auth/verify-email',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/oauth/error',
+  '/auth/login-error',
+  '/auth/email-already-used',
+  '/auth/verification-error',
+  '/auth/code-resent',
+  '/auth/password-reset-success',
+  '/auth/session-expired',
+])
 const OAUTH_FAILURE_REASONS = new Set<OAuthFailureReason>([
   'cancelled',
   'invalid_state',
@@ -39,6 +54,24 @@ export function getSafeInternalRedirect(value: unknown) {
   }
 
   return candidate
+}
+
+export function getSafeGuestAuthReturn(value: unknown) {
+  const candidate = firstQueryValue(value)
+
+  if (
+    typeof candidate !== 'string'
+    || !candidate.startsWith('/')
+    || candidate.startsWith('//')
+  ) {
+    return undefined
+  }
+
+  const path = candidate.split(/[?#]/, 1)[0]
+
+  return path && GUEST_AUTH_RETURN_PATHS.has(path)
+    ? candidate
+    : undefined
 }
 
 export function getOAuthProvider(value: unknown): OAuthProvider | undefined {
