@@ -2,7 +2,7 @@
 import { useEmailVerificationFlow } from '@/modules/auth/composables'
 import {
   AuthForm,
-  AuthVerificationCodeField,
+  AuthCodeField,
 } from '@/modules/auth/components'
 import {
   BaseAppBar,
@@ -58,7 +58,7 @@ const {
         />
 
         <AuthForm>
-          <AuthVerificationCodeField
+          <AuthCodeField
             v-model="verificationCode"
             error="الرمز غير صحيح أو منتهي"
           />
