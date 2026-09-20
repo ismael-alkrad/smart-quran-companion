@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 import page67Raw from '@/modules/quran/poc/assets/067.svg?raw'
 import page68Raw from '@/modules/quran/poc/assets/068.svg?raw'
-import { toArabicNumber } from '@/modules/quran/utils/number'
 
 interface SelectedWord {
   pageNumber: number
@@ -16,8 +15,11 @@ interface SelectedWord {
 
 interface HighlightedPath {
   element: SVGPathElement
-  fill: string | null
+  inlineFill: string
 }
+
+const page67Image = 'https://equran.me/assets/images/pages/0067.jpg'
+const page68Image = 'https://equran.me/assets/images/pages/0068.jpg'
 
 const selectedWord = ref<SelectedWord | null>(null)
 
@@ -32,28 +34,12 @@ function prepareInlineSvg(markup: string) {
 const page67Svg = prepareInlineSvg(page67Raw)
 const page68Svg = prepareInlineSvg(page68Raw)
 
-const selectedLabel = computed(() => {
-  const word = selectedWord.value
-
-  if (!word) {
-    return 'اضغط على أي كلمة لاختبار metadata و highlight'
-  }
-
-  return [
-    `صفحة ${toArabicNumber(word.pageNumber)}`,
-    `سورة ${toArabicNumber(word.surahNumber)}`,
-    `آية ${toArabicNumber(word.ayahNumber)}`,
-    `الكلمة ${toArabicNumber(word.wordIndex)}`,
-    word.hafs,
-  ].join(' · ')
-})
-
 function clearHighlight() {
-  for (const { element, fill } of highlightedPaths) {
-    if (fill === null) {
-      element.removeAttribute('fill')
+  for (const { element, inlineFill } of highlightedPaths) {
+    if (inlineFill) {
+      element.style.fill = inlineFill
     } else {
-      element.setAttribute('fill', fill)
+      element.style.removeProperty('fill')
     }
   }
 
@@ -67,14 +53,11 @@ function highlightWord(word: Element) {
 
   highlightedPaths = Array.from(paths, (element) => ({
     element,
-    fill: element.getAttribute('fill'),
+    inlineFill: element.style.fill,
   }))
 
   for (const { element } of highlightedPaths) {
-    element.setAttribute(
-      'fill',
-      'var(--sqc-color-mushaf-accent)',
-    )
+    element.style.fill = 'var(--sqc-color-mushaf-accent)'
   }
 }
 
@@ -127,7 +110,7 @@ function handleWordClick(
     imlaey: word.getAttribute('data-imlaey') ?? '',
   }
 
-  console.info('[Quran SVG PoC] selected word', {
+  console.info('[Quran Hybrid PoC] selected word', {
     page: pageNumber,
     surah: surahNumber,
     ayah: ayahNumber,
@@ -140,49 +123,48 @@ function handleWordClick(
 
 <template>
   <main
-    class="relative h-dvh w-full overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)]"
+    class="h-dvh w-full overflow-hidden bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
   >
     <section
       dir="rtl"
-      class="grid h-full w-full grid-cols-1 items-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)] lg:landscape:grid-cols-2 lg:landscape:gap-px lg:landscape:bg-[var(--sqc-color-mushaf-border-subtle)]"
-      aria-label="تجربة مصحف SVG للصفحتين ٦٧ و٦٨"
+      class="grid h-full w-full grid-cols-1 overflow-hidden lg:landscape:grid-cols-2"
+      aria-label="تجربة المصحف الهجين للصفحتين ٦٧ و٦٨"
     >
       <article
-        class="flex h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)]"
+        class="relative flex h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-background-primary)]"
         aria-label="صفحة ٦٧"
       >
+        <img
+          :src="page67Image"
+          alt="صفحة ٦٧ من مصحف المدينة"
+          draggable="false"
+          class="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+        >
+
         <div
-          class="h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:max-w-full [&>svg]:select-none"
+          class="absolute inset-0 h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:select-none [&>svg_path]:fill-transparent"
           v-html="page67Svg"
           @click="handleWordClick($event, 67)"
         />
       </article>
 
       <article
-        class="hidden h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-mushaf-paper)] lg:landscape:flex"
+        class="relative hidden h-full min-w-0 items-center justify-center overflow-hidden bg-[var(--sqc-color-background-primary)] lg:landscape:flex"
         aria-label="صفحة ٦٨"
       >
+        <img
+          :src="page68Image"
+          alt="صفحة ٦٨ من مصحف المدينة"
+          draggable="false"
+          class="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+        >
+
         <div
-          class="h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:max-w-full [&>svg]:select-none"
+          class="absolute inset-0 h-full w-full [&>svg]:block [&>svg]:h-full [&>svg]:w-full [&>svg]:select-none [&>svg_path]:fill-transparent"
           v-html="page68Svg"
           @click="handleWordClick($event, 68)"
         />
       </article>
     </section>
-
-    <div
-      class="pointer-events-none fixed inset-x-[12px] bottom-[max(12px,env(safe-area-inset-bottom))] z-20 flex justify-center"
-    >
-      <div
-        class="max-w-[760px] rounded-[var(--sqc-dimension-radius-16)] border border-[var(--sqc-color-mushaf-border-subtle)] bg-[var(--sqc-color-mushaf-overlay)] px-[16px] py-[10px] text-center shadow-lg backdrop-blur"
-      >
-        <p
-          dir="rtl"
-          class="text-[12px] font-medium leading-[20px] text-[color:var(--sqc-color-mushaf-ink)]"
-        >
-          {{ selectedLabel }}
-        </p>
-      </div>
-    </div>
   </main>
 </template>
