@@ -123,7 +123,9 @@ export function usePasswordResetFlow() {
   }
 
   function goToLogin() {
-    void router.push(buildLoginLocation(undefined))
+    void router.push(
+      buildLoginLocation(authFlow.postAuthRedirect),
+    )
   }
 
   function goToForgotPassword() {
