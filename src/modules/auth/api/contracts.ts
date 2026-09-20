@@ -164,7 +164,7 @@ export type AuthSessionStatusResponse =
       authenticated: false
       expired: boolean
       user?: never
-      csrf_token?: never
+      csrf_token: string
     }
   | {
       ok: true
