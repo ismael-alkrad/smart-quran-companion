@@ -93,18 +93,9 @@ function resolvedConfirmLabel() {
         </FrappeDialogDescription>
 
         <div
-          dir="ltr"
+          dir="rtl"
           class="flex w-full shrink-0 items-start gap-[var(--sqc-dimension-spacing-12)] overflow-hidden"
         >
-          <BaseButton
-            size="medium"
-            variant="secondary"
-            :disabled="cancelDisabled || confirmLoading"
-            @click="handleCancel"
-          >
-            {{ cancelLabel }}
-          </BaseButton>
-
           <BaseButton
             size="medium"
             :variant="tone === 'destructive' ? 'destructive' : 'primary'"
@@ -113,6 +104,15 @@ function resolvedConfirmLabel() {
             @click="handleConfirm"
           >
             {{ resolvedConfirmLabel() }}
+          </BaseButton>
+
+          <BaseButton
+            size="medium"
+            variant="secondary"
+            :disabled="cancelDisabled || confirmLoading"
+            @click="handleCancel"
+          >
+            {{ cancelLabel }}
           </BaseButton>
         </div>
       </section>
