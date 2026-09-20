@@ -5,6 +5,11 @@ export default createRouter({
   routes: [
     { path: '/', redirect: '/quran/31' },
     {
+      path: '/auth',
+      name: 'auth-welcome',
+      component: () => import('@/modules/auth/pages/AuthWelcomePage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
