@@ -119,7 +119,8 @@ export type AuthOAuthCompleteResponse =
         | 'invalid_provider'
         | 'provider_unavailable'
         | 'invalid_pkce_verifier'
-        | 'oauth_failed'
+        | 'token_exchange_failed'
+        | 'identity_verification_failed'
         | 'account_unavailable'
         | 'provider_already_linked'
       provider?: OAuthProvider
