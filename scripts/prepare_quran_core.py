@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import bz2
 import json
 import shutil
 import sqlite3
 import sys
+import tarfile
+import tempfile
 import zipfile
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -30,12 +33,25 @@ def parse_args() -> argparse.Namespace:
             "SQLite database and QPC V2 word-by-word SQLite database."
         )
     )
-    parser.add_argument("--layout", required=True, type=Path, help="QUL KFGQPC V2 layout .db/.sqlite")
-    parser.add_argument("--script", required=True, type=Path, help="QUL QPC V2 word-by-word .db/.sqlite")
+    parser.add_argument(
+        "--layout",
+        required=True,
+        type=Path,
+        help="QUL KFGQPC V2 layout .db/.sqlite or .zip containing it.",
+    )
+    parser.add_argument(
+        "--script",
+        required=True,
+        type=Path,
+        help="QUL QPC V2 word-by-word .db/.sqlite or .zip containing it.",
+    )
     parser.add_argument(
         "--fonts",
         type=Path,
-        help="Optional QPC V2 WOFF2 directory or ZIP. If provided, fonts are copied into the app bundle.",
+        help=(
+            "QPC V2 WOFF2 package. Accepts a directory, .zip, .tar/.tar.bz2, "
+            "or QUL .woff2.bz2 package."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -44,6 +60,134 @@ def parse_args() -> argparse.Namespace:
         help="Output root. Defaults to public/quran.",
     )
     return parser.parse_args()
+
+
+def _is_sqlite(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    with path.open("rb") as handle:
+        return handle.read(16) == b"SQLite format 3\\x00"
+
+
+def resolve_sqlite_source(source: Path, workdir: Path, label: str) -> Path:
+    """Return a usable SQLite file from a raw DB or QUL ZIP download."""
+    if not source.exists():
+        raise FileNotFoundError(source)
+
+    if _is_sqlite(source):
+        return source
+
+    if zipfile.is_zipfile(source):
+        target_dir = workdir / f"{label}-sqlite"
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        with zipfile.ZipFile(source) as archive:
+            candidates = [
+                name
+                for name in archive.namelist()
+                if not name.endswith("/") and Path(name).suffix.lower() in {".db", ".sqlite", ".sqlite3"}
+            ]
+            if not candidates:
+                raise RuntimeError(f"{source} does not contain a SQLite database.")
+
+            # These QUL packages should contain one database. Prefer the shortest path
+            # if a metadata folder is present.
+            member = sorted(candidates, key=lambda name: (len(Path(name).parts), len(name)))[0]
+            extracted = Path(archive.extract(member, target_dir))
+
+        if not _is_sqlite(extracted):
+            raise RuntimeError(f"Extracted file from {source} is not a SQLite database.")
+        return extracted
+
+    if source.suffix.lower() == ".bz2":
+        target = workdir / source.name.removesuffix(".bz2")
+        with bz2.open(source, "rb") as src, target.open("wb") as dst:
+            shutil.copyfileobj(src, dst)
+        if _is_sqlite(target):
+            return target
+
+    raise RuntimeError(
+        f"{source} is not a SQLite database or a supported compressed SQLite package."
+    )
+
+
+def _font_name_candidates(page: int) -> tuple[str, ...]:
+    return (
+        f"p{page}.woff2",
+        f"p{page:03}.woff2",
+        f"QCF_P{page:03}.woff2",
+        f"QCF2{page:03}.woff2",
+    )
+
+
+def _copy_fonts_from_directory(root: Path, destination: Path) -> None:
+    all_fonts = list(root.rglob("*.woff2"))
+    if not all_fonts:
+        raise RuntimeError(f"No WOFF2 files were found in {root}.")
+
+    by_name = {font.name.lower(): font for font in all_fonts}
+    for page in range(1, PAGE_COUNT + 1):
+        source = next(
+            (by_name[name.lower()] for name in _font_name_candidates(page) if name.lower() in by_name),
+            None,
+        )
+        if source is None:
+            raise RuntimeError(
+                f"Font package is incomplete: could not find the WOFF2 font for page {page}."
+            )
+        shutil.copyfile(source, destination / f"p{page}.woff2")
+
+
+def _extract_font_package(source: Path, workdir: Path) -> Path:
+    """Normalize ZIP/TAR/BZ2 QUL font downloads to an extracted directory."""
+    if source.is_dir():
+        return source
+
+    if not source.is_file():
+        raise FileNotFoundError(source)
+
+    target_dir = workdir / "fonts-package"
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    # Some QUL downloads have changed filename extensions over time. Detect by
+    # archive signature/content instead of trusting the filename alone.
+    if zipfile.is_zipfile(source):
+        with zipfile.ZipFile(source) as archive:
+            archive.extractall(target_dir)
+        return target_dir
+
+    if tarfile.is_tarfile(source):
+        with tarfile.open(source, "r:*") as archive:
+            archive.extractall(target_dir, filter="data")
+        return target_dir
+
+    if source.suffix.lower() == ".bz2":
+        decompressed = workdir / source.name.removesuffix(".bz2")
+        with bz2.open(source, "rb") as src, decompressed.open("wb") as dst:
+            shutil.copyfileobj(src, dst)
+
+        if zipfile.is_zipfile(decompressed):
+            with zipfile.ZipFile(decompressed) as archive:
+                archive.extractall(target_dir)
+            return target_dir
+
+        if tarfile.is_tarfile(decompressed):
+            with tarfile.open(decompressed, "r:*") as archive:
+                archive.extractall(target_dir, filter="data")
+            return target_dir
+
+        # If the bzip2 payload is one raw WOFF2 file, it cannot be the complete
+        # QPC V2 page-by-page package (the Mushaf requires 604 page fonts).
+        if decompressed.is_file() and decompressed.read_bytes()[:4] == b"wOF2":
+            raise RuntimeError(
+                "The .bz2 package expanded to a single WOFF2 file. "
+                "QPC V2 requires 604 page-specific fonts. Re-download the QUL "
+                "'QPC V2 Font' WOFF2 package and ensure the complete page-by-page archive is selected."
+            )
+
+    raise RuntimeError(
+        "--fonts must point to a directory or an archive containing all 604 QPC V2 WOFF2 page fonts."
+    )
 
 
 def table_columns(connection: sqlite3.Connection, table: str) -> set[str]:
@@ -177,87 +321,50 @@ def build_page(page_number: int, lines: list[dict], words: dict[int, dict]) -> d
     }
 
 
-def find_font_in_directory(root: Path, page: int) -> Path | None:
-    names = {
-        f"p{page}.woff2",
-        f"p{page:03}.woff2",
-        f"QCF_P{page:03}.woff2",
-        f"QCF2{page:03}.woff2",
-    }
-    for candidate in root.rglob("*.woff2"):
-        if candidate.name in names:
-            return candidate
-    return None
-
-
-def copy_fonts(source: Path, destination: Path) -> None:
+def copy_fonts(source: Path, destination: Path, workdir: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
-
-    if source.is_dir():
-        for page in range(1, PAGE_COUNT + 1):
-            font = find_font_in_directory(source, page)
-            if font is None:
-                raise RuntimeError(f"Could not find WOFF2 font for page {page} in {source}.")
-            shutil.copyfile(font, destination / f"p{page}.woff2")
-        return
-
-    if source.is_file() and source.suffix.lower() == ".zip":
-        with zipfile.ZipFile(source) as archive:
-            by_name = {Path(name).name: name for name in archive.namelist() if name.endswith(".woff2")}
-            for page in range(1, PAGE_COUNT + 1):
-                candidates = [
-                    f"p{page}.woff2",
-                    f"p{page:03}.woff2",
-                    f"QCF_P{page:03}.woff2",
-                    f"QCF2{page:03}.woff2",
-                ]
-                member = next((by_name[name] for name in candidates if name in by_name), None)
-                if member is None:
-                    raise RuntimeError(f"Could not find WOFF2 font for page {page} in {source}.")
-                with archive.open(member) as src, (destination / f"p{page}.woff2").open("wb") as dst:
-                    shutil.copyfileobj(src, dst)
-        return
-
-    raise RuntimeError("--fonts must point to a directory or ZIP containing QPC V2 WOFF2 fonts.")
-
+    package_dir = _extract_font_package(source, workdir)
+    _copy_fonts_from_directory(package_dir, destination)
 
 def main() -> int:
     args = parse_args()
 
-    for path in (args.layout, args.script):
-        if not path.exists():
-            raise FileNotFoundError(path)
+    with tempfile.TemporaryDirectory(prefix="smart-quran-core-") as temp_dir:
+        workdir = Path(temp_dir)
+        layout_db = resolve_sqlite_source(args.layout, workdir, "layout")
+        script_db = resolve_sqlite_source(args.script, workdir, "script")
 
-    words = load_words(args.script)
-    pages = load_layout(args.layout)
+        words = load_words(script_db)
+        pages = load_layout(layout_db)
 
-    missing_pages = [page for page in range(1, PAGE_COUNT + 1) if page not in pages]
-    if missing_pages:
-        raise RuntimeError(
-            f"Layout is incomplete. Missing {len(missing_pages)} pages; first missing page: {missing_pages[0]}."
-        )
-
-    pages_dir = args.output / "core" / "pages"
-    pages_dir.mkdir(parents=True, exist_ok=True)
-
-    for page_number in range(1, PAGE_COUNT + 1):
-        page_lines = pages[page_number]
-        if len(page_lines) != LINES_PER_PAGE:
+        missing_pages = [page for page in range(1, PAGE_COUNT + 1) if page not in pages]
+        if missing_pages:
             raise RuntimeError(
-                f"Page {page_number} has {len(page_lines)} layout lines; expected {LINES_PER_PAGE}."
+                f"Layout is incomplete. Missing {len(missing_pages)} pages; "
+                f"first missing page: {missing_pages[0]}."
             )
 
-        page = build_page(page_number, page_lines, words)
-        target = pages_dir / f"{page_number:03}.json"
-        target.write_text(
-            json.dumps(page, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
-        )
+        pages_dir = args.output / "core" / "pages"
+        pages_dir.mkdir(parents=True, exist_ok=True)
 
-    fonts_included = False
-    if args.fonts:
-        copy_fonts(args.fonts, args.output / "fonts" / "v2")
-        fonts_included = True
+        for page_number in range(1, PAGE_COUNT + 1):
+            page_lines = pages[page_number]
+            if len(page_lines) != LINES_PER_PAGE:
+                raise RuntimeError(
+                    f"Page {page_number} has {len(page_lines)} layout lines; expected {LINES_PER_PAGE}."
+                )
+
+            page = build_page(page_number, page_lines, words)
+            target = pages_dir / f"{page_number:03}.json"
+            target.write_text(
+                json.dumps(page, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
+
+        fonts_included = False
+        if args.fonts:
+            copy_fonts(args.fonts, args.output / "fonts" / "v2", workdir)
+            fonts_included = True
 
     manifest = {
         "version": 1,
