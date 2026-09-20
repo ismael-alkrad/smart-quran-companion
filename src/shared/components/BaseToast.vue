@@ -64,10 +64,24 @@ const ariaRole = computed(() =>
   <div
     :role="ariaRole"
     aria-live="polite"
-    dir="ltr"
+    dir="rtl"
     class="flex h-[56px] w-[342px] items-center justify-between gap-[var(--sqc-dimension-spacing-12)] rounded-[var(--sqc-dimension-radius-12)] px-[var(--sqc-dimension-spacing-16)] py-[var(--sqc-dimension-spacing-12)] [font-family:var(--sqc-font-family-ui)]"
     :class="toneClasses.background"
   >
+    <span
+      aria-hidden="true"
+      class="block size-[10px] shrink-0 [mask-image:url('/assets/icons/toast-status-10.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-image:url('/assets/icons/toast-status-10.svg')] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]"
+      :class="toneClasses.status"
+    />
+
+    <p
+      dir="rtl"
+      class="min-w-0 flex-1 text-right text-[14px] font-normal leading-[24px]"
+      :class="toneClasses.foreground"
+    >
+      {{ message }}
+    </p>
+
     <button
       v-if="dismissible"
       type="button"
@@ -86,20 +100,6 @@ const ariaRole = computed(() =>
       v-else
       aria-hidden="true"
       class="block size-[16px] shrink-0"
-    />
-
-    <p
-      dir="auto"
-      class="min-w-0 flex-1 text-right text-[14px] font-normal leading-[24px]"
-      :class="toneClasses.foreground"
-    >
-      {{ message }}
-    </p>
-
-    <span
-      aria-hidden="true"
-      class="block size-[10px] shrink-0 [mask-image:url('/assets/icons/toast-status-10.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-image:url('/assets/icons/toast-status-10.svg')] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]"
-      :class="toneClasses.status"
     />
   </div>
 </template>
