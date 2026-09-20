@@ -43,7 +43,7 @@ const dotClass = computed(() => {
 
 <template>
   <div
-    dir="rtl"
+    dir="ltr"
     class="flex h-[64px] w-full items-center justify-between rounded-[var(--sqc-dimension-radius-16)] px-[var(--sqc-dimension-spacing-16)] py-[10px] [font-family:var(--sqc-font-family-ui)]"
     :class="surfaceClass"
   >
@@ -53,7 +53,7 @@ const dotClass = computed(() => {
       :class="dotClass"
     />
 
-    <div class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
+    <div dir="rtl" class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
       <p
         dir="auto"
         class="whitespace-nowrap text-[16px] font-semibold leading-[26px] text-[color:var(--sqc-color-text-primary)]"
