@@ -4,5 +4,10 @@ export type {
   HifzStatus,
   HifzStrength,
   HifzSurahProgress,
+  HifzSurahProgressParams,
+  HifzSurahProgressResponse,
 } from '@/modules/quran/api/contracts'
-export { useHifzOverviewQuery } from '@/modules/quran/api/useHifzApi'
+export {
+  useHifzOverviewQuery,
+  useHifzSurahProgressQuery,
+} from '@/modules/quran/api/useHifzApi'

@@ -35,3 +35,15 @@ export interface HifzOverviewResponse {
   tracked_surahs: number
   items: HifzSurahProgress[]
 }
+
+
+export interface HifzSurahProgressResponse {
+  ok: true
+  status: 'tracked' | 'new'
+  surah_number: number
+  progress: HifzSurahProgress | null
+}
+
+export type HifzSurahProgressParams = {
+  surah_number: number
+}

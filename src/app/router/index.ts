@@ -146,6 +146,12 @@ const router = createRouter({
       component: () => import('@/modules/quran/pages/QuranHifzOverviewPage.vue'),
     },
     {
+      path: '/quran/surah/:surahNumber(\\d+)',
+      name: 'quran-surah-progress',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/quran/pages/QuranSurahProgressPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       meta: { requiresOnboarding: true },

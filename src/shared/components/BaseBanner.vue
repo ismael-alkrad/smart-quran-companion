@@ -68,7 +68,7 @@ const toneClasses = computed(() => {
 
     <template #title>
       <span
-        dir="auto"
+        dir="rtl"
         class="block whitespace-nowrap"
         :class="toneClasses.foreground"
       >
@@ -78,7 +78,7 @@ const toneClasses = computed(() => {
 
     <template #description>
       <span
-        dir="auto"
+        dir="rtl"
         class="block"
         :class="toneClasses.foreground"
       >

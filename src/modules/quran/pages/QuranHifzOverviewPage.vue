@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
@@ -29,6 +30,8 @@ const {
   refresh,
 } = useHifzOverview()
 
+const router = useRouter()
+
 const filterOptions: BaseSegmentedOption[] = [
   { value: 'all', label: 'الكل' },
   { value: 'memorizing', label: 'قيد الحفظ' },
@@ -38,6 +41,10 @@ const filterOptions: BaseSegmentedOption[] = [
 const navRoutes: BaseBottomNavRoutes = {
   home: '/home',
   quran: '/quran',
+}
+
+function openSurah(surahNumber: number) {
+  void router.push(`/quran/surah/${surahNumber}`)
 }
 
 function updateFilter(value: BaseSegmentedOption['value']) {
@@ -141,6 +148,8 @@ onMounted(() => {
             :completed-ayahs="surah.completedAyahs"
             :ayah-count="surah.ayahCount"
             :status="surah.status"
+            interactive
+            @select="openSurah(surah.surahNumber)"
           />
         </div>
 

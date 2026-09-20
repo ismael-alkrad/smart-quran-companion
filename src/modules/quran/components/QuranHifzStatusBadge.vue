@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 import type { HifzStatus } from '@/modules/quran/api'
+import { getHifzStatusLabel } from '@/modules/quran/utils/hifz'
 
 export type QuranHifzDisplayStatus = HifzStatus | 'new'
 
@@ -14,26 +15,7 @@ const props = withDefaults(
   },
 )
 
-const label = computed(() => {
-  switch (props.status) {
-    case 'initial_hifz':
-      return 'حفظ أولي'
-    case 'memorizing':
-      return 'قيد الحفظ'
-    case 'pending_tasmee':
-      return 'بانتظار التسميع'
-    case 'pending_approval':
-      return 'بانتظار الاعتماد'
-    case 'approved':
-      return 'معتمد'
-    case 'needs_review':
-      return 'يحتاج مراجعة'
-    case 'mastered':
-      return 'متقن'
-    default:
-      return 'جديد'
-  }
-})
+const label = computed(() => getHifzStatusLabel(props.status))
 
 const toneClass = computed(() => {
   switch (props.status) {
