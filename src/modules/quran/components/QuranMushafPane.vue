@@ -22,10 +22,12 @@ const props = withDefaults(
     page: MushafPageData
     savedVerseKey?: string | null
     markerLabel?: string
+    spread?: boolean
   }>(),
   {
     savedVerseKey: null,
     markerLabel: 'آخر موضع',
+    spread: false,
   },
 )
 
@@ -186,12 +188,18 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="root"
-    class="relative w-full overflow-hidden"
+    class="relative mx-auto w-full overflow-hidden"
+    :class="spread ? '' : 'max-w-[620px]'"
     @click="handleClick"
   >
     <MushafPage
       :page="page"
-      class="!my-0 !max-w-none !rounded-none !shadow-none"
+      class="!my-0 !rounded-none !shadow-none"
+      :class="
+        spread
+          ? '!max-w-none'
+          : '!max-w-[620px]'
+      "
     />
 
     <div

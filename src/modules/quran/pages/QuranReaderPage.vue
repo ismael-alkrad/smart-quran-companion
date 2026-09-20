@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {
   computed,
+  nextTick,
+  onBeforeUnmount,
   onMounted,
   ref,
   watch,
@@ -18,21 +20,51 @@ import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 import { BaseButton } from '@/shared/components'
 
+type ReaderDirection = 'next' | 'previous'
+
 const route = useRoute()
 const router = useRouter()
 
 const controlsVisible = ref(true)
 const savedPosition = ref<QuranReadingPosition | null>(null)
 const positionLoaded = ref(false)
+const isSpreadViewport = ref(false)
+const isTurning = ref(false)
+
+const mobileViewport = ref<HTMLElement | null>(null)
+const mobileDragX = ref(0)
+const mobileTransitioning = ref(false)
+const pointerStartX = ref(0)
+const pointerStartY = ref(0)
+const pointerStartedAt = ref(0)
+const activePointerId = ref<number | null>(null)
+const draggingHorizontally = ref(false)
+const suppressNextClick = ref(false)
+
+const spreadRightPane = ref<HTMLElement | null>(null)
+const spreadLeftPane = ref<HTMLElement | null>(null)
+
 const readingPositionCall = useQuranReadingPositionQuery()
 const savePositionCall = useSaveQuranReadingPositionMutation()
 
+let spreadMedia: MediaQueryList | null = null
+let suppressClickTimer = 0
+
 const pageNumber = computed(() => {
   const value = Number(route.params.page)
+
   return Number.isFinite(value)
     ? Math.min(604, Math.max(1, Math.trunc(value)))
     : 1
 })
+
+const previousPageNumber = computed(() =>
+  Math.max(1, pageNumber.value - 1),
+)
+
+const nextPageNumber = computed(() =>
+  Math.min(604, pageNumber.value + 1),
+)
 
 const tabletLeftPageNumber = computed<number | null>(() => {
   const current = pageNumber.value
@@ -69,9 +101,13 @@ const companionPageNumber = computed(() => {
 
 const primaryQuery = useMushafPage(pageNumber)
 const companionQuery = useMushafPage(companionPageNumber)
+const previousQuery = useMushafPage(previousPageNumber)
+const nextQuery = useMushafPage(nextPageNumber)
 
 const primaryPage = computed(() => primaryQuery.data.value ?? null)
 const companionPage = computed(() => companionQuery.data.value ?? null)
+const previousPage = computed(() => previousQuery.data.value ?? null)
+const nextPage = computed(() => nextQuery.data.value ?? null)
 
 const tabletLeftPage = computed(() => {
   const leftNumber = tabletLeftPageNumber.value
@@ -170,13 +206,15 @@ const metadataLabel = computed(() => {
   return parts.join(' · ')
 })
 
-const loading = computed(
-  () => primaryQuery.isPending.value || companionQuery.isPending.value,
-)
+const loading = computed(() => primaryQuery.isPending.value)
+const failed = computed(() => primaryQuery.isError.value)
 
-const failed = computed(
-  () => primaryQuery.isError.value,
-)
+const mobileTrackStyle = computed(() => ({
+  transform: `translate3d(calc(-33.333333% + ${mobileDragX.value}px), 0, 0)`,
+  transition: mobileTransitioning.value
+    ? 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)'
+    : 'none',
+}))
 
 function goBack() {
   void router.push('/quran')
@@ -186,28 +224,284 @@ function toggleControls() {
   controlsVisible.value = !controlsVisible.value
 }
 
-function navigationStep() {
-  if (typeof window === 'undefined') return 1
+function readerTarget(direction: ReaderDirection) {
+  const step = isSpreadViewport.value ? 2 : 1
 
-  return window.matchMedia('(min-width: 768px)').matches
-    ? 2
-    : 1
+  return direction === 'next'
+    ? Math.min(604, pageNumber.value + step)
+    : Math.max(1, pageNumber.value - step)
+}
+
+function canNavigate(direction: ReaderDirection) {
+  const target = readerTarget(direction)
+  return target !== pageNumber.value
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
+
+async function animateMobileTurn(direction: ReaderDirection) {
+  if (
+    isTurning.value
+    || !canNavigate(direction)
+    || !mobileViewport.value
+  ) {
+    mobileTransitioning.value = true
+    mobileDragX.value = 0
+    await delay(220)
+    mobileTransitioning.value = false
+    return
+  }
+
+  isTurning.value = true
+  mobileTransitioning.value = true
+
+  const distance = mobileViewport.value.clientWidth
+
+  mobileDragX.value = direction === 'next'
+    ? distance
+    : -distance
+
+  await delay(320)
+
+  await router.push(`/quran/${readerTarget(direction)}`)
+  await nextTick()
+
+  mobileTransitioning.value = false
+  mobileDragX.value = 0
+  isTurning.value = false
+}
+
+async function animateSpreadTurn(direction: ReaderDirection) {
+  if (isTurning.value || !canNavigate(direction)) return
+
+  isTurning.value = true
+
+  const turningPage = direction === 'next'
+    ? spreadLeftPane.value
+    : spreadRightPane.value
+
+  let animation: Animation | null = null
+
+  if (turningPage) {
+    animation = turningPage.animate(
+      [
+        {
+          transform: 'perspective(1800px) rotateY(0deg)',
+          opacity: 1,
+          filter: 'brightness(1)',
+        },
+        {
+          offset: 0.55,
+          transform: direction === 'next'
+            ? 'perspective(1800px) rotateY(78deg)'
+            : 'perspective(1800px) rotateY(-78deg)',
+          opacity: 0.82,
+          filter: 'brightness(0.88)',
+        },
+        {
+          transform: direction === 'next'
+            ? 'perspective(1800px) rotateY(156deg)'
+            : 'perspective(1800px) rotateY(-156deg)',
+          opacity: 0.18,
+          filter: 'brightness(0.72)',
+        },
+      ],
+      {
+        duration: 520,
+        easing: 'cubic-bezier(0.2, 0.72, 0.2, 1)',
+        fill: 'forwards',
+      },
+    )
+
+    turningPage.style.transformOrigin = direction === 'next'
+      ? 'right center'
+      : 'left center'
+
+    try {
+      await animation.finished
+    } catch {
+      // Navigation can safely continue if the animation is interrupted.
+    }
+  }
+
+  await router.push(`/quran/${readerTarget(direction)}`)
+  await nextTick()
+
+  animation?.cancel()
+
+  if (turningPage) {
+    turningPage.style.transformOrigin = ''
+  }
+
+  isTurning.value = false
+}
+
+function navigateReader(direction: ReaderDirection) {
+  if (isSpreadViewport.value) {
+    void animateSpreadTurn(direction)
+    return
+  }
+
+  void animateMobileTurn(direction)
 }
 
 function goPrevious() {
-  const target = Math.max(1, pageNumber.value - navigationStep())
-
-  if (target !== pageNumber.value) {
-    void router.push(`/quran/${target}`)
-  }
+  navigateReader('previous')
 }
 
 function goNext() {
-  const target = Math.min(604, pageNumber.value + navigationStep())
+  navigateReader('next')
+}
 
-  if (target !== pageNumber.value) {
-    void router.push(`/quran/${target}`)
+function clearSuppressClickTimer() {
+  if (suppressClickTimer) {
+    window.clearTimeout(suppressClickTimer)
+    suppressClickTimer = 0
   }
+}
+
+function scheduleClickRelease() {
+  clearSuppressClickTimer()
+
+  suppressClickTimer = window.setTimeout(() => {
+    suppressNextClick.value = false
+    suppressClickTimer = 0
+  }, 360)
+}
+
+function handleReaderClickCapture(event: MouseEvent) {
+  if (!suppressNextClick.value) return
+
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function handlePointerDown(event: PointerEvent) {
+  if (
+    event.pointerType === 'mouse'
+    || isTurning.value
+  ) {
+    return
+  }
+
+  activePointerId.value = event.pointerId
+  pointerStartX.value = event.clientX
+  pointerStartY.value = event.clientY
+  pointerStartedAt.value = performance.now()
+  draggingHorizontally.value = false
+  mobileTransitioning.value = false
+
+  mobileViewport.value?.setPointerCapture(event.pointerId)
+}
+
+function handlePointerMove(event: PointerEvent) {
+  if (activePointerId.value !== event.pointerId) return
+
+  const dx = event.clientX - pointerStartX.value
+  const dy = event.clientY - pointerStartY.value
+
+  if (!draggingHorizontally.value) {
+    if (Math.abs(dx) < 8) return
+
+    if (Math.abs(dy) > Math.abs(dx)) {
+      activePointerId.value = null
+      mobileDragX.value = 0
+      return
+    }
+
+    draggingHorizontally.value = true
+    suppressNextClick.value = true
+  }
+
+  if (isSpreadViewport.value) {
+    return
+  }
+
+  let resistedDx = dx
+
+  if (dx > 0 && !canNavigate('next')) {
+    resistedDx *= 0.22
+  }
+
+  if (dx < 0 && !canNavigate('previous')) {
+    resistedDx *= 0.22
+  }
+
+  mobileDragX.value = resistedDx
+}
+
+function finishPointerGesture(event: PointerEvent) {
+  if (activePointerId.value !== event.pointerId) return
+
+  const dx = event.clientX - pointerStartX.value
+  const elapsed = Math.max(
+    1,
+    performance.now() - pointerStartedAt.value,
+  )
+  const velocity = Math.abs(dx) / elapsed
+
+  activePointerId.value = null
+
+  if (!draggingHorizontally.value) {
+    mobileDragX.value = 0
+    return
+  }
+
+  draggingHorizontally.value = false
+  scheduleClickRelease()
+
+  const threshold = isSpreadViewport.value
+    ? 56
+    : Math.min(
+        88,
+        (mobileViewport.value?.clientWidth ?? window.innerWidth) * 0.18,
+      )
+
+  const shouldTurn =
+    Math.abs(dx) >= threshold
+    || velocity >= 0.42
+
+  if (!shouldTurn) {
+    if (!isSpreadViewport.value) {
+      mobileTransitioning.value = true
+      mobileDragX.value = 0
+
+      window.setTimeout(() => {
+        mobileTransitioning.value = false
+      }, 220)
+    }
+
+    return
+  }
+
+  const direction: ReaderDirection = dx > 0
+    ? 'next'
+    : 'previous'
+
+  navigateReader(direction)
+}
+
+function handlePointerCancel(event: PointerEvent) {
+  if (activePointerId.value !== event.pointerId) return
+
+  activePointerId.value = null
+  draggingHorizontally.value = false
+  mobileTransitioning.value = true
+  mobileDragX.value = 0
+
+  window.setTimeout(() => {
+    mobileTransitioning.value = false
+  }, 220)
+}
+
+function updateSpreadViewport(matches: boolean) {
+  isSpreadViewport.value = matches
+  mobileDragX.value = 0
+  mobileTransitioning.value = false
 }
 
 async function savePosition(
@@ -273,6 +567,16 @@ watch(
 )
 
 onMounted(async () => {
+  spreadMedia = window.matchMedia(
+    '(min-width: 768px) and (orientation: landscape)',
+  )
+
+  updateSpreadViewport(spreadMedia.matches)
+
+  spreadMedia.addEventListener('change', (event) => {
+    updateSpreadViewport(event.matches)
+  })
+
   try {
     const response = await readingPositionCall.fetch()
     savedPosition.value = response?.position ?? null
@@ -281,6 +585,10 @@ onMounted(async () => {
   } finally {
     positionLoaded.value = true
   }
+})
+
+onBeforeUnmount(() => {
+  clearSuppressClickTimer()
 })
 </script>
 
@@ -337,61 +645,120 @@ onMounted(async () => {
 
     <template v-else>
       <section
-        class="mx-auto w-full md:hidden"
+        v-if="!isSpreadViewport"
+        ref="mobileViewport"
+        class="relative mx-auto min-h-dvh w-full touch-pan-y overflow-hidden"
         aria-label="صفحة المصحف"
+        @click.capture="handleReaderClickCapture"
+        @pointerdown="handlePointerDown"
+        @pointermove="handlePointerMove"
+        @pointerup="finishPointerGesture"
+        @pointercancel="handlePointerCancel"
       >
-        <QuranMushafPane
-          :page="primaryPage"
-          :saved-verse-key="
-            savedPosition?.page_number === primaryPage.pageNumber
-              ? savedVerseKey
-              : null
-          "
-          @select-ayah="selectAyah"
-          @toggle-controls="toggleControls"
-        />
+        <div
+          class="flex w-[300%] flex-row-reverse items-start will-change-transform"
+          :style="mobileTrackStyle"
+        >
+          <div class="w-1/3 shrink-0">
+            <QuranMushafPane
+              v-if="nextPage && pageNumber < 604"
+              :page="nextPage"
+              :saved-verse-key="
+                savedPosition?.page_number === nextPage.pageNumber
+                  ? savedVerseKey
+                  : null
+              "
+              @select-ayah="selectAyah"
+              @toggle-controls="toggleControls"
+            />
+          </div>
+
+          <div class="w-1/3 shrink-0">
+            <QuranMushafPane
+              :page="primaryPage"
+              :saved-verse-key="
+                savedPosition?.page_number === primaryPage.pageNumber
+                  ? savedVerseKey
+                  : null
+              "
+              @select-ayah="selectAyah"
+              @toggle-controls="toggleControls"
+            />
+          </div>
+
+          <div class="w-1/3 shrink-0">
+            <QuranMushafPane
+              v-if="previousPage && pageNumber > 1"
+              :page="previousPage"
+              :saved-verse-key="
+                savedPosition?.page_number === previousPage.pageNumber
+                  ? savedVerseKey
+                  : null
+              "
+              @select-ayah="selectAyah"
+              @toggle-controls="toggleControls"
+            />
+          </div>
+        </div>
       </section>
 
       <section
+        v-else
         dir="rtl"
-        class="mx-auto hidden min-h-dvh w-full max-w-[1180px] grid-cols-2 items-start gap-[2px] px-[16px] py-[16px] md:grid lg:px-[24px]"
+        class="mx-auto grid min-h-dvh w-full max-w-[1180px] grid-cols-2 items-start gap-[2px] px-[16px] py-[16px] [perspective:1800px] lg:px-[24px]"
         aria-label="صفحتا المصحف"
+        @pointerdown="handlePointerDown"
+        @pointermove="handlePointerMove"
+        @pointerup="finishPointerGesture"
+        @pointercancel="handlePointerCancel"
       >
-        <QuranMushafPane
-          v-if="tabletRightPage"
-          :page="tabletRightPage"
-          :saved-verse-key="
-            savedPosition?.page_number === tabletRightPage.pageNumber
-              ? savedVerseKey
-              : null
-          "
-          @select-ayah="selectAyah"
-          @toggle-controls="toggleControls"
-        />
+        <div
+          ref="spreadRightPane"
+          class="min-w-0 [backface-visibility:hidden] [transform-style:preserve-3d]"
+        >
+          <QuranMushafPane
+            v-if="tabletRightPage"
+            spread
+            :page="tabletRightPage"
+            :saved-verse-key="
+              savedPosition?.page_number === tabletRightPage.pageNumber
+                ? savedVerseKey
+                : null
+            "
+            @select-ayah="selectAyah"
+            @toggle-controls="toggleControls"
+          />
+
+          <div
+            v-else
+            aria-hidden="true"
+            class="min-h-[90dvh]"
+          />
+        </div>
 
         <div
-          v-else
-          aria-hidden="true"
-          class="min-h-[90dvh]"
-        />
+          ref="spreadLeftPane"
+          class="min-w-0 [backface-visibility:hidden] [transform-style:preserve-3d]"
+        >
+          <QuranMushafPane
+            v-if="tabletLeftPage"
+            spread
+            :page="tabletLeftPage"
+            :saved-verse-key="
+              savedPosition?.page_number === tabletLeftPage.pageNumber
+                ? savedVerseKey
+                : null
+            "
+            @select-ayah="selectAyah"
+            @toggle-controls="toggleControls"
+          />
 
-        <QuranMushafPane
-          v-if="tabletLeftPage"
-          :page="tabletLeftPage"
-          :saved-verse-key="
-            savedPosition?.page_number === tabletLeftPage.pageNumber
-              ? savedVerseKey
-              : null
-          "
-          @select-ayah="selectAyah"
-          @toggle-controls="toggleControls"
-        />
-
-        <div
-          v-else
-          aria-hidden="true"
-          class="min-h-[90dvh]"
-        />
+          <div
+            v-else
+            aria-hidden="true"
+            class="min-h-[90dvh]"
+          />
+        </div>
       </section>
 
       <div
@@ -442,7 +809,7 @@ onMounted(async () => {
             type="button"
             dir="rtl"
             class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
-            :disabled="pageNumber >= 604"
+            :disabled="!canNavigate('next')"
             @click="goNext"
           >
             التالي
@@ -459,7 +826,7 @@ onMounted(async () => {
             type="button"
             dir="rtl"
             class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-brand)] disabled:opacity-40"
-            :disabled="pageNumber <= 1"
+            :disabled="!canNavigate('previous')"
             @click="goPrevious"
           >
             السابق
