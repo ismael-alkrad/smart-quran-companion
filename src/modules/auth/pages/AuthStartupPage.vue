@@ -26,10 +26,7 @@ import { BaseLoading } from '@/shared/components'
           </h1>
 
           <div class="flex h-[112px] w-full items-center justify-center">
-            <BaseLoading
-              style="spinner"
-              label="جارٍ التحقق من الجلسة"
-            />
+            <BaseLoading label="جارٍ التحقق من الجلسة" />
           </div>
         </div>
       </div>
