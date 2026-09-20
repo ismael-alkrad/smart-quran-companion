@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
 
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
@@ -10,7 +17,13 @@ import { toArabicNumber } from '@/modules/quran/utils/number'
 const POC_PAGE_NUMBER = 31
 
 const selectedLocation = ref<string | null>(null)
+const textSurface = ref<HTMLElement | null>(null)
+const lineScales = ref<Record<number, number>>({})
+
 const pageQuery = useMushafPage(POC_PAGE_NUMBER)
+
+let resizeObserver: ResizeObserver | null = null
+let fitFrame = 0
 
 const page = computed(() => pageQuery.data.value ?? null)
 
@@ -36,6 +49,91 @@ function selectWord(word: MushafWord) {
     location: word.location,
   })
 }
+
+function fitQcfLines() {
+  const surface = textSurface.value
+  if (!surface) return
+
+  const lineNodes = Array.from(
+    surface.querySelectorAll<HTMLElement>('[data-qcf-line]'),
+  )
+
+  if (!lineNodes.length) return
+
+  const availableWidth = surface.clientWidth
+  const nextScales: Record<number, number> = {}
+
+  for (const node of lineNodes) {
+    const lineNumber = Number(node.dataset.qcfLine)
+    const naturalWidth = node.scrollWidth
+
+    if (!Number.isInteger(lineNumber) || naturalWidth <= 0) continue
+
+    nextScales[lineNumber] = Math.min(
+      1,
+      Math.max(0.82, availableWidth / naturalWidth),
+    )
+  }
+
+  lineScales.value = nextScales
+}
+
+async function scheduleLineFit() {
+  await nextTick()
+
+  if (fitFrame) {
+    cancelAnimationFrame(fitFrame)
+  }
+
+  fitFrame = requestAnimationFrame(() => {
+    fitFrame = 0
+    fitQcfLines()
+  })
+}
+
+watch(
+  () => page.value?.pageNumber,
+  () => {
+    void scheduleLineFit()
+  },
+)
+
+onMounted(() => {
+  void scheduleLineFit()
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      void scheduleLineFit()
+    })
+
+    if (textSurface.value) {
+      resizeObserver.observe(textSurface.value)
+    }
+  }
+})
+
+watch(textSurface, (surface, previousSurface) => {
+  if (!resizeObserver) return
+
+  if (previousSurface) {
+    resizeObserver.unobserve(previousSurface)
+  }
+
+  if (surface) {
+    resizeObserver.observe(surface)
+    void scheduleLineFit()
+  }
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+
+  if (fitFrame) {
+    cancelAnimationFrame(fitFrame)
+    fitFrame = 0
+  }
+})
 </script>
 
 <template>
@@ -94,7 +192,8 @@ function selectWord(word: MushafWord) {
       </header>
 
       <section
-        class="grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[18px] pb-[6px] pt-[10px]"
+        ref="textSurface"
+        class="grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[22px] pb-[6px] pt-[10px]"
         aria-label="نص صفحة المصحف"
       >
         <div
@@ -106,20 +205,19 @@ function selectWord(word: MushafWord) {
         >
           <div
             v-if="line.type === 'ayah'"
-            class="flex w-full min-w-0 items-baseline whitespace-nowrap text-[clamp(1.78rem,8.2vw,2.35rem)] leading-[1.12] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
-            :class="
-              line.centered
-                ? 'justify-center gap-[0.1em]'
-                : 'justify-between'
-            "
-            :style="{ fontFamily }"
+            :data-qcf-line="line.lineNumber"
+            class="inline-flex w-max max-w-none origin-center items-baseline justify-center gap-[0.035em] whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            :style="{
+              fontFamily,
+              transform: `scaleX(${lineScales[line.lineNumber] ?? 1})`,
+            }"
           >
             <button
               v-for="word in line.words"
               :key="word.location"
               type="button"
               translate="no"
-              class="inline-block shrink-0 rounded-[5px] border-0 bg-transparent p-0 text-inherit transition-colors duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--sqc-color-border-focus)]"
+              class="inline-block shrink-0 rounded-[4px] border-0 bg-transparent p-0 text-inherit [font:inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--sqc-color-border-focus)]"
               :class="
                 selectedLocation === word.location
                   ? 'bg-[var(--sqc-color-action-primary)]/15 text-[color:var(--sqc-color-action-primary)]'
@@ -135,14 +233,14 @@ function selectWord(word: MushafWord) {
 
           <div
             v-else-if="line.type === 'surah_name'"
-            class="flex h-[34px] w-full items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] text-center text-[15px] font-semibold text-[color:var(--sqc-color-mushaf-ink)]"
+            class="flex h-[32px] w-full items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] text-center text-[14px] font-semibold text-[color:var(--sqc-color-mushaf-ink)]"
           >
             سورة {{ getSurahNameArabic(line.surahNumber ?? 0) }}
           </div>
 
           <div
             v-else
-            class="text-center text-[24px] leading-none text-[color:var(--sqc-color-mushaf-ink)] [font-family:'Amiri_Quran','Noto_Naskh_Arabic',serif]"
+            class="text-center text-[22px] leading-none text-[color:var(--sqc-color-mushaf-ink)] [font-family:'Amiri_Quran','Noto_Naskh_Arabic',serif]"
           >
             ﷽
           </div>
@@ -150,10 +248,10 @@ function selectWord(word: MushafWord) {
       </section>
 
       <footer
-        class="flex h-[48px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[4px]"
+        class="flex h-[44px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px]"
       >
         <span
-          class="flex min-h-[30px] min-w-[58px] items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[12px] text-[12px] font-medium text-[color:var(--sqc-color-mushaf-muted)]"
+          class="flex min-h-[28px] min-w-[54px] items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[12px] text-[12px] font-medium text-[color:var(--sqc-color-mushaf-muted)]"
         >
           {{ toArabicNumber(page.pageNumber) }}
         </span>
