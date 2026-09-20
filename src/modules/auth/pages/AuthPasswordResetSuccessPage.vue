@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { usePasswordResetFlow } from '@/modules/auth/composables'
 import { BaseButton } from '@/shared/components'
 
-const router = useRouter()
-
-function goToLogin() {
-  void router.push('/auth/login')
-}
+const { goToLogin } = usePasswordResetFlow()
 </script>
 
 <template>
