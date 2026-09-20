@@ -72,13 +72,14 @@ function handleAction() {
     >
       <template #icon>
         <span
+          v-if="type === 'back'"
           aria-hidden="true"
-          class="block size-[20px] shrink-0 bg-[var(--sqc-color-text-primary)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]"
-          :class="
-            type === 'back'
-              ? \"[mask-image:url('/assets/icons/back-rtl-20.svg')] [-webkit-mask-image:url('/assets/icons/back-rtl-20.svg')]\"
-              : \"[mask-image:url('/assets/icons/search-20.svg')] [-webkit-mask-image:url('/assets/icons/search-20.svg')]\"
-          "
+          class="block size-[20px] shrink-0 bg-[var(--sqc-color-text-primary)] [mask-image:url('/assets/icons/back-rtl-20.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-image:url('/assets/icons/back-rtl-20.svg')] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]"
+        />
+        <span
+          v-else
+          aria-hidden="true"
+          class="block size-[20px] shrink-0 bg-[var(--sqc-color-text-primary)] [mask-image:url('/assets/icons/search-20.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:100%_100%] [-webkit-mask-image:url('/assets/icons/search-20.svg')] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%]"
         />
       </template>
     </FrappeButton>
