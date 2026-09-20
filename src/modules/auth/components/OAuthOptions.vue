@@ -3,6 +3,15 @@ import OAuthButton from '@/modules/auth/components/OAuthButton.vue'
 import OAuthDivider from '@/modules/auth/components/OAuthDivider.vue'
 import type { OAuthProvider } from '@/modules/auth/types/oauth'
 
+withDefaults(
+  defineProps<{
+    disabled?: boolean
+  }>(),
+  {
+    disabled: false,
+  },
+)
+
 const emit = defineEmits<{
   select: [provider: OAuthProvider]
 }>()
@@ -15,11 +24,13 @@ const emit = defineEmits<{
   >
     <OAuthButton
       provider="google"
+      :disabled="disabled"
       @click="emit('select', 'google')"
     />
 
     <OAuthButton
       provider="apple"
+      :disabled="disabled"
       @click="emit('select', 'apple')"
     />
 
