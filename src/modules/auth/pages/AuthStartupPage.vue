@@ -1,5 +1,30 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthSession } from '@/modules/auth/composables'
+import { resolvePostAuthDestination } from '@/modules/auth/navigation'
 import { BaseLoading } from '@/shared/components'
+
+const route = useRoute()
+const router = useRouter()
+const { refreshSession } = useAuthSession()
+
+onMounted(async () => {
+  const session = await refreshSession()
+
+  if (!session) {
+    return
+  }
+
+  if (session.authenticated) {
+    void router.replace(
+      resolvePostAuthDestination(route.query.redirect),
+    )
+    return
+  }
+
+  void router.replace('/auth')
+})
 </script>
 
 <template>
