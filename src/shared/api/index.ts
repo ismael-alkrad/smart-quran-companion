@@ -1,6 +1,7 @@
 export {
   FrappeResponseError,
   SMART_QURAN_API_PREFIX,
+  setBrowserCsrfToken,
   smartQuranApiUrl,
   useSmartQuranCall,
 } from '@/shared/api/frappe'
