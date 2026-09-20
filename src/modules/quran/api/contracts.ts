@@ -47,3 +47,24 @@ export interface HifzSurahProgressResponse {
 export type HifzSurahProgressParams = {
   surah_number: number
 }
+
+
+export type HifzDailyTaskState = 'pending' | 'active' | 'done'
+
+export interface HifzDailyAssignment {
+  name: string
+  date: string
+  surah_number: number
+  start_ayah: number
+  end_ayah: number
+  total_ayahs: number
+}
+
+export interface HifzDailyPlanResponse {
+  ok: true
+  status: 'ready' | 'unassigned'
+  date: string
+  task_state: HifzDailyTaskState
+  assignment: HifzDailyAssignment | null
+  progress: HifzSurahProgress | null
+}

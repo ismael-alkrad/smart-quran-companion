@@ -1,5 +1,6 @@
 import { useSmartQuranCall } from '@/shared/api'
 import type {
+  HifzDailyPlanResponse,
   HifzOverviewResponse,
   HifzSurahProgressParams,
   HifzSurahProgressResponse,
@@ -8,6 +9,7 @@ import type {
 const HIFZ_QUERY_METHODS = {
   overview: 'hifz.get_overview',
   surahProgress: 'hifz.get_surah_progress',
+  dailyPlan: 'hifz.get_daily_plan',
 } as const
 
 export function useHifzOverviewQuery() {
@@ -32,4 +34,15 @@ export function useHifzSurahProgressQuery(surahNumber: number) {
       surah_number: surahNumber,
     },
   })
+}
+
+
+export function useHifzDailyPlanQuery() {
+  return useSmartQuranCall<HifzDailyPlanResponse>(
+    HIFZ_QUERY_METHODS.dailyPlan,
+    {
+      method: 'GET',
+      immediate: false,
+    },
+  )
 }
