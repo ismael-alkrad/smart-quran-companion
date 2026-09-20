@@ -2,3 +2,5 @@ export { useEmailVerificationFlow } from '@/modules/auth/composables/useEmailVer
 export { useAuthSession } from '@/modules/auth/composables/useAuthSession'
 export { useLoginFlow } from '@/modules/auth/composables/useLoginFlow'
 export { usePasswordResetFlow } from '@/modules/auth/composables/usePasswordResetFlow'
+export { useOAuthFlow } from '@/modules/auth/composables/useOAuthFlow'
+export type { OAuthCompletionPhase } from '@/modules/auth/composables/useOAuthFlow'
