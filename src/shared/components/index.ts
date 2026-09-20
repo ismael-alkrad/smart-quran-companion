@@ -34,3 +34,4 @@ export { default as BaseEmptyState } from '@/shared/components/BaseEmptyState.vu
 export type { BaseEmptyStateType } from '@/shared/components/BaseEmptyState.vue'
 export { default as BaseLoading } from '@/shared/components/BaseLoading.vue'
 export type { BaseLoadingStyle } from '@/shared/components/BaseLoading.vue'
+export { default as BaseUserRow } from '@/shared/components/BaseUserRow.vue'
