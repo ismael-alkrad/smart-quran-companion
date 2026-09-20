@@ -31,11 +31,14 @@ for page_number in range(1, PAGE_COUNT + 1):
 
     page = json.loads(page_path.read_text(encoding="utf-8"))
     lines = page.get("lines", [])
-    if len(lines) != LINES_PER_PAGE:
+    if not lines or len(lines) > LINES_PER_PAGE:
+        fail(f"page {page_number} has invalid line count: {len(lines)}.")
+
+    if page_number not in (1, 2) and len(lines) != LINES_PER_PAGE:
         fail(f"page {page_number} has {len(lines)} lines; expected {LINES_PER_PAGE}.")
 
-    if [line.get("lineNumber") for line in lines] != list(range(1, LINES_PER_PAGE + 1)):
-        fail(f"page {page_number} line numbers are not 1..{LINES_PER_PAGE}.")
+    if [line.get("lineNumber") for line in lines] != list(range(1, len(lines) + 1)):
+        fail(f"page {page_number} line numbers are not sequential from 1.")
 
     for line in lines:
         if line.get("type") == "ayah":
@@ -56,4 +59,4 @@ for page_number in range(1, PAGE_COUNT + 1):
     if not font_path.exists() or font_path.stat().st_size == 0:
         fail(f"missing/empty font {font_path}.")
 
-print("Quran Core verified: 604 pages, 15 lines/page, word-addressable QCF V2 data, 604 fonts.")
+print("Quran Core verified: 604 pages, QPC V2 layout validated (opening spread exceptions), word-addressable data, 604 fonts.")
