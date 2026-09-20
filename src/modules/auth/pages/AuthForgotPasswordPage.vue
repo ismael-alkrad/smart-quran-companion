@@ -5,25 +5,15 @@ import {
   AuthActions,
   AuthForm,
   AuthIntro,
-  OAuthOptions,
 } from '@/modules/auth/components'
 import { BaseAppBar, BaseInput } from '@/shared/components'
 
 const router = useRouter()
 
 const email = ref('')
-const password = ref('')
 
-function goBack() {
-  void router.push('/auth')
-}
-
-function goToRegister() {
-  void router.push('/auth/register')
-}
-
-function goToForgotPassword() {
-  void router.push('/auth/forgot-password')
+function goToLogin() {
+  void router.push('/auth/login')
 }
 </script>
 
@@ -38,42 +28,30 @@ function goToForgotPassword() {
       >
         <BaseAppBar
           type="back"
-          title="تسجيل الدخول"
+          title="استعادة كلمة المرور"
           back-label="رجوع"
-          @back="goBack"
+          @back="goToLogin"
         />
 
         <AuthIntro
-          title="مرحبًا بعودتك"
-          description="ادخل إلى حسابك لمتابعة الحفظ والمراجعة من آخر موضع."
+          title="نسيت كلمة المرور؟"
+          description="أدخل بريدك الإلكتروني وسنرسل لك رمزًا آمنًا لإعادة تعيين كلمة المرور."
         />
 
-        <OAuthOptions />
-
-        <AuthForm
-          footer-text="نسيت كلمة المرور؟"
-          footer-variant="action"
-          @footer="goToForgotPassword"
-        >
+        <AuthForm>
           <BaseInput
             v-model="email"
             type="email"
             label="البريد الإلكتروني"
             placeholder="name@example.com"
           />
-
-          <BaseInput
-            v-model="password"
-            type="password"
-            label="كلمة المرور"
-            placeholder="••••••••"
-          />
         </AuthForm>
 
         <AuthActions
-          primary-label="دخول"
-          secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
-          @secondary="goToRegister"
+          primary-label="إرسال رمز الاستعادة"
+          secondary-label="تذكرت كلمة المرور؟ تسجيل الدخول"
+          secondary-size="small"
+          @secondary="goToLogin"
         />
       </div>
     </div>
