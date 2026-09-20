@@ -13,6 +13,8 @@ export type {
   AuthMutationResponse,
   AuthOAuthCompleteParams,
   AuthOAuthCompleteResponse,
+  AuthOAuthLinkParams,
+  AuthOAuthLinkResponse,
   AuthOAuthStartParams,
   AuthOAuthStartResponse,
   AuthPasswordResetRequestResponse,
