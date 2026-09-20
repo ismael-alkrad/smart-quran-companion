@@ -42,7 +42,7 @@ const spinnerSource = computed(() =>
     />
 
     <span
-      dir="auto"
+      dir="rtl"
       class="shrink-0 whitespace-nowrap text-right text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-text-secondary)]"
     >
       {{ label }}
