@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOAuthFlow } from '@/modules/auth/composables'
 import {
   buildLoginLocation,
-  getOAuthFailureReason,
   getOAuthProvider,
 } from '@/modules/auth/navigation'
 import { useAuthFlowStore } from '@/modules/auth/stores'
@@ -20,8 +19,6 @@ const authFlow = useAuthFlowStore()
 const { starting, beginOAuth } = useOAuthFlow()
 
 const provider = getOAuthProvider(route.query.provider)
-const failureReason = getOAuthFailureReason(route.query.reason)
-
 function goBack() {
   authFlow.clearOAuthState()
   void router.push('/auth')
@@ -41,7 +38,6 @@ function useEmail() {
   void router.push(buildLoginLocation(authFlow.postAuthRedirect))
 }
 
-void failureReason
 </script>
 
 <template>
