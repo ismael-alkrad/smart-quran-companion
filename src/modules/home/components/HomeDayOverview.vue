@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import {
-  HomeLastQuranLocation,
-  HomePageScaffold,
-  HomeTasmeeCta,
-  HomeTodayTaskRow,
-} from '@/modules/home'
+import HomeLastQuranLocation from '@/modules/home/components/HomeLastQuranLocation.vue'
+import HomePageScaffold from '@/modules/home/components/HomePageScaffold.vue'
+import HomeTasmeeCta from '@/modules/home/components/HomeTasmeeCta.vue'
+import HomeTodayTaskRow from '@/modules/home/components/HomeTodayTaskRow.vue'
 import type { HomeTodayTaskState } from '@/modules/home/types'
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import QuranWeakSpotCard from '@/modules/quran/components/QuranWeakSpotCard.vue'
