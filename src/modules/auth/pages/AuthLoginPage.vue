@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import {
   useLoginFlow,
   useOAuthFlow,
@@ -10,6 +12,7 @@ import {
   AuthIntro,
   OAuthOptions,
 } from '@/modules/auth/components'
+import { useAuthFlowStore } from '@/modules/auth/stores'
 import {
   BaseAppBar,
   BaseBanner,
@@ -31,6 +34,9 @@ const {
   starting: oauthStarting,
   beginOAuth,
 } = useOAuthFlow()
+
+const authFlow = useAuthFlowStore()
+const linkingAccount = computed(() => Boolean(authFlow.oauthLinkToken))
 </script>
 
 <template>
@@ -55,12 +61,13 @@ const {
         />
 
         <OAuthOptions
+          v-if="!linkingAccount"
           :disabled="oauthStarting"
           @select="beginOAuth"
         />
 
         <BaseBanner
-          v-if="oauthError"
+          v-if="!linkingAccount && oauthError"
           tone="error"
           title="تعذر بدء تسجيل الدخول"
           :body="oauthError"
@@ -86,7 +93,9 @@ const {
 
         <AuthActions
           primary-label="دخول"
-          secondary-label="ليس لديك حساب؟ إنشاء حساب جديد"
+          :secondary-label="linkingAccount
+            ? undefined
+            : 'ليس لديك حساب؟ إنشاء حساب جديد'"
           :primary-loading="loading"
           primary-loading-text="جارٍ تسجيل الدخول"
           @primary="login"
