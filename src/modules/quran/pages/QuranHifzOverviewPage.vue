@@ -40,7 +40,7 @@ const navRoutes: BaseBottomNavRoutes = {
   quran: '/quran',
 }
 
-function updateFilter(value: string | number) {
+function updateFilter(value: BaseSegmentedOption['value']) {
   if (value === 'all' || value === 'memorizing' || value === 'review') {
     filter.value = value as HifzOverviewFilter
   }
