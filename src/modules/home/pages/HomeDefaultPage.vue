@@ -27,7 +27,7 @@ function resumeQuran() {
         class="contents lg:col-start-1 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
         <section
-          class="flex w-full flex-col items-end gap-[16px]"
+          class="flex w-full flex-col items-start gap-[16px]"
         >
           <h2
             dir="rtl"
@@ -53,7 +53,7 @@ function resumeQuran() {
         </section>
 
         <section
-          class="flex w-full flex-col items-end gap-[16px]"
+          class="flex w-full flex-col items-start gap-[16px]"
         >
           <h2
             dir="rtl"
@@ -77,7 +77,7 @@ function resumeQuran() {
         <HomeTasmeeCta dir="rtl" />
 
         <section
-          class="flex w-full flex-col items-end gap-[16px]"
+          class="flex w-full flex-col items-start gap-[16px]"
         >
           <h2
             dir="rtl"
@@ -90,7 +90,7 @@ function resumeQuran() {
         </section>
 
         <section
-          class="flex w-full flex-col items-end gap-[16px]"
+          class="flex w-full flex-col items-start gap-[16px]"
         >
           <h2
             dir="rtl"
