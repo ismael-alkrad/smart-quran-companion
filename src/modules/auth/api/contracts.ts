@@ -30,6 +30,10 @@ export interface AuthOAuthCompleteParams extends Record<string, unknown> {
   code_verifier: string
 }
 
+export interface AuthOAuthLinkParams extends Record<string, unknown> {
+  link_token: string
+}
+
 export interface AuthStatusResponse<TStatus extends string> {
   ok: boolean
   status: TStatus
@@ -126,6 +130,25 @@ export type AuthOAuthCompleteResponse =
       provider?: OAuthProvider
     }
 
+export type AuthOAuthLinkResponse =
+  | {
+      ok: true
+      status: 'linked'
+      provider: OAuthProvider
+      user: string
+    }
+  | {
+      ok: false
+      status:
+        | 'link_expired'
+        | 'authentication_required'
+        | 'account_mismatch'
+        | 'account_unavailable'
+        | 'identity_already_linked'
+        | 'provider_already_linked'
+      provider?: OAuthProvider
+    }
+
 export interface AuthSessionUser {
   name: string
   email?: string | null
@@ -187,6 +210,10 @@ export interface AuthMutationContract {
   oauthComplete: {
     params: AuthOAuthCompleteParams
     response: AuthOAuthCompleteResponse
+  }
+  oauthLink: {
+    params: AuthOAuthLinkParams
+    response: AuthOAuthLinkResponse
   }
 }
 
