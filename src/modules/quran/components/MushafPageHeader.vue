@@ -16,60 +16,15 @@ const surahTitle = computed(() => {
 </script>
 
 <template>
-  <header class="mushaf-header" aria-label="معلومات الصفحة">
-    <span class="mushaf-header__surah" dir="rtl">{{ surahTitle }}</span>
-    <span class="mushaf-header__juz" dir="rtl">الجزء {{ toArabicNumber(juzNumber) }}</span>
+  <header
+    class="relative grid min-h-[45px] grid-cols-[minmax(0,1fr)_auto] items-center gap-[18px] rounded-[18px] border border-[#b8a27f]/90 px-5 py-[7px] text-[0.9rem] text-[#2d2822] [direction:ltr] [font-family:'Noto_Naskh_Arabic','Amiri',serif] before:absolute before:top-1/2 before:-right-[5px] before:h-2 before:w-2 before:-translate-y-1/2 before:rotate-45 before:border before:border-[#b8a27f] before:bg-[#fbf7ef] before:content-[''] after:absolute after:top-1/2 after:-left-[5px] after:h-2 after:w-2 after:-translate-y-1/2 after:rotate-45 after:border after:border-[#b8a27f] after:bg-[#fbf7ef] after:content-['']"
+    aria-label="معلومات الصفحة"
+  >
+    <span class="justify-self-start overflow-hidden text-ellipsis whitespace-nowrap font-semibold" dir="rtl">
+      {{ surahTitle }}
+    </span>
+    <span class="justify-self-end whitespace-nowrap text-[#695c4a]" dir="rtl">
+      الجزء {{ toArabicNumber(juzNumber) }}
+    </span>
   </header>
 </template>
-
-<style scoped>
-.mushaf-header {
-  position: relative;
-  display: grid;
-  min-height: 45px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  direction: ltr;
-  border: 1px solid color-mix(in srgb, var(--sqc-color-mushaf-border) 88%, transparent);
-  border-radius: 18px;
-  padding: 7px 20px;
-  color: #2d2822;
-  font-family: "Noto Naskh Arabic", "Amiri", serif;
-  font-size: 0.9rem;
-}
-
-.mushaf-header::before,
-.mushaf-header::after {
-  position: absolute;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--sqc-color-mushaf-border);
-  background: var(--sqc-color-background-mushaf);
-  content: "";
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.mushaf-header::before {
-  right: -5px;
-}
-
-.mushaf-header::after {
-  left: -5px;
-}
-
-.mushaf-header__surah {
-  overflow: hidden;
-  justify-self: start;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mushaf-header__juz {
-  justify-self: end;
-  color: #695c4a;
-  white-space: nowrap;
-}
-</style>
