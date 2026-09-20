@@ -8,6 +8,7 @@ from pathlib import Path
 
 PAGE_COUNT = 604
 LINES_PER_PAGE = 15
+SURAH_COUNT = 114
 ROOT = Path("public/quran")
 
 
@@ -51,6 +52,41 @@ for page_number in range(1, PAGE_COUNT + 1):
                         + ", ".join(sorted(missing))
                     )
 
+surahs_path = ROOT / "core" / "surahs.json"
+if not surahs_path.exists():
+    fail("surahs.json is missing. Run yarn quran:prepare first.")
+
+surah_index = json.loads(surahs_path.read_text(encoding="utf-8"))
+surahs = surah_index.get("surahs", [])
+if len(surahs) != SURAH_COUNT:
+    fail(f"surahs.json contains {len(surahs)} surahs; expected {SURAH_COUNT}.")
+
+expected_numbers = list(range(1, SURAH_COUNT + 1))
+actual_numbers = [surah.get("surahNumber") for surah in surahs]
+if actual_numbers != expected_numbers:
+    fail("surahs.json surah numbers are not sequential from 1 to 114.")
+
+for surah in surahs:
+    surah_number = surah["surahNumber"]
+    ayah_count = surah.get("ayahCount")
+    first_page = surah.get("firstPage")
+    last_page = surah.get("lastPage")
+
+    if not isinstance(ayah_count, int) or ayah_count < 1:
+        fail(f"surah {surah_number} has invalid ayahCount={ayah_count}.")
+
+    if (
+        not isinstance(first_page, int)
+        or not isinstance(last_page, int)
+        or first_page < 1
+        or last_page > PAGE_COUNT
+        or first_page > last_page
+    ):
+        fail(
+            f"surah {surah_number} has invalid page range: "
+            f"{first_page}-{last_page}."
+        )
+
 if not manifest.get("fontsIncluded"):
     fail("manifest says fontsIncluded=false. Prepare the core with --fonts.")
 
@@ -59,4 +95,8 @@ for page_number in range(1, PAGE_COUNT + 1):
     if not font_path.exists() or font_path.stat().st_size == 0:
         fail(f"missing/empty font {font_path}.")
 
-print("Quran Core verified: 604 pages, QPC V2 layout validated (opening spread exceptions), word-addressable data, 604 fonts.")
+print(
+    "Quran Core verified: 604 pages, 114 surah metadata records, "
+    "QPC V2 layout validated (opening spread exceptions), "
+    "word-addressable data, 604 fonts."
+)

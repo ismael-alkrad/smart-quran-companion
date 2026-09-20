@@ -17,6 +17,7 @@ from pathlib import Path
 
 PAGE_COUNT = 604
 LINES_PER_PAGE = 15
+SURAH_COUNT = 114
 
 # Standard Madani Mushaf juz start pages.
 JUZ_START_PAGES = [
@@ -90,8 +91,6 @@ def resolve_sqlite_source(source: Path, workdir: Path, label: str) -> Path:
             if not candidates:
                 raise RuntimeError(f"{source} does not contain a SQLite database.")
 
-            # These QUL packages should contain one database. Prefer the shortest path
-            # if a metadata folder is present.
             member = sorted(candidates, key=lambda name: (len(Path(name).parts), len(name)))[0]
             extracted = Path(archive.extract(member, target_dir))
 
@@ -149,8 +148,6 @@ def _extract_font_package(source: Path, workdir: Path) -> Path:
     target_dir = workdir / "fonts-package"
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    # Some QUL downloads have changed filename extensions over time. Detect by
-    # archive signature/content instead of trusting the filename alone.
     if zipfile.is_zipfile(source):
         with zipfile.ZipFile(source) as archive:
             archive.extractall(target_dir)
@@ -176,8 +173,6 @@ def _extract_font_package(source: Path, workdir: Path) -> Path:
                 archive.extractall(target_dir, filter="data")
             return target_dir
 
-        # If the bzip2 payload is one raw WOFF2 file, it cannot be the complete
-        # QPC V2 page-by-page package (the Mushaf requires 604 page fonts).
         if decompressed.is_file() and decompressed.read_bytes()[:4] == b"wOF2":
             raise RuntimeError(
                 "The .bz2 package expanded to a single WOFF2 file. "
@@ -321,13 +316,70 @@ def build_page(page_number: int, lines: list[dict], words: dict[int, dict]) -> d
     }
 
 
+def collect_surah_metadata(
+    page: dict,
+    ayahs_by_surah: dict[int, set[int]],
+    pages_by_surah: dict[int, set[int]],
+) -> None:
+    page_number = int(page["pageNumber"])
+
+    for line in page["lines"]:
+        for word in line.get("words", []):
+            surah_text, ayah_text = str(word["verseKey"]).split(":", 1)
+            surah_number = int(surah_text)
+            ayah_number = int(ayah_text)
+
+            ayahs_by_surah[surah_number].add(ayah_number)
+            pages_by_surah[surah_number].add(page_number)
+
+
+def build_surah_metadata_index(
+    ayahs_by_surah: dict[int, set[int]],
+    pages_by_surah: dict[int, set[int]],
+    generated_at: str,
+) -> dict:
+    missing_surahs = [
+        surah_number
+        for surah_number in range(1, SURAH_COUNT + 1)
+        if not ayahs_by_surah.get(surah_number) or not pages_by_surah.get(surah_number)
+    ]
+    if missing_surahs:
+        raise RuntimeError(
+            f"Surah metadata is incomplete. First missing surah: {missing_surahs[0]}."
+        )
+
+    surahs = []
+    for surah_number in range(1, SURAH_COUNT + 1):
+        ayahs = ayahs_by_surah[surah_number]
+        pages = pages_by_surah[surah_number]
+
+        surahs.append(
+            {
+                "surahNumber": surah_number,
+                "ayahCount": max(ayahs),
+                "firstPage": min(pages),
+                "lastPage": max(pages),
+            }
+        )
+
+    return {
+        "version": 1,
+        "source": "qul",
+        "mushaf": "qcf-v2",
+        "generatedAt": generated_at,
+        "surahs": surahs,
+    }
+
+
 def copy_fonts(source: Path, destination: Path, workdir: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     package_dir = _extract_font_package(source, workdir)
     _copy_fonts_from_directory(package_dir, destination)
 
+
 def main() -> int:
     args = parse_args()
+    generated_at = datetime.now(timezone.utc).isoformat()
 
     with tempfile.TemporaryDirectory(prefix="smart-quran-core-") as temp_dir:
         workdir = Path(temp_dir)
@@ -347,13 +399,12 @@ def main() -> int:
         pages_dir = args.output / "core" / "pages"
         pages_dir.mkdir(parents=True, exist_ok=True)
 
+        ayahs_by_surah: dict[int, set[int]] = defaultdict(set)
+        pages_by_surah: dict[int, set[int]] = defaultdict(set)
+
         for page_number in range(1, PAGE_COUNT + 1):
             page_lines = pages[page_number]
 
-            # QPC V2 is a 15-line Mushaf, but the opening spread is intentionally
-            # shorter: page 1 (Al-Fatihah) and page 2 use fewer printed content
-            # lines. The QUL layout export stores only real content lines, not
-            # synthetic blank rows. All regular pages must still contain 15 rows.
             expected_lines = None if page_number in (1, 2) else LINES_PER_PAGE
             if not page_lines or len(page_lines) > LINES_PER_PAGE:
                 raise RuntimeError(
@@ -365,11 +416,23 @@ def main() -> int:
                 )
 
             page = build_page(page_number, page_lines, words)
+            collect_surah_metadata(page, ayahs_by_surah, pages_by_surah)
+
             target = pages_dir / f"{page_number:03}.json"
             target.write_text(
                 json.dumps(page, ensure_ascii=False, separators=(",", ":")),
                 encoding="utf-8",
             )
+
+        surah_metadata = build_surah_metadata_index(
+            ayahs_by_surah,
+            pages_by_surah,
+            generated_at,
+        )
+        (args.output / "core" / "surahs.json").write_text(
+            json.dumps(surah_metadata, ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
 
         fonts_included = False
         if args.fonts:
@@ -382,7 +445,7 @@ def main() -> int:
         "source": "qul",
         "pages": PAGE_COUNT,
         "linesPerPage": LINES_PER_PAGE,
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "generatedAt": generated_at,
         "fontsIncluded": fonts_included,
     }
     (args.output / "core" / "manifest.json").write_text(
@@ -391,6 +454,7 @@ def main() -> int:
     )
 
     print(f"Built {PAGE_COUNT} offline Mushaf pages in {pages_dir}")
+    print(f"Built {SURAH_COUNT} surah metadata records in {args.output / 'core' / 'surahs.json'}")
     if fonts_included:
         print("Copied 604 QPC V2 WOFF2 page fonts.")
     else:

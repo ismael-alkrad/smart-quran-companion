@@ -36,3 +36,18 @@ export interface QuranCoreManifest {
   generatedAt: string
   fontsIncluded: boolean
 }
+
+export interface QuranSurahMetadata {
+  surahNumber: number
+  ayahCount: number
+  firstPage: number
+  lastPage: number
+}
+
+export interface QuranSurahMetadataIndex {
+  version: number
+  source: 'qul'
+  mushaf: 'qcf-v2'
+  generatedAt: string
+  surahs: QuranSurahMetadata[]
+}
