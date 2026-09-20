@@ -170,26 +170,26 @@ onBeforeUnmount(() => {
       v-else
       dir="rtl"
       translate="no"
-      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)]"
+      class="mx-auto flex h-full w-full max-w-[520px] flex-col bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd]"
       aria-label="تجربة صفحة المصحف على الهاتف"
     >
       <header
-        class="mx-[14px] mt-[max(10px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[14px] text-[color:var(--sqc-color-mushaf-ink)]"
+        class="relative mx-[14px] mt-[max(10px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
-          class="min-w-0 flex-1 truncate text-right text-[13px] font-medium"
+          class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
         >
           سورة {{ surahName }}
         </span>
 
         <span
-          class="mx-[10px] shrink-0 text-[11px] text-[color:var(--sqc-color-mushaf-muted)]"
+          class="mx-[10px] shrink-0 text-[11px] font-medium text-[color:var(--sqc-poc-accent-muted)]"
         >
           الصفحة {{ toArabicNumber(page.pageNumber) }}
         </span>
 
         <span
-          class="min-w-0 flex-1 truncate text-left text-[13px] font-medium"
+          class="min-w-0 flex-1 truncate text-left text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
         >
           الجزء {{ toArabicNumber(page.juzNumber) }}
         </span>
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
               class="inline-block shrink-0 rounded-[4px] border-0 bg-transparent p-0 text-inherit [font:inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--sqc-color-border-focus)]"
               :class="
                 selectedLocation === word.location
-                  ? 'bg-[var(--sqc-color-action-primary)]/15 text-[color:var(--sqc-color-action-primary)]'
+                  ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
                   : ''
               "
               :data-location="word.location"
@@ -252,10 +252,10 @@ onBeforeUnmount(() => {
       </section>
 
       <footer
-        class="flex h-[44px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px]"
+        class="relative flex h-[44px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[2px] before:absolute before:start-[calc(50%_-_44px)] before:top-[11px] before:size-[6px] before:rotate-45 before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[calc(50%_-_44px)] after:top-[11px] after:size-[6px] after:rotate-45 after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
-          class="flex min-h-[28px] min-w-[54px] items-center justify-center rounded-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] px-[12px] text-[12px] font-medium text-[color:var(--sqc-color-mushaf-muted)]"
+          class="flex min-h-[28px] min-w-[54px] items-center justify-center rounded-[12px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[12px] text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)]"
         >
           {{ toArabicNumber(page.pageNumber) }}
         </span>
