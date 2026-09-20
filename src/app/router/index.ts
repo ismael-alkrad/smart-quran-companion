@@ -65,6 +65,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthVerificationErrorPage.vue'),
     },
     {
+      path: '/auth/code-resent',
+      name: 'auth-code-resent',
+      component: () => import('@/modules/auth/pages/AuthCodeResentPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
