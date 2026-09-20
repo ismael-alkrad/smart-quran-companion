@@ -61,35 +61,25 @@ function clampPage(value: number) {
   return Math.min(604, Math.max(1, Math.trunc(value)))
 }
 
-function spreadLeftPageNumber(anchor: number): number | null {
-  const current = clampPage(anchor)
-
-  if (current === 1 || current === 604) return null
-
-  return current % 2 === 0
-    ? current + 1
-    : current
-}
-
 function spreadRightPageNumber(anchor: number) {
   const current = clampPage(anchor)
 
-  if (current === 1) return 1
-  if (current === 604) return 604
-
-  return current % 2 === 0
+  return current % 2 === 1
     ? current
     : current - 1
+}
+
+function spreadLeftPageNumber(anchor: number) {
+  const rightPage = spreadRightPageNumber(anchor)
+
+  return Math.min(604, rightPage + 1)
 }
 
 function spreadCompanionPageNumber(anchor: number) {
   const current = clampPage(anchor)
 
-  if (current === 1) return 2
-  if (current === 604) return 603
-
-  return current % 2 === 0
-    ? current + 1
+  return current % 2 === 1
+    ? Math.min(604, current + 1)
     : current - 1
 }
 
