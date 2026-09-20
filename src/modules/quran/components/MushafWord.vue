@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <span
-    class="mushaf-word"
+    class="inline-block shrink-0 cursor-default select-text"
     translate="no"
     :data-location="word.location"
     :data-verse-key="word.verseKey"
@@ -16,12 +16,3 @@ defineProps<{
     v-html="word.codeV2"
   />
 </template>
-
-<style scoped>
-.mushaf-word {
-  display: inline-block;
-  flex: 0 0 auto;
-  cursor: default;
-  user-select: text;
-}
-</style>
