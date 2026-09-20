@@ -28,3 +28,5 @@ export { default as BaseBottomSheet } from '@/shared/components/BaseBottomSheet.
 export type { BaseBottomSheetSize } from '@/shared/components/BaseBottomSheet.vue'
 export { default as BaseToast } from '@/shared/components/BaseToast.vue'
 export type { BaseToastTone } from '@/shared/components/BaseToast.vue'
+export { default as BaseBanner } from '@/shared/components/BaseBanner.vue'
+export type { BaseBannerTone } from '@/shared/components/BaseBanner.vue'
