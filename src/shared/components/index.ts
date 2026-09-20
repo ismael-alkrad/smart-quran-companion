@@ -8,3 +8,4 @@ export type { BaseAvatarSize, BaseAvatarType } from '@/shared/components/BaseAva
 export { default as BaseChip } from '@/shared/components/BaseChip.vue'
 export type { BaseChipTone } from '@/shared/components/BaseChip.vue'
 export { default as BaseProgressBar } from '@/shared/components/BaseProgressBar.vue'
+export { default as BaseCircularProgress } from '@/shared/components/BaseCircularProgress.vue'
