@@ -74,6 +74,7 @@ export type AuthSessionStatusResponse =
       ok: true
       authenticated: true
       user: AuthSessionUser | null
+      csrf_token: string
     }
 
 export interface AuthMutationContract {
