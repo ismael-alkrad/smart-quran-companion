@@ -89,6 +89,14 @@ export const semanticColors = {
   'Overlay/Backdrop': { light: '#0d14122e', dark: '#0509085c' },
   'Overlay/GlassSheet': { light: '#fafaf9d6', dark: '#121b18c7' },
   'Overlay/GlassBorder': { light: '#ffffff6b', dark: '#b8c5c029' },
+
+  'Mushaf/Paper': { light: '#fbf7ef', dark: '#fbf7ef' },
+  'Mushaf/Ink': { light: '#2d2822', dark: '#2d2822' },
+  'Mushaf/Muted': { light: '#695c4a', dark: '#695c4a' },
+  'Mushaf/Border': { light: '#b8a27f', dark: '#b8a27f' },
+  'Mushaf/BorderSubtle': { light: '#b8a27f55', dark: '#b8a27f55' },
+  'Mushaf/Accent': { light: '#237a63', dark: '#237a63' },
+  'Mushaf/Overlay': { light: '#fbf7eff2', dark: '#fbf7eff2' },
 } as const satisfies Record<string, Record<ResolvedTheme, string>>
 
 export type SemanticColorToken = keyof typeof semanticColors
