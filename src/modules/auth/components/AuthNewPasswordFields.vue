@@ -5,9 +5,11 @@ const props = withDefaults(
   defineProps<{
     password: string
     confirmation: string
+    passwordError?: string
     confirmationError?: string
   }>(),
   {
+    passwordError: undefined,
     confirmationError: undefined,
   },
 )
@@ -24,6 +26,7 @@ const emit = defineEmits<{
     type="password"
     label="كلمة المرور الجديدة"
     placeholder="••••••••"
+    :error="props.passwordError"
     @update:model-value="emit('update:password', $event)"
   />
 
