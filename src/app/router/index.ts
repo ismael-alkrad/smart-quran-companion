@@ -119,7 +119,7 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       meta: { requiresOnboarding: true },
-      component: () => import('@/modules/home/pages/HomeNewUserPage.vue'),
+      component: () => import('@/modules/home/pages/HomePage.vue'),
     },
     {
       path: '/home/default-preview',
