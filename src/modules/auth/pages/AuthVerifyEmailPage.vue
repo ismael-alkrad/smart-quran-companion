@@ -5,7 +5,7 @@ import {
   AuthActions,
   AuthForm,
   AuthIntro,
-  AuthVerificationCodeField,
+  AuthCodeField,
 } from '@/modules/auth/components'
 import {
   BaseAppBar,
@@ -56,7 +56,7 @@ function goBack() {
         />
 
         <AuthForm>
-          <AuthVerificationCodeField
+          <AuthCodeField
             v-model="verificationCode"
             helper="الرمز مكوّن من 6 أرقام"
           />
