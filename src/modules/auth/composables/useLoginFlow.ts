@@ -5,6 +5,7 @@ import { useAuthSession } from '@/modules/auth/composables/useAuthSession'
 import {
   buildLoginErrorLocation,
   buildLoginLocation,
+  getSafeInternalRedirect,
   resolvePostAuthDestination,
 } from '@/modules/auth/navigation'
 import { useAuthFlowStore } from '@/modules/auth/stores'
@@ -36,6 +37,11 @@ export function useLoginFlow() {
     authFlow.setEmail(routeEmail)
   }
 
+  const routeRedirect = getSafeInternalRedirect(route.query.redirect)
+  if (routeRedirect) {
+    authFlow.setPostAuthRedirect(routeRedirect)
+  }
+
   async function login() {
     requestError.value = undefined
 
@@ -48,11 +54,13 @@ export function useLoginFlow() {
       const session = await refreshSession()
 
       if (session?.authenticated) {
+        const destination = resolvePostAuthDestination(
+          authFlow.postAuthRedirect,
+        )
+
         password.value = ''
         authFlow.reset()
-        void router.replace(
-          resolvePostAuthDestination(route.query.redirect),
-        )
+        void router.replace(destination)
         return
       }
 
@@ -63,7 +71,7 @@ export function useLoginFlow() {
     if (response?.status === 'invalid_credentials') {
       password.value = ''
       void router.replace(
-        buildLoginErrorLocation(route.query.redirect),
+        buildLoginErrorLocation(authFlow.postAuthRedirect),
       )
       return
     }
@@ -84,7 +92,9 @@ export function useLoginFlow() {
   }
 
   function goToLogin() {
-    void router.push(buildLoginLocation(route.query.redirect))
+    void router.push(
+      buildLoginLocation(authFlow.postAuthRedirect),
+    )
   }
 
   function goToWelcome() {
