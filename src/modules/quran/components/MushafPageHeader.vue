@@ -17,32 +17,34 @@ const surahTitle = computed(() => {
 
 <template>
   <header class="mushaf-header" aria-label="معلومات الصفحة">
-    <span class="mushaf-header__surah">{{ surahTitle }}</span>
-    <span class="mushaf-header__juz">الجزء {{ toArabicNumber(juzNumber) }}</span>
+    <span class="mushaf-header__surah" dir="rtl">{{ surahTitle }}</span>
+    <span class="mushaf-header__juz" dir="rtl">الجزء {{ toArabicNumber(juzNumber) }}</span>
   </header>
 </template>
 
 <style scoped>
 .mushaf-header {
   position: relative;
-  display: flex;
-  min-height: 46px;
+  display: grid;
+  min-height: 45px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  border: 1px solid var(--sqc-color-mushaf-border);
+  gap: 18px;
+  direction: ltr;
+  border: 1px solid color-mix(in srgb, var(--sqc-color-mushaf-border) 88%, transparent);
   border-radius: 18px;
-  padding: 7px 22px;
-  color: #292521;
-  font-size: 0.93rem;
+  padding: 7px 20px;
+  color: #2d2822;
+  font-family: "Noto Naskh Arabic", "Amiri", serif;
+  font-size: 0.9rem;
 }
 
 .mushaf-header::before,
 .mushaf-header::after {
   position: absolute;
   top: 50%;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border: 1px solid var(--sqc-color-mushaf-border);
   background: var(--sqc-color-background-mushaf);
   content: "";
@@ -59,14 +61,15 @@ const surahTitle = computed(() => {
 
 .mushaf-header__surah {
   overflow: hidden;
+  justify-self: start;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .mushaf-header__juz {
-  flex: 0 0 auto;
-  color: #665a49;
+  justify-self: end;
+  color: #695c4a;
   white-space: nowrap;
 }
 </style>
