@@ -16,57 +16,38 @@ const { data: page, isPending, isError, error, refetch } = useMushafPage(pageNum
 </script>
 
 <template>
-  <main class="sqc-safe-screen reader">
-    <div v-if="isPending" class="reader-state" role="status">
+  <main
+    class="relative min-h-dvh min-w-[320px] overflow-x-clip bg-[#fbf7ef] pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]"
+  >
+    <div
+      v-if="isPending"
+      class="grid min-h-dvh place-items-center content-center gap-2.5 p-8 text-center text-stone-600"
+      role="status"
+    >
       جاري تجهيز صفحة المصحف…
     </div>
 
-    <div v-else-if="isError" class="reader-state reader-state--error" role="alert">
+    <div
+      v-else-if="isError"
+      class="grid min-h-dvh place-items-center content-center gap-2.5 p-8 text-center text-stone-600"
+      role="alert"
+    >
       <strong>المصحف المحلي غير جاهز</strong>
-      <p>{{ error instanceof Error ? error.message : 'حدث خطأ غير متوقع.' }}</p>
-      <p class="reader-state__hint">
+      <p class="m-0 max-w-[480px] text-sm">
+        {{ error instanceof Error ? error.message : 'حدث خطأ غير متوقع.' }}
+      </p>
+      <p class="m-0 max-w-[480px] text-sm text-stone-500">
         القرآن لا يُحمّل من Frappe أثناء التشغيل. يتم تجهيزه محليًا مرة واحدة ثم يعمل بدون إنترنت.
       </p>
-      <button type="button" @click="refetch()">إعادة المحاولة</button>
+      <button
+        type="button"
+        class="rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-stone-900"
+        @click="refetch()"
+      >
+        إعادة المحاولة
+      </button>
     </div>
 
     <MushafPage v-else-if="page" :page="page" />
   </main>
 </template>
-
-<style scoped>
-.reader {
-  position: relative;
-  overflow-x: clip;
-  background: var(--sqc-color-background-mushaf);
-}
-
-.reader-state {
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  padding: 32px;
-  color: var(--sqc-color-text-secondary);
-  text-align: center;
-}
-
-.reader-state--error p {
-  max-width: 480px;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.reader-state__hint {
-  color: var(--sqc-color-text-tertiary);
-}
-
-.reader-state--error button {
-  border: 1px solid var(--sqc-color-border-subtle);
-  border-radius: 12px;
-  background: white;
-  padding: 10px 16px;
-  color: var(--sqc-color-text-primary);
-}
-</style>
