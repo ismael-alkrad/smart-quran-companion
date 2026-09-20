@@ -1,4 +1,3 @@
-import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthMutation } from '@/modules/auth/api'
@@ -14,8 +13,11 @@ export function useLoginFlow() {
   const route = useRoute()
   const router = useRouter()
   const authFlow = useAuthFlowStore()
-  const { email } = storeToRefs(authFlow)
 
+  const email = computed({
+    get: () => authFlow.email,
+    set: (value: string) => authFlow.setEmail(value),
+  })
   const password = ref('')
   const requestError = ref<string>()
 
@@ -67,6 +69,18 @@ export function useLoginFlow() {
     void router.push(buildLoginLocation(route.query.redirect))
   }
 
+  function goToWelcome() {
+    void router.push('/auth')
+  }
+
+  function goToRegister() {
+    void router.push('/auth/register')
+  }
+
+  function goToForgotPassword() {
+    void router.push('/auth/forgot-password')
+  }
+
   return {
     email,
     password,
@@ -74,5 +88,8 @@ export function useLoginFlow() {
     loading,
     login,
     goToLogin,
+    goToWelcome,
+    goToRegister,
+    goToForgotPassword,
   }
 }
