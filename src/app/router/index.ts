@@ -60,6 +60,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthOAuthErrorPage.vue'),
     },
     {
+      path: '/auth/oauth/link',
+      name: 'auth-oauth-link',
+      component: () => import('@/modules/auth/pages/AuthAccountLinkingPage.vue'),
+    },
+    {
       path: '/auth/login-error',
       name: 'auth-login-error',
       component: () => import('@/modules/auth/pages/AuthLoginErrorPage.vue'),
