@@ -10,3 +10,4 @@ export type { BaseChipTone } from '@/shared/components/BaseChip.vue'
 export { default as BaseProgressBar } from '@/shared/components/BaseProgressBar.vue'
 export { default as BaseCircularProgress } from '@/shared/components/BaseCircularProgress.vue'
 export { default as BaseSearch } from '@/shared/components/BaseSearch.vue'
+export { default as BaseTabs } from '@/shared/components/BaseTabs.vue'\nexport type { BaseTabItem } from '@/shared/components/BaseTabs.vue'\n
