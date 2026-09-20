@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
     >
       <div
         aria-hidden="true"
-        class="pointer-events-none absolute inset-[10px] z-20 border-[16px] border-solid border-transparent [border-image-outset:0] [border-image-repeat:round_round] [border-image-slice:30%_30.5%] [border-image-source:url('/quran/decor/mushaf-frame-blue.svg')] [border-image-width:2em]"
+        class="pointer-events-none absolute inset-[12px] z-20 border-[12px] border-solid border-transparent opacity-[0.62] [border-image-outset:0] [border-image-repeat:round_round] [border-image-slice:30%_30.5%] [border-image-source:url('/quran/decor/mushaf-frame-blue.svg')] [border-image-width:1.35em]"
       />
 
       <header
@@ -240,10 +240,10 @@ onBeforeUnmount(() => {
           <div
             v-if="line.type === 'ayah'"
             :data-qcf-line="line.lineNumber"
-            class="absolute inset-x-0 mx-auto inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            class="absolute left-[calc(50%+8px)] inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
             :style="{
               fontFamily,
-              transform: `scaleX(${pageLineScale})`,
+              transform: `translateX(-50%) scaleX(${pageLineScale})`,
             }"
           >
             <button
