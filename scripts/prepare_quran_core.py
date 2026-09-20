@@ -66,7 +66,7 @@ def _is_sqlite(path: Path) -> bool:
     if not path.is_file():
         return False
     with path.open("rb") as handle:
-        return handle.read(16) == b"SQLite format 3\\x00"
+        return handle.read(16) == b"SQLite format 3\x00"
 
 
 def resolve_sqlite_source(source: Path, workdir: Path, label: str) -> Path:
