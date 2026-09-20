@@ -5,7 +5,7 @@ import type {
   OAuthProvider,
 } from '@/modules/auth/types/oauth'
 
-export const AUTHENTICATED_FALLBACK_ROUTE = '/quran/31'
+export const AUTHENTICATED_FALLBACK_ROUTE = '/home'
 export const ONBOARDING_ENTRY_ROUTE = '/auth/account-ready'
 export const OAUTH_ACCOUNT_LINK_ROUTE = '/auth/oauth/link'
 
