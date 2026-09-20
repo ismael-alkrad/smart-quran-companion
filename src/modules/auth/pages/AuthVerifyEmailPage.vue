@@ -17,6 +17,10 @@ function goBack() {
   void router.push('/auth/register')
 }
 
+function goToAccountReady() {
+  void router.push('/auth/account-ready')
+}
+
 onMounted(() => {
   codeInput.value?.focus()
 })
@@ -57,6 +61,7 @@ onMounted(() => {
           primary-label="تأكيد البريد"
           secondary-label="لم يصلك الرمز؟ إعادة الإرسال"
           secondary-size="small"
+          @primary="goToAccountReady"
         />
       </div>
     </div>
