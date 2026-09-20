@@ -1,271 +1,192 @@
 <template>
   <svg
-    viewBox="0 0 1000 1600"
+    viewBox="0 0 460 1000"
     preserveAspectRatio="none"
     aria-hidden="true"
     class="h-full w-full overflow-visible"
   >
+    <defs>
+      <g id="sqc-corner-ornament">
+        <path
+          d="M0 58C18 57 31 50 38 39C45 28 56 21 72 19"
+          fill="none"
+          stroke="var(--sqc-poc-accent-strong)"
+          stroke-width="1.55"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M7 48C20 47 29 41 34 32C40 23 49 18 61 17"
+          fill="none"
+          stroke="var(--sqc-poc-accent-border)"
+          stroke-width=".95"
+          vector-effect="non-scaling-stroke"
+        />
+
+        <path
+          d="M30 37C38 27 48 24 58 27C51 32 48 39 49 47C42 42 36 39 30 37Z"
+          fill="var(--sqc-poc-accent-soft)"
+          stroke="var(--sqc-poc-accent)"
+          stroke-width=".8"
+          vector-effect="non-scaling-stroke"
+        />
+
+        <path
+          d="M37 31 45 23 53 31 45 39Z"
+          fill="var(--sqc-poc-accent)"
+          opacity=".72"
+        />
+
+        <path
+          d="M17 49C22 42 28 40 34 42C29 46 27 51 28 56C24 53 20 51 17 49Z"
+          fill="var(--sqc-poc-accent-soft)"
+          stroke="var(--sqc-poc-accent-border)"
+          stroke-width=".7"
+          vector-effect="non-scaling-stroke"
+        />
+
+        <circle
+          cx="45"
+          cy="31"
+          r="2.1"
+          fill="var(--sqc-poc-accent-strong)"
+        />
+      </g>
+
+      <g id="sqc-side-medallion">
+        <path
+          d="M0-20C8-13 11-7 8 0C11 7 8 13 0 20C-8 13-11 7-8 0C-11-7-8-13 0-20Z"
+          fill="var(--sqc-poc-accent-soft)"
+          stroke="var(--sqc-poc-accent-border)"
+          stroke-width=".9"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M0-10 5 0 0 10-5 0Z"
+          fill="var(--sqc-poc-accent)"
+          opacity=".72"
+        />
+        <circle
+          cx="0"
+          cy="0"
+          r="1.8"
+          fill="var(--sqc-poc-accent-strong)"
+        />
+      </g>
+
+      <g id="sqc-center-rosette">
+        <path
+          d="M-31 0-21-6-11 0 0-9 11 0 21-6 31 0 21 6 11 0 0 9-11 0-21 6Z"
+          fill="var(--sqc-poc-accent-soft)"
+          stroke="var(--sqc-poc-accent-border)"
+          stroke-width=".85"
+          vector-effect="non-scaling-stroke"
+        />
+        <path
+          d="M-10 0 0-5 10 0 0 5Z"
+          fill="var(--sqc-poc-accent)"
+          opacity=".72"
+        />
+        <circle
+          cx="0"
+          cy="0"
+          r="1.9"
+          fill="var(--sqc-poc-accent-strong)"
+        />
+      </g>
+    </defs>
+
+    <!-- restrained double border -->
     <rect
-      x="20"
-      y="18"
-      width="960"
-      height="1564"
-      rx="24"
+      x="7"
+      y="7"
+      width="446"
+      height="986"
+      rx="11"
       fill="none"
       stroke="var(--sqc-poc-accent-strong)"
-      stroke-width="1.6"
+      stroke-width="1.45"
       vector-effect="non-scaling-stroke"
     />
 
     <rect
-      x="31"
-      y="29"
-      width="938"
-      height="1542"
-      rx="18"
+      x="13"
+      y="13"
+      width="434"
+      height="974"
+      rx="8"
       fill="none"
       stroke="var(--sqc-poc-accent-border)"
-      stroke-width="1"
+      stroke-width=".85"
+      opacity=".95"
+      vector-effect="non-scaling-stroke"
+    />
+
+    <!-- quiet inner guide lines -->
+    <path
+      d="M18 78V455 M18 545V922 M442 78V455 M442 545V922"
+      fill="none"
+      stroke="var(--sqc-poc-accent-border)"
+      stroke-width=".6"
+      opacity=".46"
       vector-effect="non-scaling-stroke"
     />
 
     <path
-      d="M84 29H420 M580 29H916 M84 1571H420 M580 1571H916"
+      d="M76 18H190 M270 18H384 M76 982H190 M270 982H384"
       fill="none"
       stroke="var(--sqc-poc-accent-border)"
-      stroke-width=".9"
-      opacity=".7"
+      stroke-width=".6"
+      opacity=".46"
       vector-effect="non-scaling-stroke"
     />
 
-    <path
-      d="M31 92V700 M31 900V1508 M969 92V700 M969 900V1508"
-      fill="none"
-      stroke="var(--sqc-poc-accent-border)"
-      stroke-width=".9"
-      opacity=".7"
-      vector-effect="non-scaling-stroke"
-    />
-
-    <!-- top-left corner -->
-    <g transform="translate(20 18)">
-      <path
-        d="M0 72C26 70 44 58 54 38C63 20 82 8 110 8"
-        fill="none"
-        stroke="var(--sqc-poc-accent-strong)"
-        stroke-width="1.8"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M10 58C29 56 41 47 48 33C55 20 68 13 88 12"
-        fill="none"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1.1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M42 43C52 28 66 22 82 25C73 33 69 43 70 55C59 49 50 46 42 43Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M48 38 59 28 69 38 59 48Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".78"
-      />
-      <circle
-        cx="59"
-        cy="38"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <!-- corners -->
+    <g transform="translate(7 7)">
+      <use href="#sqc-corner-ornament" />
     </g>
 
-    <!-- top-right corner -->
-    <g transform="translate(980 18) scale(-1 1)">
-      <path
-        d="M0 72C26 70 44 58 54 38C63 20 82 8 110 8"
-        fill="none"
-        stroke="var(--sqc-poc-accent-strong)"
-        stroke-width="1.8"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M10 58C29 56 41 47 48 33C55 20 68 13 88 12"
-        fill="none"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1.1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M42 43C52 28 66 22 82 25C73 33 69 43 70 55C59 49 50 46 42 43Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M48 38 59 28 69 38 59 48Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".78"
-      />
-      <circle
-        cx="59"
-        cy="38"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(453 7) scale(-1 1)">
+      <use href="#sqc-corner-ornament" />
     </g>
 
-    <!-- bottom-left corner -->
-    <g transform="translate(20 1582) scale(1 -1)">
-      <path
-        d="M0 72C26 70 44 58 54 38C63 20 82 8 110 8"
-        fill="none"
-        stroke="var(--sqc-poc-accent-strong)"
-        stroke-width="1.8"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M10 58C29 56 41 47 48 33C55 20 68 13 88 12"
-        fill="none"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1.1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M42 43C52 28 66 22 82 25C73 33 69 43 70 55C59 49 50 46 42 43Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M48 38 59 28 69 38 59 48Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".78"
-      />
-      <circle
-        cx="59"
-        cy="38"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(7 993) scale(1 -1)">
+      <use href="#sqc-corner-ornament" />
     </g>
 
-    <!-- bottom-right corner -->
-    <g transform="translate(980 1582) scale(-1 -1)">
-      <path
-        d="M0 72C26 70 44 58 54 38C63 20 82 8 110 8"
-        fill="none"
-        stroke="var(--sqc-poc-accent-strong)"
-        stroke-width="1.8"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M10 58C29 56 41 47 48 33C55 20 68 13 88 12"
-        fill="none"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1.1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M42 43C52 28 66 22 82 25C73 33 69 43 70 55C59 49 50 46 42 43Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M48 38 59 28 69 38 59 48Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".78"
-      />
-      <circle
-        cx="59"
-        cy="38"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(453 993) scale(-1 -1)">
+      <use href="#sqc-corner-ornament" />
     </g>
 
-    <!-- centered top ornament -->
-    <g transform="translate(500 29)">
-      <path
-        d="M-52 0-34-8-18 0 0-11 18 0 34-8 52 0 34 8 18 0 0 11-18 0-34 8Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M-15 0 0-7 15 0 0 7Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".75"
-      />
-      <circle
-        cx="0"
-        cy="0"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <!-- centered rosettes -->
+    <g transform="translate(230 18)">
+      <use href="#sqc-center-rosette" />
     </g>
 
-    <!-- centered bottom ornament -->
-    <g transform="translate(500 1571)">
-      <path
-        d="M-52 0-34-8-18 0 0-11 18 0 34-8 52 0 34 8 18 0 0 11-18 0-34 8Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M-15 0 0-7 15 0 0 7Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".75"
-      />
-      <circle
-        cx="0"
-        cy="0"
-        r="2.8"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(230 982)">
+      <use href="#sqc-center-rosette" />
     </g>
 
     <!-- side medallions -->
-    <g transform="translate(31 800)">
-      <path
-        d="M0-25 9-12 0 0 9 12 0 25-9 12 0 0-9-12Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <circle
-        cx="0"
-        cy="0"
-        r="3"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(18 500)">
+      <use href="#sqc-side-medallion" />
     </g>
 
-    <g transform="translate(969 800)">
-      <path
-        d="M0-25 9-12 0 0 9 12 0 25-9 12 0 0-9-12Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <circle
-        cx="0"
-        cy="0"
-        r="3"
-        fill="var(--sqc-poc-accent-strong)"
-      />
+    <g transform="translate(442 500)">
+      <use href="#sqc-side-medallion" />
+    </g>
+
+    <!-- tiny leaf pairs around side medallions -->
+    <g
+      fill="var(--sqc-poc-accent-soft)"
+      stroke="var(--sqc-poc-accent-border)"
+      stroke-width=".7"
+      vector-effect="non-scaling-stroke"
+    >
+      <path d="M18 466C25 461 30 461 34 465C29 466 26 470 25 475C22 471 20 468 18 466Z" />
+      <path d="M18 534C25 539 30 539 34 535C29 534 26 530 25 525C22 529 20 532 18 534Z" />
+
+      <path d="M442 466C435 461 430 461 426 465C431 466 434 470 435 475C438 471 440 468 442 466Z" />
+      <path d="M442 534C435 539 430 539 426 535C431 534 434 530 435 525C438 529 440 532 442 534Z" />
     </g>
   </svg>
 </template>
