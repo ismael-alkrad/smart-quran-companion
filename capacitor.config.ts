@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'uk.ikrad.smartquran',
-  appName: 'Smart Quran Companion',
+  appName: 'رفيق القرآن الذكي',
   webDir: 'dist',
   server: { androidScheme: 'https' },
 }
