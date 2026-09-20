@@ -78,7 +78,7 @@ function fitQcfLines() {
 
   pageLineScale.value = Math.min(
     1,
-    (availableWidth / widestLine) * 0.985,
+    (availableWidth / widestLine) * 0.95,
   )
 }
 
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
           <div
             v-if="line.type === 'ayah'"
             :data-qcf-line="line.lineNumber"
-            class="inline-flex w-max max-w-none origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            class="inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
             :style="{
               fontFamily,
               transform: `scaleX(${pageLineScale})`,
