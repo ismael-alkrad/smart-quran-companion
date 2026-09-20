@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 import { useAuthMutation } from '@/modules/auth/api'
+import { useOAuthFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthCredentialsFields,
@@ -18,6 +20,11 @@ import {
 const router = useRouter()
 const authFlow = useAuthFlowStore()
 const registerCall = useAuthMutation('register')
+const {
+  oauthError,
+  starting: oauthStarting,
+  beginOAuth,
+} = useOAuthFlow()
 
 const email = computed({
   get: () => authFlow.email,
@@ -83,7 +90,17 @@ async function register() {
           description="احفظ تقدمك وارجع إلى خطتك من أي جهاز."
         />
 
-        <OAuthOptions />
+        <OAuthOptions
+          :disabled="oauthStarting"
+          @select="beginOAuth"
+        />
+
+        <BaseBanner
+          v-if="oauthError"
+          tone="error"
+          title="تعذر بدء تسجيل الدخول"
+          :body="oauthError"
+        />
 
         <BaseBanner
           v-if="requestError"
