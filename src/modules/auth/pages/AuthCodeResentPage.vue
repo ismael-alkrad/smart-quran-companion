@@ -1,34 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useEmailVerificationFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthForm,
   AuthIntro,
+  AuthVerificationCodeField,
 } from '@/modules/auth/components'
 import {
   BaseAppBar,
-  BaseInput,
+  BaseBanner,
   BaseToast,
 } from '@/shared/components'
 
-const router = useRouter()
-
-const code = ref('')
-const codeInput = ref<InstanceType<typeof BaseInput> | null>(null)
 const showToast = ref(true)
 
-function goBack() {
-  void router.push('/auth/verify-email')
-}
-
-function goToAccountReady() {
-  void router.push('/auth/account-ready')
-}
-
-onMounted(() => {
-  codeInput.value?.focus()
-})
+const {
+  verificationCode,
+  requestError,
+  verifying,
+  verifyEmail,
+  returnToVerifyEmail,
+} = useEmailVerificationFlow()
 </script>
 
 <template>
@@ -44,7 +37,7 @@ onMounted(() => {
           type="back"
           title="تأكيد البريد"
           back-label="رجوع"
-          @back="goBack"
+          @back="returnToVerifyEmail"
         />
 
         <AuthIntro
@@ -60,19 +53,25 @@ onMounted(() => {
           @close="showToast = false"
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر إكمال التحقق"
+          :body="requestError"
+        />
+
         <AuthForm>
-          <BaseInput
-            ref="codeInput"
-            v-model="code"
-            label="رمز التحقق"
+          <AuthVerificationCodeField
+            v-model="verificationCode"
             helper="أدخل الرمز الجديد المكوّن من 6 أرقام"
-            placeholder="— — — — — —"
           />
         </AuthForm>
 
         <AuthActions
           primary-label="تأكيد البريد"
-          @primary="goToAccountReady"
+          :primary-loading="verifying"
+          primary-loading-text="جارٍ التحقق"
+          @primary="verifyEmail"
         />
       </div>
     </div>
