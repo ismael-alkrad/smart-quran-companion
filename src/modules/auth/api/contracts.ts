@@ -1,3 +1,5 @@
+import type { OAuthPlatform, OAuthProvider } from '@/modules/auth/types/oauth'
+
 export interface AuthRegisterParams extends Record<string, unknown> {
   email: string
   password: string
@@ -15,6 +17,17 @@ export interface AuthLoginParams extends AuthRegisterParams {}
 
 export interface AuthResetPasswordParams extends AuthVerificationParams {
   password: string
+}
+
+export interface AuthOAuthStartParams extends Record<string, unknown> {
+  provider: OAuthProvider
+  code_challenge: string
+  platform: OAuthPlatform
+}
+
+export interface AuthOAuthCompleteParams extends Record<string, unknown> {
+  state: string
+  code_verifier: string
 }
 
 export interface AuthStatusResponse<TStatus extends string> {
@@ -63,6 +76,54 @@ export type AuthPasswordResetRequestResponse =
 export type AuthPasswordResetResponse = AuthStatusResponse<
   'password_updated' | 'invalid_or_expired_code'
 >
+
+export type AuthOAuthStartResponse =
+  | {
+      ok: true
+      status: 'authorization_required'
+      provider: OAuthProvider
+      authorization_url: string
+      pkce_required: boolean
+      expires_in: number
+    }
+  | {
+      ok: false
+      status:
+        | 'invalid_provider'
+        | 'invalid_platform'
+        | 'provider_unavailable'
+        | 'invalid_pkce_challenge'
+      provider?: OAuthProvider
+    }
+
+export type AuthOAuthCompleteResponse =
+  | {
+      ok: true
+      status: 'authenticated'
+      provider: OAuthProvider
+      user: string
+      new_user: boolean
+    }
+  | {
+      ok: false
+      status: 'account_link_required'
+      provider: OAuthProvider
+      email: string
+      link_token: string
+      expires_in: number
+    }
+  | {
+      ok: false
+      status:
+        | 'invalid_or_expired_oauth_state'
+        | 'invalid_provider'
+        | 'provider_unavailable'
+        | 'invalid_pkce_verifier'
+        | 'oauth_failed'
+        | 'account_unavailable'
+        | 'provider_already_linked'
+      provider?: OAuthProvider
+    }
 
 export interface AuthSessionUser {
   name: string
@@ -117,6 +178,14 @@ export interface AuthMutationContract {
   resetPassword: {
     params: AuthResetPasswordParams
     response: AuthPasswordResetResponse
+  }
+  oauthStart: {
+    params: AuthOAuthStartParams
+    response: AuthOAuthStartResponse
+  }
+  oauthComplete: {
+    params: AuthOAuthCompleteParams
+    response: AuthOAuthCompleteResponse
   }
 }
 
