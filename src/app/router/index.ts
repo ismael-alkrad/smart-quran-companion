@@ -75,6 +75,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthPasswordResetSuccessPage.vue'),
     },
     {
+      path: '/auth/session-expired',
+      name: 'auth-session-expired',
+      component: () => import('@/modules/auth/pages/AuthSessionExpiredPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
