@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthMutation } from '@/modules/auth/api'
 import {
   AuthActions,
   AuthForm,
   AuthIntro,
   OAuthOptions,
 } from '@/modules/auth/components'
-import { BaseAppBar, BaseInput } from '@/shared/components'
+import { useAuthFlowStore } from '@/modules/auth/stores'
+import {
+  BaseAppBar,
+  BaseBanner,
+  BaseInput,
+} from '@/shared/components'
 
 const router = useRouter()
+const authFlow = useAuthFlowStore()
+const registerCall = useAuthMutation('register')
 
-const email = ref('')
+const email = computed({
+  get: () => authFlow.email,
+  set: (value: string) => authFlow.setEmail(value),
+})
 const password = ref('')
+const requestError = ref<string>()
 
 function goBack() {
   void router.push('/auth')
@@ -22,8 +34,31 @@ function goToLogin() {
   void router.push('/auth/login')
 }
 
-function goToVerifyEmail() {
-  void router.push('/auth/verify-email')
+async function register() {
+  requestError.value = undefined
+
+  const response = await registerCall.submit({
+    email: email.value,
+    password: password.value,
+  })
+
+  if (response?.ok && response.status === 'verification_required') {
+    authFlow.setEmail(response.email)
+    authFlow.clearVerificationCode()
+    void router.push('/auth/verify-email')
+    return
+  }
+
+  if (response?.status === 'email_already_used') {
+    authFlow.setEmail(response.email)
+    void router.push({
+      path: '/auth/email-already-used',
+      query: { email: response.email },
+    })
+    return
+  }
+
+  requestError.value = 'تعذر إنشاء الحساب الآن. تحقق من البيانات وحاول مرة أخرى.'
 }
 </script>
 
@@ -50,6 +85,13 @@ function goToVerifyEmail() {
 
         <OAuthOptions />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر إنشاء الحساب"
+          :body="requestError"
+        />
+
         <AuthForm
           footer-text="بإنشاء الحساب، يمكنك لاحقًا التحكم في إعدادات الخصوصية والذكاء الاصطناعي من داخل التطبيق."
         >
@@ -71,7 +113,9 @@ function goToVerifyEmail() {
         <AuthActions
           primary-label="إنشاء الحساب"
           secondary-label="لديك حساب؟ تسجيل الدخول"
-          @primary="goToVerifyEmail"
+          :primary-loading="registerCall.loading"
+          primary-loading-text="جارٍ إنشاء الحساب"
+          @primary="register"
           @secondary="goToLogin"
         />
       </div>
