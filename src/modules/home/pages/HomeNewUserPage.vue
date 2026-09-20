@@ -2,22 +2,13 @@
 import { useRouter } from 'vue-router'
 
 import {
+  HomePageScaffold,
   HomeTasmeeCta,
   HomeTodayTaskRow,
 } from '@/modules/home'
-import {
-  BaseAvatar,
-  BaseBottomNav,
-  BaseEmptyState,
-  type BaseBottomNavRoutes,
-} from '@/shared/components'
+import { BaseEmptyState } from '@/shared/components'
 
 const router = useRouter()
-
-const navRoutes: BaseBottomNavRoutes = {
-  home: '/home',
-  quran: '/quran/31',
-}
 
 function exploreQuran() {
   void router.push('/quran/31')
@@ -25,51 +16,26 @@ function exploreQuran() {
 </script>
 
 <template>
-  <main
-    dir="rtl"
-    class="min-h-dvh w-full bg-[var(--sqc-color-background-primary)] [font-family:var(--sqc-font-family-ui)]"
-  >
-    <div class="relative mx-auto h-dvh w-full max-w-[390px] overflow-hidden">
-      <div
-        class="absolute inset-x-0 bottom-[76px] top-[24px] flex flex-col items-start gap-[16px] overflow-x-hidden overflow-y-auto px-[16px] pb-[24px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+  <HomePageScaffold subtitle="ابدأ بخطة بسيطة ويمكنك تعديلها لاحقًا">
+    <div
+      dir="ltr"
+      class="flex flex-col gap-[16px] lg:grid lg:grid-cols-[416px_minmax(0,760px)] lg:items-start lg:gap-x-[24px] lg:gap-y-[24px]"
+    >
+      <BaseEmptyState
+        dir="rtl"
+        title="ابدأ رحلتك القرآنية"
+        body="حدد وردك اليومي والحفظ والمراجعة، وسنبني لك تقدمًا واضحًا مع الوقت."
+        action-label="استكشاف"
+        class="!w-full lg:col-start-1 lg:row-start-1"
+        @action="exploreQuran"
+      />
+
+      <section
+        dir="rtl"
+        class="flex w-full flex-col items-end gap-[16px] lg:col-start-2 lg:row-span-2 lg:row-start-1"
       >
-        <header
-          dir="ltr"
-          class="flex h-[64px] w-full shrink-0 items-center justify-between overflow-hidden"
-        >
-          <BaseAvatar
-            type="placeholder"
-            size="medium"
-            aria-label="صورة الحساب"
-          />
-
-          <div dir="rtl" class="flex shrink-0 flex-col items-end gap-[2px] overflow-hidden text-right">
-            <h1
-              dir="auto"
-              class="whitespace-nowrap text-[24px] font-semibold leading-[36px] text-[color:var(--sqc-color-text-primary)]"
-            >
-              السلام عليكم
-            </h1>
-
-            <p
-              dir="auto"
-              class="whitespace-nowrap text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-secondary)]"
-            >
-              ابدأ بخطة بسيطة ويمكنك تعديلها لاحقًا
-            </p>
-          </div>
-        </header>
-
-        <BaseEmptyState
-          title="ابدأ رحلتك القرآنية"
-          body="حدد وردك اليومي والحفظ والمراجعة، وسنبني لك تقدمًا واضحًا مع الوقت."
-          action-label="استكشاف"
-          class="!w-full"
-          @action="exploreQuran"
-        />
-
         <h2
-          dir="auto"
+          dir="rtl"
           class="w-full text-right text-[18px] font-medium leading-[28px] text-[color:var(--sqc-color-text-primary)]"
         >
           خطة البداية
@@ -89,15 +55,12 @@ function exploreQuran() {
           type="murajaah"
           state="pending"
         />
+      </section>
 
-        <HomeTasmeeCta />
-      </div>
-
-      <BaseBottomNav
-        model-value="home"
-        :routes="navRoutes"
-        class="absolute inset-x-0 bottom-0"
+      <HomeTasmeeCta
+        dir="rtl"
+        class="lg:col-start-1 lg:row-start-2"
       />
     </div>
-  </main>
+  </HomePageScaffold>
 </template>
