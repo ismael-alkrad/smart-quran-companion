@@ -21,12 +21,15 @@ export function useHifzOverviewQuery() {
 }
 
 
-export function useHifzSurahProgressQuery() {
+export function useHifzSurahProgressQuery(surahNumber: number) {
   return useSmartQuranCall<
     HifzSurahProgressResponse,
     HifzSurahProgressParams
   >(HIFZ_QUERY_METHODS.surahProgress, {
     method: 'GET',
     immediate: false,
+    params: {
+      surah_number: surahNumber,
+    },
   })
 }

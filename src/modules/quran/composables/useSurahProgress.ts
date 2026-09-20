@@ -10,7 +10,7 @@ import type { QuranSurahMetadata } from '@/modules/quran/types/mushaf'
 import { COMPLETED_HIFZ_STATUSES } from '@/modules/quran/utils/hifz'
 
 export function useSurahProgress(surahNumber: number) {
-  const query = useHifzSurahProgressQuery()
+  const query = useHifzSurahProgressQuery(surahNumber)
 
   const loading = ref(false)
   const failed = ref(false)
@@ -23,7 +23,7 @@ export function useSurahProgress(surahNumber: number) {
 
     try {
       const [response, surahMetadata] = await Promise.all([
-        query.fetch({ surah_number: surahNumber }),
+        query.fetch(),
         getQuranSurahMetadataByNumber(surahNumber),
       ])
 
