@@ -17,6 +17,10 @@ const passwordConfirmation = ref('')
 function goBack() {
   void router.push('/auth/forgot-password')
 }
+
+function goToResetSuccess() {
+  void router.push('/auth/password-reset-success')
+}
 </script>
 
 <template>
@@ -62,7 +66,10 @@ function goBack() {
           />
         </AuthForm>
 
-        <AuthActions primary-label="تحديث كلمة المرور" />
+        <AuthActions
+          primary-label="تحديث كلمة المرور"
+          @primary="goToResetSuccess"
+        />
       </div>
     </div>
   </main>
