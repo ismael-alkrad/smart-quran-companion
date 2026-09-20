@@ -49,6 +49,7 @@ export function useLoginFlow() {
 
       if (session?.authenticated) {
         password.value = ''
+        authFlow.reset()
         void router.replace(
           resolvePostAuthDestination(route.query.redirect),
         )
@@ -67,7 +68,19 @@ export function useLoginFlow() {
       return
     }
 
-    requestError.value = 'تعذر تسجيل الدخول الآن. حاول مرة أخرى.'
+    if (response?.status === 'password_reset_required') {
+      password.value = ''
+      void router.replace('/auth/forgot-password')
+      return
+    }
+
+    if (response?.status === 'second_factor_required') {
+      password.value = ''
+      requestError.value = 'هذا الحساب يتطلب خطوة تحقق إضافية قبل تسجيل الدخول.'
+      return
+    }
+
+    requestError.value = 'تعذر إكمال تسجيل الدخول الآن. حاول مرة أخرى.'
   }
 
   function goToLogin() {
