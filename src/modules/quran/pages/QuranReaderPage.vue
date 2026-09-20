@@ -23,6 +23,7 @@ const router = useRouter()
 
 const controlsVisible = ref(true)
 const savedPosition = ref<QuranReadingPosition | null>(null)
+const positionLoaded = ref(false)
 const readingPositionCall = useQuranReadingPositionQuery()
 const savePositionCall = useSaveQuranReadingPositionMutation()
 
@@ -242,9 +243,12 @@ async function selectAyah(payload: {
 }
 
 watch(
-  () => primaryPage.value?.pageNumber,
-  async (loadedPage) => {
-    if (!loadedPage) return
+  () => [
+    primaryPage.value?.pageNumber,
+    positionLoaded.value,
+  ] as const,
+  async ([loadedPage, isPositionLoaded]) => {
+    if (!loadedPage || !isPositionLoaded) return
 
     const existing = savedPosition.value
 
@@ -274,6 +278,8 @@ onMounted(async () => {
     savedPosition.value = response?.position ?? null
   } catch {
     savedPosition.value = null
+  } finally {
+    positionLoaded.value = true
   }
 })
 </script>
@@ -393,7 +399,7 @@ onMounted(async () => {
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] bg-[var(--sqc-color-background-elevated)]/95 px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%-32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
+          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] bg-[var(--sqc-color-background-elevated)]/95 px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%_-_32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
         >
           <button
             type="button"
@@ -401,7 +407,7 @@ onMounted(async () => {
             aria-label="العودة"
             @click="goBack"
           >
-            ‹
+            ›
           </button>
 
           <div class="flex min-w-0 flex-1 flex-col items-center gap-[2px] text-center">
@@ -430,7 +436,7 @@ onMounted(async () => {
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%-32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] bg-[var(--sqc-color-background-elevated)]/95 px-[8px] shadow-lg backdrop-blur"
+          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%_-_32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] bg-[var(--sqc-color-background-elevated)]/95 px-[8px] shadow-lg backdrop-blur"
         >
           <button
             type="button"
