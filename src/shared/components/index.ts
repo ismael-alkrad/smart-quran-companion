@@ -16,3 +16,9 @@ export { default as BaseSegmentedControl } from '@/shared/components/BaseSegment
 export type { BaseSegmentedOption } from '@/shared/components/BaseSegmentedControl.vue'
 export { default as BaseAppBar } from '@/shared/components/BaseAppBar.vue'
 export type { BaseAppBarType } from '@/shared/components/BaseAppBar.vue'
+export { default as BaseBottomNav } from '@/shared/components/BaseBottomNav.vue'
+export type {
+  BaseBottomNavLabels,
+  BaseBottomNavRoutes,
+  BaseBottomNavValue,
+} from '@/shared/components/BaseBottomNav.vue'
