@@ -18,7 +18,7 @@ const POC_PAGE_NUMBER = 31
 
 const selectedLocation = ref<string | null>(null)
 const textSurface = ref<HTMLElement | null>(null)
-const lineScales = ref<Record<number, number>>({})
+const pageLineScale = ref(1)
 
 const pageQuery = useMushafPage(POC_PAGE_NUMBER)
 
@@ -60,22 +60,26 @@ function fitQcfLines() {
 
   if (!lineNodes.length) return
 
-  const availableWidth = surface.clientWidth
-  const nextScales: Record<number, number> = {}
+  const styles = getComputedStyle(surface)
+  const horizontalPadding =
+    Number.parseFloat(styles.paddingLeft)
+    + Number.parseFloat(styles.paddingRight)
 
-  for (const node of lineNodes) {
-    const lineNumber = Number(node.dataset.qcfLine)
-    const naturalWidth = node.scrollWidth
+  const availableWidth = Math.max(
+    1,
+    surface.clientWidth - horizontalPadding,
+  )
 
-    if (!Number.isInteger(lineNumber) || naturalWidth <= 0) continue
+  const widestLine = Math.max(
+    ...lineNodes.map(node => node.scrollWidth),
+  )
 
-    nextScales[lineNumber] = Math.min(
-      1,
-      Math.max(0.82, availableWidth / naturalWidth),
-    )
-  }
+  if (widestLine <= 0) return
 
-  lineScales.value = nextScales
+  pageLineScale.value = Math.min(
+    1,
+    (availableWidth / widestLine) * 0.985,
+  )
 }
 
 async function scheduleLineFit() {
@@ -206,10 +210,10 @@ onBeforeUnmount(() => {
           <div
             v-if="line.type === 'ayah'"
             :data-qcf-line="line.lineNumber"
-            class="inline-flex w-max max-w-none origin-center items-baseline justify-center gap-[0.035em] whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            class="inline-flex w-max max-w-none origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
             :style="{
               fontFamily,
-              transform: `scaleX(${lineScales[line.lineNumber] ?? 1})`,
+              transform: `scaleX(${pageLineScale})`,
             }"
           >
             <button
