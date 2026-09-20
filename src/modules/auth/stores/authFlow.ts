@@ -34,6 +34,7 @@ function persistEmail(email: string) {
 export const useAuthFlowStore = defineStore('auth-flow', () => {
   const email = ref(readStoredEmail())
   const verificationCode = ref('')
+  const passwordResetCode = ref('')
 
   function setEmail(value: string) {
     const normalized = value.trim().toLowerCase()
@@ -45,17 +46,24 @@ export const useAuthFlowStore = defineStore('auth-flow', () => {
     verificationCode.value = ''
   }
 
+  function clearPasswordResetCode() {
+    passwordResetCode.value = ''
+  }
+
   function reset() {
     email.value = ''
     verificationCode.value = ''
+    passwordResetCode.value = ''
     persistEmail('')
   }
 
   return {
     email,
     verificationCode,
+    passwordResetCode,
     setEmail,
     clearVerificationCode,
+    clearPasswordResetCode,
     reset,
   }
 })
