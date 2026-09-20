@@ -1,27 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
 import type {
   AuthSessionStatusResponse,
   AuthSessionUser,
 } from '@/modules/auth/api'
-
-type FrappeWindow = Window & {
-  csrf_token?: string
-}
-
-function setBrowserCsrfToken(token?: string) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const frappeWindow = window as FrappeWindow
-
-  if (token) {
-    frappeWindow.csrf_token = token
-  } else {
-    delete frappeWindow.csrf_token
-  }
-}
+import { setBrowserCsrfToken } from '@/shared/api'
 
 export const useAuthSessionStore = defineStore('auth-session', () => {
   const authenticated = ref<boolean | null>(null)
