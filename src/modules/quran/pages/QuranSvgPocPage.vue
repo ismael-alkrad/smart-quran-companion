@@ -8,7 +8,6 @@ import {
   watch,
 } from 'vue'
 
-import MushafOrnamentalFrame from '@/modules/quran/components/MushafOrnamentalFrame.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
@@ -199,12 +198,13 @@ onBeforeUnmount(() => {
       class="relative mx-auto flex h-full w-full max-w-[520px] flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
       aria-label="تجربة صفحة المصحف على الهاتف"
     >
-      <MushafOrnamentalFrame
-        class="pointer-events-none absolute inset-[5px] z-20"
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-[10px] z-20 border-[16px] border-solid border-transparent [border-image-outset:0] [border-image-repeat:round_round] [border-image-slice:30%_30.5%] [border-image-source:url('/quran/decor/mushaf-frame-blue.svg')] [border-image-width:2em]"
       />
 
       <header
-        class="relative z-30 mx-[24px] mt-[max(18px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
+        class="relative z-30 mx-[26px] mt-[max(18px,env(safe-area-inset-top))] flex h-[44px] shrink-0 items-center justify-between rounded-[14px] border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)] px-[18px] text-[color:var(--sqc-poc-accent-strong)] shadow-[inset_0_0_0_2px_var(--sqc-poc-accent-soft)] before:absolute before:start-[8px] before:size-[7px] before:rotate-45 before:rounded-[2px] before:border before:border-[var(--sqc-poc-accent-border)] before:bg-[var(--sqc-color-mushaf-paper)] before:content-[''] after:absolute after:end-[8px] after:size-[7px] after:rotate-45 after:rounded-[2px] after:border after:border-[var(--sqc-poc-accent-border)] after:bg-[var(--sqc-color-mushaf-paper)] after:content-['']"
       >
         <span
           class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
 
       <section
         ref="textSurface"
-        class="relative z-10 grid min-h-0 flex-1 translate-x-[6px] grid-rows-[repeat(15,minmax(0,1fr))] px-[31px] pb-[8px] pt-[10px]"
+        class="relative z-10 grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[8px] pt-[10px]"
         aria-label="نص صفحة المصحف"
       >
         <div
@@ -240,10 +240,10 @@ onBeforeUnmount(() => {
           <div
             v-if="line.type === 'ayah'"
             :data-qcf-line="line.lineNumber"
-            class="absolute left-1/2 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+            class="absolute inset-x-0 mx-auto inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
             :style="{
               fontFamily,
-              transform: `translateX(-50%) scaleX(${pageLineScale})`,
+              transform: `scaleX(${pageLineScale})`,
             }"
           >
             <button
