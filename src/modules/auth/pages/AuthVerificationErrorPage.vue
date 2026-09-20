@@ -1,31 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { AuthForm } from '@/modules/auth/components'
+import { useEmailVerificationFlow } from '@/modules/auth/composables'
+import {
+  AuthForm,
+  AuthVerificationCodeField,
+} from '@/modules/auth/components'
 import {
   BaseAppBar,
   BaseBanner,
   BaseButton,
-  BaseInput,
 } from '@/shared/components'
 
-const route = useRoute()
-const router = useRouter()
-
-const code = ref(typeof route.query.code === 'string' ? route.query.code : '')
-const codeInput = ref<InstanceType<typeof BaseInput> | null>(null)
-
-function goBack() {
-  void router.push('/auth/verify-email')
-}
-
-function goToCodeResent() {
-  void router.push('/auth/code-resent')
-}
-
-onMounted(() => {
-  codeInput.value?.focus()
-})
+const {
+  verificationCode,
+  requestError,
+  verifying,
+  resending,
+  verifyEmail,
+  resendVerificationCode,
+  returnToVerifyEmail,
+} = useEmailVerificationFlow()
 </script>
 
 <template>
@@ -41,7 +34,7 @@ onMounted(() => {
           type="back"
           title="تأكيد البريد"
           back-label="رجوع"
-          @back="goBack"
+          @back="returnToVerifyEmail"
         />
 
         <h1
@@ -57,12 +50,16 @@ onMounted(() => {
           body="أدخل الرمز الأخير الذي وصلك، أو اطلب رمزًا جديدًا."
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر تنفيذ الطلب"
+          :body="requestError"
+        />
+
         <AuthForm>
-          <BaseInput
-            ref="codeInput"
-            v-model="code"
-            label="رمز التحقق"
-            placeholder="— — — — — —"
+          <AuthVerificationCodeField
+            v-model="verificationCode"
             error="الرمز غير صحيح أو منتهي"
           />
         </AuthForm>
@@ -72,6 +69,9 @@ onMounted(() => {
             size="large"
             variant="primary"
             class="w-full"
+            :loading="verifying"
+            loading-text="جارٍ التحقق"
+            @click="verifyEmail"
           >
             تأكيد الرمز
           </BaseButton>
@@ -80,7 +80,9 @@ onMounted(() => {
             size="large"
             variant="secondary"
             class="w-full"
-            @click="goToCodeResent"
+            :loading="resending"
+            loading-text="جارٍ الإرسال"
+            @click="resendVerificationCode"
           >
             إرسال رمز جديد
           </BaseButton>
