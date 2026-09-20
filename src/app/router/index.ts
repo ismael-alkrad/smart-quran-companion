@@ -70,6 +70,11 @@ export default createRouter({
       component: () => import('@/modules/auth/pages/AuthCodeResentPage.vue'),
     },
     {
+      path: '/auth/password-reset-success',
+      name: 'auth-password-reset-success',
+      component: () => import('@/modules/auth/pages/AuthPasswordResetSuccessPage.vue'),
+    },
+    {
       path: '/quran/:page(\\d+)',
       name: 'quran-reader',
       component: () => import('@/modules/quran/pages/QuranReaderPage.vue'),
