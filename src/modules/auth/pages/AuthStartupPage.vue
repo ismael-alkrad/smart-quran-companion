@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthSession } from '@/modules/auth/composables'
 import {
+  getSafeGuestAuthReturn,
   getSafeInternalRedirect,
   resolvePostAuthDestination,
 } from '@/modules/auth/navigation'
@@ -15,6 +16,8 @@ const authFlow = useAuthFlowStore()
 const { refreshSession } = useAuthSession()
 
 const routeRedirect = getSafeInternalRedirect(route.query.redirect)
+const guestReturnTo = getSafeGuestAuthReturn(route.query.returnTo)
+
 if (routeRedirect) {
   authFlow.setPostAuthRedirect(routeRedirect)
 }
@@ -47,7 +50,7 @@ onMounted(async () => {
     return
   }
 
-  void router.replace('/auth')
+  void router.replace(guestReturnTo ?? '/auth')
 })
 </script>
 
