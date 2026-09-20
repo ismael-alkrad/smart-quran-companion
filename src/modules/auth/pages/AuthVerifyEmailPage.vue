@@ -1,29 +1,30 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useEmailVerificationFlow } from '@/modules/auth/composables'
 import {
   AuthActions,
   AuthForm,
   AuthIntro,
+  AuthVerificationCodeField,
 } from '@/modules/auth/components'
-import { BaseAppBar, BaseInput } from '@/shared/components'
+import {
+  BaseAppBar,
+  BaseBanner,
+} from '@/shared/components'
 
 const router = useRouter()
-
-const code = ref('')
-const codeInput = ref<InstanceType<typeof BaseInput> | null>(null)
+const {
+  verificationCode,
+  requestError,
+  verifying,
+  resending,
+  verifyEmail,
+  resendVerificationCode,
+} = useEmailVerificationFlow()
 
 function goBack() {
   void router.push('/auth/register')
 }
-
-function goToAccountReady() {
-  void router.push('/auth/account-ready')
-}
-
-onMounted(() => {
-  codeInput.value?.focus()
-})
 </script>
 
 <template>
@@ -47,13 +48,17 @@ onMounted(() => {
           description="أرسلنا رمز تحقق إلى بريدك. أدخل الرمز لإكمال إنشاء الحساب."
         />
 
+        <BaseBanner
+          v-if="requestError"
+          tone="error"
+          title="تعذر إكمال التحقق"
+          :body="requestError"
+        />
+
         <AuthForm>
-          <BaseInput
-            ref="codeInput"
-            v-model="code"
-            label="رمز التحقق"
+          <AuthVerificationCodeField
+            v-model="verificationCode"
             helper="الرمز مكوّن من 6 أرقام"
-            placeholder="— — — — — —"
           />
         </AuthForm>
 
@@ -61,8 +66,19 @@ onMounted(() => {
           primary-label="تأكيد البريد"
           secondary-label="لم يصلك الرمز؟ إعادة الإرسال"
           secondary-size="small"
-          @primary="goToAccountReady"
+          :primary-loading="verifying"
+          primary-loading-text="جارٍ التحقق"
+          @primary="verifyEmail"
+          @secondary="resendVerificationCode"
         />
+
+        <p
+          v-if="resending"
+          dir="auto"
+          class="w-full text-right text-[12px] font-normal leading-[20px] text-[color:var(--sqc-color-text-tertiary)]"
+        >
+          جارٍ إرسال رمز جديد…
+        </p>
       </div>
     </div>
   </main>
