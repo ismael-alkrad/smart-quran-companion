@@ -9,8 +9,6 @@ import {
 } from 'vue'
 
 import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
-import MushafLine from '@/modules/quran/components/MushafLine.vue'
-import MushafPageHeader from '@/modules/quran/components/MushafPageHeader.vue'
 import { getJuzNameArabicVowelled } from '@/modules/quran/data/juzNames'
 import { getSurahNameArabicVowelled } from '@/modules/quran/data/surahNamesVowelled'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
@@ -24,9 +22,11 @@ const props = withDefaults(
   defineProps<{
     page: MushafPageData
     spread?: boolean
+    selectedWordLocation?: string | null
   }>(),
   {
     spread: false,
+    selectedWordLocation: null,
   },
 )
 
@@ -75,8 +75,6 @@ function isVerseMarker(word: MushafWord) {
 }
 
 function fitQcfLines() {
-  if (props.spread) return
-
   const surface = textSurface.value
   if (!surface) return
 
@@ -109,8 +107,6 @@ function fitQcfLines() {
 }
 
 async function scheduleLineFit() {
-  if (props.spread) return
-
   await nextTick()
 
   if (fitFrame) {
@@ -124,7 +120,10 @@ async function scheduleLineFit() {
 }
 
 watch(
-  () => props.page.pageNumber,
+  () => [
+    props.page.pageNumber,
+    props.spread,
+  ] as const,
   () => {
     pageLineScale.value = 1
     void scheduleLineFit()
@@ -138,7 +137,7 @@ watch(textSurface, (surface, previousSurface) => {
     resizeObserver.unobserve(previousSurface)
   }
 
-  if (surface && !props.spread) {
+  if (surface) {
     resizeObserver.observe(surface)
     void scheduleLineFit()
   }
@@ -147,10 +146,7 @@ watch(textSurface, (surface, previousSurface) => {
 onMounted(() => {
   void scheduleLineFit()
 
-  if (
-    !props.spread
-    && typeof ResizeObserver !== 'undefined'
-  ) {
+  if (typeof ResizeObserver !== 'undefined') {
     resizeObserver = new ResizeObserver(() => {
       void scheduleLineFit()
     })
@@ -174,10 +170,14 @@ onBeforeUnmount(() => {
 
 <template>
   <article
-    v-if="!spread"
     dir="rtl"
     translate="no"
-    class="relative mx-auto flex h-dvh w-full max-w-[520px] flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
+    class="relative mx-auto flex h-dvh w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
+    :class="
+      spread
+        ? 'min-h-0 max-w-none'
+        : 'max-w-[520px] min-[600px]:max-w-[720px]'
+    "
     :aria-label="`صفحة المصحف ${toArabicNumber(page.pageNumber)}`"
   >
     <div
@@ -222,12 +222,15 @@ onBeforeUnmount(() => {
           <span
             v-for="word in line.words"
             :key="word.location"
-            class="inline-block shrink-0 cursor-default select-text"
-            :class="
+            class="inline-block shrink-0 cursor-pointer select-none rounded-[5px] transition-colors duration-100"
+            :class="[
               isVerseMarker(word)
                 ? 'text-[color:var(--sqc-poc-marker)]'
-                : ''
-            "
+                : '',
+              selectedWordLocation === word.location
+                ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
+                : '',
+            ]"
             translate="no"
             :data-location="word.location"
             :data-verse-key="word.verseKey"
@@ -264,42 +267,5 @@ onBeforeUnmount(() => {
         {{ toArabicNumber(page.pageNumber) }}
       </MushafFrameCartouche>
     </div>
-  </article>
-
-  <article
-    v-else
-    dir="rtl"
-    translate="no"
-    class="mx-auto flex h-dvh min-h-0 w-full max-w-none flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] px-[clamp(12px,1.8vw,20px)] pb-[6px] pt-[8px]"
-  >
-    <MushafPageHeader
-      :chapters="page.chapters"
-      :juz-number="page.juzNumber"
-      compact
-    />
-
-    <section
-      class="flex min-h-0 flex-1 flex-col justify-evenly pb-[2px] pt-[6px]"
-      aria-label="صفحة المصحف"
-    >
-      <MushafLine
-        v-for="line in page.lines"
-        :key="line.lineNumber"
-        :line="line"
-        :font-family="fontFamily"
-        compact
-      />
-    </section>
-
-    <footer
-      class="flex min-h-[24px] items-center justify-center text-[0.72rem] text-[var(--sqc-color-mushaf-muted)] [font-family:'Noto_Naskh_Arabic','Amiri',serif]"
-      aria-label="رقم الصفحة"
-    >
-      <span
-        class="relative grid min-h-[22px] min-w-[44px] place-items-center px-2 before:absolute before:top-0.5 before:right-0 before:left-0 before:h-px before:bg-[var(--sqc-color-mushaf-border-subtle)] before:content-[''] after:absolute after:right-0 after:bottom-0.5 after:left-0 after:h-px after:bg-[var(--sqc-color-mushaf-border-subtle)] after:content-['']"
-      >
-        {{ toArabicNumber(page.pageNumber) }}
-      </span>
-    </footer>
   </article>
 </template>
