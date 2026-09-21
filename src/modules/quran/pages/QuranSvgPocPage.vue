@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
       />
 
       <div
-        class="pointer-events-none absolute inset-x-[28px] top-[2px] z-30 flex items-center justify-between"
+        class="pointer-events-none absolute inset-x-[28px] top-[4px] z-30 flex items-center justify-between"
         aria-hidden="true"
       >
         <MushafFrameCartouche>
@@ -295,7 +295,7 @@ onBeforeUnmount(() => {
       </section>
 
       <div
-        class="pointer-events-none absolute bottom-[1px] left-1/2 z-30 -translate-x-1/2"
+        class="pointer-events-none absolute bottom-[5px] left-1/2 z-30 -translate-x-1/2"
         aria-hidden="true"
       >
         <MushafFrameCartouche compact>
