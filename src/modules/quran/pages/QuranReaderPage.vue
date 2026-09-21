@@ -350,7 +350,7 @@ const spreadTransition = computed(() =>
 const currentRightPaneStyle = computed(() => {
   if (spreadTurnDirection.value === 'previous') {
     return {
-      transform: `rotateY(-${spreadAngle.value}deg)`,
+      transform: `perspective(1800px) rotateY(-${spreadAngle.value}deg)`,
       transformOrigin: 'left center',
       transition: spreadTransition.value,
       zIndex: 30,
@@ -375,7 +375,7 @@ const currentRightPaneStyle = computed(() => {
 const currentLeftPaneStyle = computed(() => {
   if (spreadTurnDirection.value === 'next') {
     return {
-      transform: `rotateY(${spreadAngle.value}deg)`,
+      transform: `perspective(1800px) rotateY(${spreadAngle.value}deg)`,
       transformOrigin: 'right center',
       transition: spreadTransition.value,
       zIndex: 30,
@@ -985,35 +985,27 @@ onBeforeUnmount(() => {
           aria-hidden="true"
           class="pointer-events-none absolute inset-0 z-0 grid grid-cols-2 items-start gap-px"
         >
-          <div
-            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)]"
-          >
-            <QuranMushafPane
-              v-if="targetSpreadRightPage"
-              spread
-              :page="targetSpreadRightPage"
-            />
-
-            <div
-              v-else
-              class="min-h-[90dvh]"
-            />
-          </div>
+          <QuranMushafPane
+            v-if="targetSpreadRightPage"
+            spread
+            :page="targetSpreadRightPage"
+          />
 
           <div
-            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)]"
-          >
-            <QuranMushafPane
-              v-if="targetSpreadLeftPage"
-              spread
-              :page="targetSpreadLeftPage"
-            />
+            v-else
+            class="min-h-[90dvh]"
+          />
 
-            <div
-              v-else
-              class="min-h-[90dvh]"
-            />
-          </div>
+          <QuranMushafPane
+            v-if="targetSpreadLeftPage"
+            spread
+            :page="targetSpreadLeftPage"
+          />
+
+          <div
+            v-else
+            class="min-h-[90dvh]"
+          />
         </div>
 
         <div
