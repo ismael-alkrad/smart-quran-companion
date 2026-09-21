@@ -27,45 +27,55 @@ const labelLines = computed(() => {
 
 <template>
   <div
-    class="pointer-events-none absolute z-40 flex min-h-[58px] w-[36px] flex-col items-center justify-center bg-[var(--sqc-color-mushaf-paper)] px-[2px] py-[4px] text-center text-[color:var(--sqc-poc-accent-strong)]"
+    class="pointer-events-none absolute z-40 flex min-h-[66px] w-[42px] flex-col items-center justify-center px-[3px] py-[5px] text-center text-[color:var(--sqc-poc-accent-strong)]"
     :class="
       side === 'left'
-        ? 'left-[-23px]'
-        : 'right-[-23px]'
+        ? 'left-[2px]'
+        : 'right-[2px]'
     "
   >
     <svg
-      viewBox="0 0 40 72"
+      viewBox="0 0 44 76"
       preserveAspectRatio="none"
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 h-full w-full"
     >
       <path
-        d="M20 1 27 7H34C37 7 39 9 39 12V60C39 63 37 65 34 65H27L20 71 13 65H6C3 65 1 63 1 60V12C1 9 3 7 6 7H13Z"
+        d="M22 1 29 7H36C40 7 43 10 43 14V62C43 66 40 69 36 69H29L22 75 15 69H8C4 69 1 66 1 62V14C1 10 4 7 8 7H15Z"
         fill="var(--sqc-color-mushaf-paper)"
         stroke="var(--sqc-poc-accent-border)"
         stroke-width="1.1"
         vector-effect="non-scaling-stroke"
       />
+
       <path
-        d="M20 7 24 11 20 15 16 11ZM20 57 24 61 20 65 16 61Z"
+        d="M22 7 26 11 22 15 18 11ZM22 61 26 65 22 69 18 65Z"
         fill="var(--sqc-poc-accent-soft)"
         stroke="var(--sqc-poc-accent-border)"
         stroke-width=".8"
         vector-effect="non-scaling-stroke"
       />
+
       <path
-        d="M6 17H34M6 55H34"
+        d="M7 18H37M7 58H37"
         fill="none"
         stroke="var(--sqc-poc-accent-soft)"
         stroke-width=".8"
+        vector-effect="non-scaling-stroke"
+      />
+
+      <path
+        d="M1 30H8M1 46H8M36 30H43M36 46H43"
+        fill="none"
+        stroke="var(--sqc-poc-accent-border)"
+        stroke-width=".9"
         vector-effect="non-scaling-stroke"
       />
     </svg>
 
     <span
       aria-hidden="true"
-      class="relative z-10 mb-[2px] text-[11px] leading-none text-[color:var(--sqc-poc-accent)]"
+      class="relative z-10 mb-[2px] text-[12px] leading-none text-[color:var(--sqc-poc-accent)]"
     >
       ۞
     </span>
@@ -73,13 +83,13 @@ const labelLines = computed(() => {
     <span
       v-for="line in labelLines"
       :key="line"
-      class="relative z-10 block text-[7px] font-semibold leading-[9px]"
+      class="relative z-10 block whitespace-nowrap text-[8px] font-semibold leading-[10px]"
     >
       {{ line }}
     </span>
 
     <span
-      class="relative z-10 mt-[1px] block text-[9px] font-bold leading-[11px]"
+      class="relative z-10 mt-[2px] block text-[10px] font-bold leading-[11px]"
     >
       {{ marker.numberLabel }}
     </span>
