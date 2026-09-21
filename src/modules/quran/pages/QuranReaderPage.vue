@@ -350,7 +350,7 @@ const spreadTransition = computed(() =>
 const currentRightPaneStyle = computed(() => {
   if (spreadTurnDirection.value === 'previous') {
     return {
-      transform: `perspective(1800px) rotateY(-${spreadAngle.value}deg)`,
+      transform: `rotateY(-${spreadAngle.value}deg)`,
       transformOrigin: 'left center',
       transition: spreadTransition.value,
       zIndex: 30,
@@ -375,7 +375,7 @@ const currentRightPaneStyle = computed(() => {
 const currentLeftPaneStyle = computed(() => {
   if (spreadTurnDirection.value === 'next') {
     return {
-      transform: `perspective(1800px) rotateY(${spreadAngle.value}deg)`,
+      transform: `rotateY(${spreadAngle.value}deg)`,
       transformOrigin: 'right center',
       transition: spreadTransition.value,
       zIndex: 30,
