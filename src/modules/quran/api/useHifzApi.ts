@@ -1,6 +1,8 @@
 import { useSmartQuranCall } from '@/shared/api'
 import type {
   HifzDailyPlanResponse,
+  HifzDailyTransitionParams,
+  HifzDailyTransitionResponse,
   HifzOverviewResponse,
   HifzSurahProgressParams,
   HifzSurahProgressResponse,
@@ -10,6 +12,11 @@ const HIFZ_QUERY_METHODS = {
   overview: 'hifz.get_overview',
   surahProgress: 'hifz.get_surah_progress',
   dailyPlan: 'hifz.get_daily_plan',
+} as const
+
+const HIFZ_MUTATION_METHODS = {
+  startDailyHifz: 'hifz.start_daily_hifz',
+  readyForTasmee: 'hifz.mark_daily_hifz_ready_for_tasmee',
 } as const
 
 export function useHifzOverviewQuery() {
@@ -45,4 +52,26 @@ export function useHifzDailyPlanQuery() {
       immediate: false,
     },
   )
+}
+
+
+export function useStartHifzDailyAssignmentMutation() {
+  return useSmartQuranCall<
+    HifzDailyTransitionResponse,
+    HifzDailyTransitionParams
+  >(HIFZ_MUTATION_METHODS.startDailyHifz, {
+    method: 'POST',
+    immediate: false,
+  })
+}
+
+
+export function useMarkHifzDailyReadyForTasmeeMutation() {
+  return useSmartQuranCall<
+    HifzDailyTransitionResponse,
+    HifzDailyTransitionParams
+  >(HIFZ_MUTATION_METHODS.readyForTasmee, {
+    method: 'POST',
+    immediate: false,
+  })
 }
