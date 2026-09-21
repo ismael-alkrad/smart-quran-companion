@@ -113,8 +113,9 @@ function handleClick(event: MouseEvent) {
   const word = target.closest<HTMLElement>('[data-verse-key]')
   const verseKey = word?.dataset.verseKey
   const location = word?.dataset.location
+  const isVerseMarker = word?.dataset.verseMarker === 'true'
 
-  if (!word || !verseKey || !location) {
+  if (!word || !verseKey || !location || isVerseMarker) {
     emit('toggle-controls')
     return
   }
