@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
+
 defineProps<{
   label: string
 }>()
@@ -6,94 +8,38 @@ defineProps<{
 
 <template>
   <div
-    class="relative flex h-[32px] w-[calc(100%+36px)] items-center justify-center text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
+    class="relative flex h-[34px] w-[calc(100%+34px)] items-center justify-center"
   >
-    <svg
-      viewBox="0 0 54 40"
-      preserveAspectRatio="xMinYMid meet"
-      aria-hidden="true"
-      class="pointer-events-none absolute inset-y-0 left-0 h-full w-[54px]"
-    >
-      <path
-        d="M2 20C11 9 20 6 38 6H54V34H38C20 34 11 31 2 20Z"
-        fill="var(--sqc-color-mushaf-paper)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1.2"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M10 20 20 12l10 8-10 8Z"
-        fill="var(--sqc-poc-accent-soft)"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width="1"
-        vector-effect="non-scaling-stroke"
-      />
-      <path
-        d="M23 20 30 15l7 5-7 5Z"
-        fill="var(--sqc-poc-accent)"
-        opacity=".72"
-      />
-      <path
-        d="M38 8 46 4 54 8M38 32l8 4 8-4"
-        fill="none"
-        stroke="var(--sqc-poc-accent-border)"
-        stroke-width=".8"
-        vector-effect="non-scaling-stroke"
-      />
-    </svg>
-
     <div
       aria-hidden="true"
-      class="pointer-events-none absolute inset-y-[5px] left-[50px] right-[50px] border-y border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-color-mushaf-paper)]"
+      class="pointer-events-none absolute inset-x-[8px] top-1/2 h-[18px] -translate-y-1/2"
     >
       <div
-        class="absolute inset-x-0 top-[3px] h-px bg-[var(--sqc-poc-accent-soft)]"
+        class="absolute inset-x-[18px] top-[4px] h-px bg-[var(--sqc-poc-accent-border)]"
       />
       <div
-        class="absolute inset-x-0 bottom-[3px] h-px bg-[var(--sqc-poc-accent-soft)]"
+        class="absolute inset-x-[18px] bottom-[4px] h-px bg-[var(--sqc-poc-accent-border)]"
+      />
+
+      <div
+        class="absolute left-[4px] top-1/2 size-[10px] -translate-y-1/2 rotate-45 border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-poc-accent-soft)]"
+      />
+      <div
+        class="absolute right-[4px] top-1/2 size-[10px] -translate-y-1/2 rotate-45 border border-[var(--sqc-poc-accent-border)] bg-[var(--sqc-poc-accent-soft)]"
+      />
+
+      <div
+        class="absolute left-[22px] top-1/2 size-[5px] -translate-y-1/2 rotate-45 bg-[var(--sqc-poc-accent)]"
+      />
+      <div
+        class="absolute right-[22px] top-1/2 size-[5px] -translate-y-1/2 rotate-45 bg-[var(--sqc-poc-accent)]"
       />
     </div>
 
-    <svg
-      viewBox="0 0 54 40"
-      preserveAspectRatio="xMaxYMid meet"
-      aria-hidden="true"
-      class="pointer-events-none absolute inset-y-0 right-0 h-full w-[54px]"
-    >
-      <g transform="translate(54 0) scale(-1 1)">
-        <path
-          d="M2 20C11 9 20 6 38 6H54V34H38C20 34 11 31 2 20Z"
-          fill="var(--sqc-color-mushaf-paper)"
-          stroke="var(--sqc-poc-accent-border)"
-          stroke-width="1.2"
-          vector-effect="non-scaling-stroke"
-        />
-        <path
-          d="M10 20 20 12l10 8-10 8Z"
-          fill="var(--sqc-poc-accent-soft)"
-          stroke="var(--sqc-poc-accent-border)"
-          stroke-width="1"
-          vector-effect="non-scaling-stroke"
-        />
-        <path
-          d="M23 20 30 15l7 5-7 5Z"
-          fill="var(--sqc-poc-accent)"
-          opacity=".72"
-        />
-        <path
-          d="M38 8 46 4 54 8M38 32l8 4 8-4"
-          fill="none"
-          stroke="var(--sqc-poc-accent-border)"
-          stroke-width=".8"
-          vector-effect="non-scaling-stroke"
-        />
-      </g>
-    </svg>
-
-    <span
-      class="relative z-10 max-w-[70%] truncate bg-[var(--sqc-color-mushaf-paper)] px-[14px]"
+    <MushafFrameCartouche
+      class="relative z-10 min-w-[150px] max-w-[72%] bg-[var(--sqc-color-mushaf-paper)]"
     >
       {{ label }}
-    </span>
+    </MushafFrameCartouche>
   </div>
 </template>
