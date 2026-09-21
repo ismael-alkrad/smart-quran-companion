@@ -88,6 +88,39 @@ export async function getQuranSurahMetadataByNumber(
   return surah
 }
 
+export async function getMushafPageNumberForAyah(
+  surahNumber: number,
+  ayahNumber: number,
+  signal?: AbortSignal,
+): Promise<number> {
+  const surah = await getQuranSurahMetadataByNumber(surahNumber, signal)
+
+  if (
+    !Number.isInteger(ayahNumber)
+    || ayahNumber < 1
+    || ayahNumber > surah.ayahCount
+  ) {
+    throw new RangeError(
+      `Ayah number must be between 1 and ${surah.ayahCount} for surah ${surahNumber}.`,
+    )
+  }
+
+  const pageNumber = surah.ayahStartPages[String(ayahNumber)]
+
+  if (
+    !Number.isInteger(pageNumber)
+    || pageNumber < surah.firstPage
+    || pageNumber > surah.lastPage
+  ) {
+    throw new QuranCoreNotPreparedError(
+      'فهرس مواقع الآيات غير جاهز. أعد تشغيل quran:prepare لتحديث بيانات المصحف المحلية.',
+    )
+  }
+
+  return pageNumber
+}
+
+
 export async function getMushafPage(pageNumber: number, signal?: AbortSignal): Promise<MushafPage> {
   if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > PAGE_COUNT) {
     throw new RangeError(`Mushaf page must be between 1 and ${PAGE_COUNT}.`)
