@@ -5,6 +5,9 @@ export type TasmeeStateHeaderState =
   | 'preparing'
   | 'mic-check'
   | 'ready'
+  | 'listening'
+  | 'paused'
+  | 'session-ended'
 
 const props = withDefaults(
   defineProps<{
@@ -27,10 +30,17 @@ const stateClasses = computed(() => {
     }
   }
 
-  if (props.state === 'ready') {
+  if (props.state === 'ready' || props.state === 'listening') {
     return {
       background: 'bg-[var(--sqc-color-ai-active-background)]',
       dot: 'bg-[var(--sqc-color-ai-active-foreground)]',
+    }
+  }
+
+  if (props.state === 'paused') {
+    return {
+      background: 'bg-[var(--sqc-color-potentialissue-hesitation-background)]',
+      dot: 'bg-[var(--sqc-color-potentialissue-hesitation-foreground)]',
     }
   }
 
