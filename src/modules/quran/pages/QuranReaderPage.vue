@@ -11,6 +11,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import {
   type QuranReadingPosition,
+  useMarkHifzDailyReadyForTasmeeMutation,
   useQuranReadingPositionQuery,
   useSaveQuranReadingPositionMutation,
 } from '@/modules/quran/api'
@@ -29,6 +30,8 @@ const router = useRouter()
 
 const controlsVisible = ref(true)
 const markerPosition = ref<QuranReadingPosition | null>(null)
+const preparingTasmee = ref(false)
+const tasmeeTransitionFailed = ref(false)
 const positionLoaded = ref(false)
 const lastAutoSavedKey = ref('')
 const isSpreadViewport = ref(false)
@@ -53,6 +56,7 @@ const frozenSpreadTargetRightPage = ref<MushafPage | null>(null)
 
 const readingPositionCall = useQuranReadingPositionQuery()
 const savePositionCall = useSaveQuranReadingPositionMutation()
+const readyForTasmeeCall = useMarkHifzDailyReadyForTasmeeMutation()
 
 let spreadMedia: MediaQueryList | null = null
 let suppressClickTimer = 0
@@ -75,12 +79,14 @@ const hifzContext = computed<QuranHifzReaderContext | null>(() => {
     return null
   }
 
+  const assignmentName = queryValue(route.query.assignment)
   const surahNumber = Number(queryValue(route.query.surah))
   const startAyah = Number(queryValue(route.query.startAyah))
   const endAyah = Number(queryValue(route.query.endAyah))
 
   if (
-    !Number.isInteger(surahNumber)
+    !assignmentName
+    || !Number.isInteger(surahNumber)
     || surahNumber < 1
     || surahNumber > 114
     || !Number.isInteger(startAyah)
@@ -93,6 +99,7 @@ const hifzContext = computed<QuranHifzReaderContext | null>(() => {
 
   return {
     mode: 'hifz',
+    assignmentName,
     surahNumber,
     startAyah,
     endAyah,
@@ -123,6 +130,7 @@ function readerLocation(page: number) {
     query: context
       ? {
           mode: context.mode,
+          assignment: context.assignmentName,
           surah: String(context.surahNumber),
           startAyah: String(context.startAyah),
           endAyah: String(context.endAyah),
@@ -473,6 +481,27 @@ function goBack() {
       ? '/quran/hifz/daily-plan'
       : '/quran',
   )
+}
+
+async function markReadyForTasmee() {
+  const context = hifzContext.value
+
+  if (!context || preparingTasmee.value) return
+
+  preparingTasmee.value = true
+  tasmeeTransitionFailed.value = false
+
+  try {
+    await readyForTasmeeCall.submit({
+      assignment_name: context.assignmentName,
+    })
+
+    await router.push('/quran/hifz/daily-plan')
+  } catch {
+    tasmeeTransitionFailed.value = true
+  } finally {
+    preparingTasmee.value = false
+  }
 }
 
 function toggleControls() {
@@ -864,6 +893,10 @@ async function selectAyah(payload: {
   surahNumber: number
   ayahNumber: number
 }) {
+  if (hifzContext.value) {
+    return
+  }
+
   try {
     await saveSelectedPosition(
       payload.pageNumber,
@@ -881,7 +914,7 @@ watch(
     positionLoaded.value,
   ] as const,
   async ([loadedPage, isPositionLoaded]) => {
-    if (!loadedPage || !isPositionLoaded) return
+    if (!loadedPage || !isPositionLoaded || hifzContext.value) return
 
     const visibleMarker = markerPosition.value
 
@@ -915,6 +948,12 @@ onMounted(async () => {
     'change',
     handleSpreadMediaChange,
   )
+
+  if (hifzContext.value) {
+    markerPosition.value = null
+    positionLoaded.value = true
+    return
+  }
 
   try {
     const response = await readingPositionCall.fetch()
@@ -1041,7 +1080,7 @@ onBeforeUnmount(() => {
             :page="primaryPage"
             :hifz-context="hifzContext"
             :saved-verse-key="
-              markerPosition?.page_number === primaryPage.pageNumber
+              !hifzContext && markerPosition?.page_number === primaryPage.pageNumber
                 ? savedVerseKey
                 : null
             "
@@ -1105,7 +1144,7 @@ onBeforeUnmount(() => {
               :hifz-context="hifzContext"
               :page="currentRightPage"
               :saved-verse-key="
-                markerPosition?.page_number === currentRightPage.pageNumber
+                !hifzContext && markerPosition?.page_number === currentRightPage.pageNumber
                   ? savedVerseKey
                   : null
               "
@@ -1130,7 +1169,7 @@ onBeforeUnmount(() => {
               :hifz-context="hifzContext"
               :page="currentLeftPage"
               :saved-verse-key="
-                markerPosition?.page_number === currentLeftPage.pageNumber
+                !hifzContext && markerPosition?.page_number === currentLeftPage.pageNumber
                   ? savedVerseKey
                   : null
               "
@@ -1196,6 +1235,33 @@ onBeforeUnmount(() => {
               class="size-[7px] rotate-45 border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-soft)]"
             />
           </div>
+        </div>
+      </div>
+
+      <div
+        v-if="hifzContext"
+        class="pointer-events-none fixed inset-x-0 bottom-[66px] z-40 px-[12px] transition-opacity duration-200"
+        :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
+      >
+        <div class="pointer-events-auto mx-auto flex w-[min(360px,100%)] flex-col items-stretch gap-[6px]">
+          <BaseButton
+            size="large"
+            variant="primary"
+            class="w-full shadow-[0_3px_10px_rgba(48,59,85,0.12)]"
+            :loading="preparingTasmee"
+            loading-text="جاري تجهيز التسميع"
+            @click="markReadyForTasmee"
+          >
+            جاهز للتسميع
+          </BaseButton>
+
+          <p
+            v-if="tasmeeTransitionFailed"
+            dir="rtl"
+            class="rounded-[8px] bg-[var(--sqc-reader-paper)] px-[8px] py-[4px] text-center text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-status-error)] shadow-sm"
+          >
+            تعذر الانتقال إلى التسميع. حاول مرة أخرى.
+          </p>
         </div>
       </div>
 
