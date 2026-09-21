@@ -175,12 +175,12 @@ function measureHifzLineHighlights() {
 
     const lineRect = lineNode.getBoundingClientRect()
     const height = Math.max(
-      7,
-      Math.min(10, Math.round(lineRect.height * 0.22)),
+      11,
+      Math.min(15, Math.round(lineRect.height * 0.34)),
     )
     const top = Math.min(
       Math.max(0, lineRect.height - height),
-      Math.round(lineRect.height * 0.64),
+      Math.round(lineRect.height * 0.56),
     )
 
     nextHighlights[lineNumber] = runs
@@ -334,7 +334,7 @@ onBeforeUnmount(() => {
   <article
     dir="rtl"
     translate="no"
-    class="relative mx-auto flex h-dvh w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8] [--sqc-poc-hifz-wash:rgba(158,175,208,0.30)]"
+    class="relative mx-auto flex h-dvh w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8] [--sqc-poc-hifz-wash:rgba(158,175,208,0.25)]"
     :class="
       spread
         ? 'min-h-0 max-w-none'
