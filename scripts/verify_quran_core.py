@@ -22,6 +22,12 @@ if not manifest_path.exists():
     fail("manifest.json is missing. Run yarn quran:prepare first.")
 
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+if manifest.get("version") != 2:
+    fail(
+        f"manifest version={manifest.get('version')}; expected 2. "
+        "Run yarn quran:prepare to refresh the local Quran Core."
+    )
+
 if manifest.get("pages") != PAGE_COUNT:
     fail(f"manifest pages={manifest.get('pages')}; expected {PAGE_COUNT}.")
 
@@ -57,6 +63,12 @@ if not surahs_path.exists():
     fail("surahs.json is missing. Run yarn quran:prepare first.")
 
 surah_index = json.loads(surahs_path.read_text(encoding="utf-8"))
+if surah_index.get("version") != 2:
+    fail(
+        f"surahs.json version={surah_index.get('version')}; expected 2. "
+        "Run yarn quran:prepare to refresh the ayah page index."
+    )
+
 surahs = surah_index.get("surahs", [])
 if len(surahs) != SURAH_COUNT:
     fail(f"surahs.json contains {len(surahs)} surahs; expected {SURAH_COUNT}.")
@@ -71,6 +83,7 @@ for surah in surahs:
     ayah_count = surah.get("ayahCount")
     first_page = surah.get("firstPage")
     last_page = surah.get("lastPage")
+    ayah_start_pages = surah.get("ayahStartPages")
 
     if not isinstance(ayah_count, int) or ayah_count < 1:
         fail(f"surah {surah_number} has invalid ayahCount={ayah_count}.")
@@ -87,6 +100,27 @@ for surah in surahs:
             f"{first_page}-{last_page}."
         )
 
+    if not isinstance(ayah_start_pages, dict):
+        fail(f"surah {surah_number} is missing ayahStartPages.")
+
+    expected_ayah_keys = [str(ayah) for ayah in range(1, ayah_count + 1)]
+    if list(ayah_start_pages.keys()) != expected_ayah_keys:
+        fail(
+            f"surah {surah_number} ayahStartPages keys are not sequential "
+            f"from 1 to {ayah_count}."
+        )
+
+    for ayah_key, page_number in ayah_start_pages.items():
+        if (
+            not isinstance(page_number, int)
+            or page_number < first_page
+            or page_number > last_page
+        ):
+            fail(
+                f"surah {surah_number}, ayah {ayah_key} has invalid "
+                f"start page {page_number}."
+            )
+
 if not manifest.get("fontsIncluded"):
     fail("manifest says fontsIncluded=false. Prepare the core with --fonts.")
 
@@ -98,5 +132,5 @@ for page_number in range(1, PAGE_COUNT + 1):
 print(
     "Quran Core verified: 604 pages, 114 surah metadata records, "
     "QPC V2 layout validated (opening spread exceptions), "
-    "word-addressable data, 604 fonts."
+    "word-addressable data, ayah-to-page index, 604 fonts."
 )
