@@ -985,27 +985,35 @@ onBeforeUnmount(() => {
           aria-hidden="true"
           class="pointer-events-none absolute inset-0 z-0 grid grid-cols-2 items-start gap-px"
         >
-          <QuranMushafPane
-            v-if="targetSpreadRightPage"
-            spread
-            :page="targetSpreadRightPage"
-          />
+          <div
+            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)]"
+          >
+            <QuranMushafPane
+              v-if="targetSpreadRightPage"
+              spread
+              :page="targetSpreadRightPage"
+            />
+
+            <div
+              v-else
+              class="min-h-[90dvh]"
+            />
+          </div>
 
           <div
-            v-else
-            class="min-h-[90dvh]"
-          />
+            class="min-w-0 bg-[var(--sqc-color-mushaf-paper)]"
+          >
+            <QuranMushafPane
+              v-if="targetSpreadLeftPage"
+              spread
+              :page="targetSpreadLeftPage"
+            />
 
-          <QuranMushafPane
-            v-if="targetSpreadLeftPage"
-            spread
-            :page="targetSpreadLeftPage"
-          />
-
-          <div
-            v-else
-            class="min-h-[90dvh]"
-          />
+            <div
+              v-else
+              class="min-h-[90dvh]"
+            />
+          </div>
         </div>
 
         <div
