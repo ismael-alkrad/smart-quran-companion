@@ -42,6 +42,7 @@ export interface QuranSurahMetadata {
   ayahCount: number
   firstPage: number
   lastPage: number
+  ayahStartPages: Record<string, number>
 }
 
 export interface QuranSurahMetadataIndex {
