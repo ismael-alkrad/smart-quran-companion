@@ -18,6 +18,7 @@ import QuranMushafPane from '@/modules/quran/components/QuranMushafPane.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import type { MushafPage } from '@/modules/quran/types/mushaf'
+import type { QuranHifzReaderContext } from '@/modules/quran/types/reader'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 import { BaseButton } from '@/shared/components'
 
@@ -59,6 +60,75 @@ let autoSaveTimer = 0
 
 function clampPage(value: number) {
   return Math.min(604, Math.max(1, Math.trunc(value)))
+}
+
+function queryValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return typeof value[0] === 'string' ? value[0] : null
+  }
+
+  return typeof value === 'string' ? value : null
+}
+
+const hifzContext = computed<QuranHifzReaderContext | null>(() => {
+  if (queryValue(route.query.mode) !== 'hifz') {
+    return null
+  }
+
+  const surahNumber = Number(queryValue(route.query.surah))
+  const startAyah = Number(queryValue(route.query.startAyah))
+  const endAyah = Number(queryValue(route.query.endAyah))
+
+  if (
+    !Number.isInteger(surahNumber)
+    || surahNumber < 1
+    || surahNumber > 114
+    || !Number.isInteger(startAyah)
+    || startAyah < 1
+    || !Number.isInteger(endAyah)
+    || endAyah < startAyah
+  ) {
+    return null
+  }
+
+  return {
+    mode: 'hifz',
+    surahNumber,
+    startAyah,
+    endAyah,
+  }
+})
+
+const hifzContextLabel = computed(() => {
+  const context = hifzContext.value
+
+  if (!context) return ''
+
+  const surahName = getSurahNameArabic(context.surahNumber)
+  const ayahLabel = context.startAyah === context.endAyah
+    ? `الآية ${toArabicNumber(context.startAyah)}`
+    : `الآيات ${toArabicNumber(context.startAyah)}–${toArabicNumber(context.endAyah)}`
+
+  return `حفظ اليوم · سورة ${surahName} · ${ayahLabel}`
+})
+
+function readerLocation(page: number) {
+  const context = hifzContext.value
+
+  return {
+    name: 'quran-reader',
+    params: {
+      page: String(clampPage(page)),
+    },
+    query: context
+      ? {
+          mode: context.mode,
+          surah: String(context.surahNumber),
+          startAyah: String(context.startAyah),
+          endAyah: String(context.endAyah),
+        }
+      : {},
+  }
 }
 
 function spreadRightPageNumber(anchor: number) {
@@ -398,7 +468,11 @@ const currentLeftPaneStyle = computed(() => {
 })
 
 function goBack() {
-  void router.push('/quran')
+  void router.push(
+    hifzContext.value
+      ? '/quran/hifz/daily-plan'
+      : '/quran',
+  )
 }
 
 function toggleControls() {
@@ -446,7 +520,7 @@ async function animateMobileTurn(direction: ReaderDirection) {
     : -distance
 
   await delay(300)
-  await router.push(`/quran/${readerTarget(direction)}`)
+  await router.push(readerLocation(readerTarget(direction)))
   await nextTick()
 
   mobileTransitioning.value = false
@@ -464,7 +538,7 @@ async function settleSpreadTurn(
   await delay(complete ? 280 : 180)
 
   if (complete) {
-    await router.push(`/quran/${readerTarget(direction)}`)
+    await router.push(readerLocation(readerTarget(direction)))
     await nextTick()
   }
 
@@ -489,7 +563,7 @@ async function animateSpreadTurn(direction: ReaderDirection) {
   spreadTurnProgress.value = 1
 
   await delay(280)
-  await router.push(`/quran/${readerTarget(direction)}`)
+  await router.push(readerLocation(readerTarget(direction)))
   await nextTick()
 
   spreadTurnDirection.value = null
@@ -874,6 +948,7 @@ onBeforeUnmount(() => {
 <template>
   <main
     dir="rtl"
+    :data-reader-mode="hifzContext ? 'hifz' : 'reading'"
     class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)] [--sqc-reader-paper:#f8f5ef] [--sqc-reader-accent:#536f9f] [--sqc-reader-border:#9eafd0] [--sqc-reader-soft:#e9eef7] [--sqc-reader-muted:#8398bd]"
   >
     <div
@@ -940,7 +1015,10 @@ onBeforeUnmount(() => {
           :style="mobileNextStyle"
           aria-hidden="true"
         >
-          <QuranMushafPane :page="nextPage" />
+          <QuranMushafPane
+            :page="nextPage"
+            :hifz-context="hifzContext"
+          />
         </div>
 
         <div
@@ -949,7 +1027,10 @@ onBeforeUnmount(() => {
           :style="mobilePreviousStyle"
           aria-hidden="true"
         >
-          <QuranMushafPane :page="previousPage" />
+          <QuranMushafPane
+            :page="previousPage"
+            :hifz-context="hifzContext"
+          />
         </div>
 
         <div
@@ -958,6 +1039,7 @@ onBeforeUnmount(() => {
         >
           <QuranMushafPane
             :page="primaryPage"
+            :hifz-context="hifzContext"
             :saved-verse-key="
               markerPosition?.page_number === primaryPage.pageNumber
                 ? savedVerseKey
@@ -989,6 +1071,7 @@ onBeforeUnmount(() => {
             v-if="targetSpreadRightPage"
             spread
             :page="targetSpreadRightPage"
+            :hifz-context="hifzContext"
           />
 
           <div
@@ -1000,6 +1083,7 @@ onBeforeUnmount(() => {
             v-if="targetSpreadLeftPage"
             spread
             :page="targetSpreadLeftPage"
+            :hifz-context="hifzContext"
           />
 
           <div
@@ -1018,6 +1102,7 @@ onBeforeUnmount(() => {
             <QuranMushafPane
               v-if="currentRightPage"
               spread
+              :hifz-context="hifzContext"
               :page="currentRightPage"
               :saved-verse-key="
                 markerPosition?.page_number === currentRightPage.pageNumber
@@ -1042,6 +1127,7 @@ onBeforeUnmount(() => {
             <QuranMushafPane
               v-if="currentLeftPage"
               spread
+              :hifz-context="hifzContext"
               :page="currentLeftPage"
               :saved-verse-key="
                 markerPosition?.page_number === currentLeftPage.pageNumber
@@ -1086,7 +1172,15 @@ onBeforeUnmount(() => {
             </strong>
 
             <span
-              v-if="savedPositionLabel"
+              v-if="hifzContext"
+              dir="rtl"
+              class="max-w-full truncate text-[10px] font-medium leading-[14px] text-[color:var(--sqc-reader-muted)]"
+            >
+              {{ hifzContextLabel }}
+            </span>
+
+            <span
+              v-else-if="savedPositionLabel"
               dir="rtl"
               class="max-w-full truncate text-[10px] font-medium leading-[14px] text-[color:var(--sqc-reader-muted)]"
             >
