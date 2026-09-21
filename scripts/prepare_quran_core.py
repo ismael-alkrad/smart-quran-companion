@@ -320,6 +320,7 @@ def collect_surah_metadata(
     page: dict,
     ayahs_by_surah: dict[int, set[int]],
     pages_by_surah: dict[int, set[int]],
+    ayah_start_pages_by_surah: dict[int, dict[int, int]],
 ) -> None:
     page_number = int(page["pageNumber"])
 
@@ -331,11 +332,16 @@ def collect_surah_metadata(
 
             ayahs_by_surah[surah_number].add(ayah_number)
             pages_by_surah[surah_number].add(page_number)
+            ayah_start_pages_by_surah[surah_number].setdefault(
+                ayah_number,
+                page_number,
+            )
 
 
 def build_surah_metadata_index(
     ayahs_by_surah: dict[int, set[int]],
     pages_by_surah: dict[int, set[int]],
+    ayah_start_pages_by_surah: dict[int, dict[int, int]],
     generated_at: str,
 ) -> dict:
     missing_surahs = [
@@ -353,17 +359,23 @@ def build_surah_metadata_index(
         ayahs = ayahs_by_surah[surah_number]
         pages = pages_by_surah[surah_number]
 
+        ayah_start_pages = ayah_start_pages_by_surah[surah_number]
+
         surahs.append(
             {
                 "surahNumber": surah_number,
                 "ayahCount": max(ayahs),
                 "firstPage": min(pages),
                 "lastPage": max(pages),
+                "ayahStartPages": {
+                    str(ayah_number): ayah_start_pages[ayah_number]
+                    for ayah_number in sorted(ayahs)
+                },
             }
         )
 
     return {
-        "version": 1,
+        "version": 2,
         "source": "qul",
         "mushaf": "qcf-v2",
         "generatedAt": generated_at,
@@ -401,6 +413,7 @@ def main() -> int:
 
         ayahs_by_surah: dict[int, set[int]] = defaultdict(set)
         pages_by_surah: dict[int, set[int]] = defaultdict(set)
+        ayah_start_pages_by_surah: dict[int, dict[int, int]] = defaultdict(dict)
 
         for page_number in range(1, PAGE_COUNT + 1):
             page_lines = pages[page_number]
@@ -416,7 +429,12 @@ def main() -> int:
                 )
 
             page = build_page(page_number, page_lines, words)
-            collect_surah_metadata(page, ayahs_by_surah, pages_by_surah)
+            collect_surah_metadata(
+                page,
+                ayahs_by_surah,
+                pages_by_surah,
+                ayah_start_pages_by_surah,
+            )
 
             target = pages_dir / f"{page_number:03}.json"
             target.write_text(
@@ -427,6 +445,7 @@ def main() -> int:
         surah_metadata = build_surah_metadata_index(
             ayahs_by_surah,
             pages_by_surah,
+            ayah_start_pages_by_surah,
             generated_at,
         )
         (args.output / "core" / "surahs.json").write_text(
@@ -440,7 +459,7 @@ def main() -> int:
             fonts_included = True
 
     manifest = {
-        "version": 1,
+        "version": 2,
         "mushaf": "qcf-v2",
         "source": "qul",
         "pages": PAGE_COUNT,
