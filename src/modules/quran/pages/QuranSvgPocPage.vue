@@ -209,11 +209,11 @@ onBeforeUnmount(() => {
         aria-hidden="true"
       >
         <MushafFrameCartouche>
-          سورة {{ surahName }}
+          الجزء {{ toArabicNumber(page.juzNumber) }}
         </MushafFrameCartouche>
 
         <MushafFrameCartouche>
-          الجزء {{ toArabicNumber(page.juzNumber) }}
+          سورة {{ surahName }}
         </MushafFrameCartouche>
       </div>
 
