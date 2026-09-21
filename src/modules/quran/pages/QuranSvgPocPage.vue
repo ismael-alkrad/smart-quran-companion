@@ -204,22 +204,23 @@ onBeforeUnmount(() => {
       />
 
       <header
-        class="relative z-30 mx-[32px] mt-[max(18px,env(safe-area-inset-top))] flex h-[38px] shrink-0 items-center justify-between px-[8px] text-[color:var(--sqc-poc-accent-strong)]"
+        class="relative z-30 mx-[34px] mt-[max(18px,env(safe-area-inset-top))] h-[30px] shrink-0 text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
       >
         <span
-          class="min-w-0 flex-1 truncate text-right text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
+          class="absolute inset-y-0 left-0 flex max-w-[42%] items-center truncate text-left"
         >
           سورة {{ surahName }}
         </span>
 
         <span
-          class="mx-[10px] shrink-0 text-[11px] font-medium text-[color:var(--sqc-poc-accent-muted)]"
+          aria-hidden="true"
+          class="absolute inset-0 flex items-center justify-center text-[color:var(--sqc-poc-accent-muted)]"
         >
-          الصفحة {{ toArabicNumber(page.pageNumber) }}
+          ◇
         </span>
 
         <span
-          class="min-w-0 flex-1 truncate text-left text-[13px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
+          class="absolute inset-y-0 right-0 flex max-w-[42%] items-center truncate text-right"
         >
           الجزء {{ toArabicNumber(page.juzNumber) }}
         </span>
@@ -227,7 +228,7 @@ onBeforeUnmount(() => {
 
       <section
         ref="textSurface"
-        class="relative z-10 grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[8px] pt-[10px]"
+        class="relative z-10 grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[8px] pt-[12px]"
         aria-label="نص صفحة المصحف"
       >
         <div
