@@ -33,6 +33,19 @@ function goBack() {
       : {},
   })
 }
+
+
+function startTasmee() {
+  const current = assignment.value
+  if (!current) return
+
+  void router.push({
+    name: 'tasmee-solo-live',
+    query: {
+      assignment: current.name,
+    },
+  })
+}
 </script>
 
 <template>
@@ -116,7 +129,7 @@ function goBack() {
         size="large"
         variant="primary"
         class="w-full"
-        disabled
+        @click="startTasmee"
       >
         ابدأ التسميع
       </BaseButton>
