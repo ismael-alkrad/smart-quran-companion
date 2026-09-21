@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 
 import {
   type HifzDailyPlanResponse,
+  type HifzStatus,
   useHifzDailyPlanQuery,
 } from '@/modules/quran/api'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
@@ -89,12 +90,64 @@ export function useDailyHifzPlan() {
     ) * 100
   })
 
+
+  const assignmentStatus = computed<HifzStatus>(() => {
+    const assignment = plan.value?.assignment
+    const progress = plan.value?.progress
+
+    if (!assignment || !progress) {
+      return 'initial_hifz'
+    }
+
+    const statuses = progress.ayahs
+      .filter((ayah) =>
+        ayah.ayah_number >= assignment.start_ayah
+        && ayah.ayah_number <= assignment.end_ayah,
+      )
+      .map(ayah => ayah.status)
+
+    if (!statuses.length) {
+      return 'initial_hifz'
+    }
+
+    if (statuses.includes('needs_review')) {
+      return 'needs_review'
+    }
+
+    if (statuses.includes('pending_tasmee')) {
+      return 'pending_tasmee'
+    }
+
+    if (statuses.includes('memorizing')) {
+      return 'memorizing'
+    }
+
+    if (statuses.includes('pending_approval')) {
+      return 'pending_approval'
+    }
+
+    if (statuses.every(status => status === 'mastered')) {
+      return 'mastered'
+    }
+
+    if (
+      statuses.every(
+        status => status === 'approved' || status === 'mastered',
+      )
+    ) {
+      return 'approved'
+    }
+
+    return 'initial_hifz'
+  })
+
   return {
     plan,
     metadata,
     surahName,
     completedAssignmentAyahs,
     progressValue,
+    assignmentStatus,
     loading,
     failed,
     refresh,
