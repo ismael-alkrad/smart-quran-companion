@@ -9,6 +9,7 @@ import {
 
 import MushafPage from '@/modules/quran/components/MushafPage.vue'
 import type { MushafPage as MushafPageData } from '@/modules/quran/types/mushaf'
+import type { QuranHifzReaderContext } from '@/modules/quran/types/reader'
 
 const props = withDefaults(
   defineProps<{
@@ -16,11 +17,13 @@ const props = withDefaults(
     savedVerseKey?: string | null
     markerLabel?: string
     spread?: boolean
+    hifzContext?: QuranHifzReaderContext | null
   }>(),
   {
     savedVerseKey: null,
     markerLabel: 'آخر موضع',
     spread: false,
+    hifzContext: null,
   },
 )
 
@@ -192,6 +195,7 @@ onBeforeUnmount(() => {
       :page="page"
       :spread="spread"
       :selected-word-location="selectedWordLocation"
+      :hifz-context="hifzContext"
       class="!my-0 !rounded-none !shadow-none"
       :class="
         spread
