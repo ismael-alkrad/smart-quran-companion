@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import QuranHifzStatusBadge from '@/modules/quran/components/QuranHifzStatusBadge.vue'
@@ -7,6 +7,7 @@ import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import QuranStrengthIndicator from '@/modules/quran/components/QuranStrengthIndicator.vue'
 import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
 import { useDailyHifzPlan } from '@/modules/quran/composables/useDailyHifzPlan'
+import { getMushafPageNumberForAyah } from '@/modules/quran/repositories/quran.repository'
 import {
   BaseAppBar,
   BaseBanner,
@@ -17,6 +18,7 @@ import {
 } from '@/shared/components'
 
 const router = useRouter()
+const openingReader = ref(false)
 
 const {
   plan,
@@ -43,6 +45,33 @@ function openSurahProgress() {
   if (!surahNumber) return
 
   void router.push(`/quran/surah/${surahNumber}`)
+}
+
+async function startHifz() {
+  const assignment = plan.value?.assignment
+
+  if (!assignment || openingReader.value) return
+
+  openingReader.value = true
+
+  try {
+    const pageNumber = await getMushafPageNumberForAyah(
+      assignment.surah_number,
+      assignment.start_ayah,
+    )
+
+    await router.push({
+      path: `/quran/${pageNumber}`,
+      query: {
+        mode: 'hifz',
+        surah: String(assignment.surah_number),
+        startAyah: String(assignment.start_ayah),
+        endAyah: String(assignment.end_ayah),
+      },
+    })
+  } finally {
+    openingReader.value = false
+  }
 }
 
 onMounted(() => {
@@ -192,6 +221,9 @@ onMounted(() => {
           size="large"
           variant="primary"
           class="w-full"
+          :loading="openingReader"
+          loading-text="جاري فتح موضع الحفظ"
+          @click="startHifz"
         >
           ابدأ الحفظ
         </BaseButton>
