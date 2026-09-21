@@ -3,6 +3,8 @@ export type {
   HifzDailyAssignment,
   HifzDailyPlanResponse,
   HifzDailyTaskState,
+  HifzDailyTransitionParams,
+  HifzDailyTransitionResponse,
   HifzOverviewResponse,
   HifzStatus,
   HifzStrength,
@@ -18,6 +20,8 @@ export {
   useHifzDailyPlanQuery,
   useHifzOverviewQuery,
   useHifzSurahProgressQuery,
+  useMarkHifzDailyReadyForTasmeeMutation,
+  useStartHifzDailyAssignmentMutation,
 } from '@/modules/quran/api/useHifzApi'
 
 export {
