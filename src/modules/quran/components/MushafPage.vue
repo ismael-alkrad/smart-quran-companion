@@ -19,6 +19,7 @@ import type {
   MushafPage as MushafPageData,
   MushafWord,
 } from '@/modules/quran/types/mushaf'
+import type { QuranHifzReaderContext } from '@/modules/quran/types/reader'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
 const props = withDefaults(
@@ -26,10 +27,12 @@ const props = withDefaults(
     page: MushafPageData
     spread?: boolean
     selectedWordLocation?: string | null
+    hifzContext?: QuranHifzReaderContext | null
   }>(),
   {
     spread: false,
     selectedWordLocation: null,
+    hifzContext: null,
   },
 )
 
@@ -86,6 +89,23 @@ const verseMarkerLocations = computed(() => {
 
 function isVerseMarker(word: MushafWord) {
   return verseMarkerLocations.value.has(word.location)
+}
+
+function isHifzAssignmentWord(word: MushafWord) {
+  const context = props.hifzContext
+
+  if (!context) return false
+
+  const [surahText, ayahText] = word.verseKey.split(':')
+  const surahNumber = Number(surahText)
+  const ayahNumber = Number(ayahText)
+
+  return (
+    surahNumber === context.surahNumber
+    && Number.isInteger(ayahNumber)
+    && ayahNumber >= context.startAyah
+    && ayahNumber <= context.endAyah
+  )
 }
 
 function fitQcfLines() {
@@ -258,6 +278,7 @@ onBeforeUnmount(() => {
             :data-verse-key="word.verseKey"
             :data-word-position="word.position"
             :data-verse-marker="isVerseMarker(word) ? 'true' : undefined"
+            :data-hifz-assignment="isHifzAssignmentWord(word) ? 'true' : undefined"
             v-html="word.codeV2"
           />
         </div>
