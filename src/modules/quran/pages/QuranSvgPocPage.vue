@@ -10,7 +10,9 @@ import {
 
 import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
+import { getJuzNameArabicVowelled } from '@/modules/quran/data/juzNames'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
+import { getSurahNameArabicVowelled } from '@/modules/quran/data/surahNamesVowelled'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
 import type { MushafWord } from '@/modules/quran/types/mushaf'
 import { toArabicNumber } from '@/modules/quran/utils/number'
@@ -58,6 +60,22 @@ const surahName = computed(() => {
 
   return surahNumber
     ? getSurahNameArabic(surahNumber)
+    : ''
+})
+
+const surahFrameLabel = computed(() => {
+  const surahNumber = page.value?.chapters[0]
+
+  return surahNumber
+    ? getSurahNameArabicVowelled(surahNumber)
+    : ''
+})
+
+const juzFrameLabel = computed(() => {
+  const juzNumber = page.value?.juzNumber
+
+  return juzNumber
+    ? getJuzNameArabicVowelled(juzNumber)
     : ''
 })
 
@@ -209,11 +227,11 @@ onBeforeUnmount(() => {
         aria-hidden="true"
       >
         <MushafFrameCartouche>
-          الجزء {{ toArabicNumber(page.juzNumber) }}
+          {{ juzFrameLabel }}
         </MushafFrameCartouche>
 
         <MushafFrameCartouche>
-          سورة {{ surahName }}
+          {{ surahFrameLabel }}
         </MushafFrameCartouche>
       </div>
 
