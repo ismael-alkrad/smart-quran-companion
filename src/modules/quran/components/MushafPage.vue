@@ -1,60 +1,302 @@
 <script setup lang="ts">
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
+
+import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
 import MushafLine from '@/modules/quran/components/MushafLine.vue'
 import MushafPageHeader from '@/modules/quran/components/MushafPageHeader.vue'
+import { getJuzNameArabicVowelled } from '@/modules/quran/data/juzNames'
+import { getSurahNameArabicVowelled } from '@/modules/quran/data/surahNamesVowelled'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
-import type { MushafPage } from '@/modules/quran/types/mushaf'
+import type {
+  MushafPage as MushafPageData,
+  MushafWord,
+} from '@/modules/quran/types/mushaf'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
-    page: MushafPage
+    page: MushafPageData
     spread?: boolean
   }>(),
   {
     spread: false,
   },
 )
+
+const textSurface = ref<HTMLElement | null>(null)
+const pageLineScale = ref(1)
+
+let resizeObserver: ResizeObserver | null = null
+let fitFrame = 0
+
+const fontFamily = computed(() =>
+  getQcfV2FontFamily(props.page.pageNumber),
+)
+
+const surahFrameLabel = computed(() => {
+  const surahNumber = props.page.chapters[0]
+
+  return surahNumber
+    ? getSurahNameArabicVowelled(surahNumber)
+    : ''
+})
+
+const juzFrameLabel = computed(() =>
+  getJuzNameArabicVowelled(props.page.juzNumber),
+)
+
+const verseMarkerLocations = computed(() => {
+  const words = props.page.lines.flatMap(line => line.words)
+  const markers = new Set<string>()
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index]
+    const nextWord = words[index + 1]
+
+    if (!word) continue
+
+    if (!nextWord || nextWord.verseKey !== word.verseKey) {
+      markers.add(word.location)
+    }
+  }
+
+  return markers
+})
+
+function isVerseMarker(word: MushafWord) {
+  return verseMarkerLocations.value.has(word.location)
+}
+
+function fitQcfLines() {
+  if (props.spread) return
+
+  const surface = textSurface.value
+  if (!surface) return
+
+  const lineNodes = Array.from(
+    surface.querySelectorAll<HTMLElement>('[data-qcf-line]'),
+  )
+
+  if (!lineNodes.length) return
+
+  const styles = getComputedStyle(surface)
+  const horizontalPadding =
+    Number.parseFloat(styles.paddingLeft)
+    + Number.parseFloat(styles.paddingRight)
+
+  const availableWidth = Math.max(
+    1,
+    surface.clientWidth - horizontalPadding,
+  )
+
+  const widestLine = Math.max(
+    ...lineNodes.map(node => node.scrollWidth),
+  )
+
+  if (widestLine <= 0) return
+
+  pageLineScale.value = Math.min(
+    1,
+    (availableWidth / widestLine) * 0.95,
+  )
+}
+
+async function scheduleLineFit() {
+  if (props.spread) return
+
+  await nextTick()
+
+  if (fitFrame) {
+    cancelAnimationFrame(fitFrame)
+  }
+
+  fitFrame = requestAnimationFrame(() => {
+    fitFrame = 0
+    fitQcfLines()
+  })
+}
+
+watch(
+  () => props.page.pageNumber,
+  () => {
+    pageLineScale.value = 1
+    void scheduleLineFit()
+  },
+)
+
+watch(textSurface, (surface, previousSurface) => {
+  if (!resizeObserver) return
+
+  if (previousSurface) {
+    resizeObserver.unobserve(previousSurface)
+  }
+
+  if (surface && !props.spread) {
+    resizeObserver.observe(surface)
+    void scheduleLineFit()
+  }
+})
+
+onMounted(() => {
+  void scheduleLineFit()
+
+  if (
+    !props.spread
+    && typeof ResizeObserver !== 'undefined'
+  ) {
+    resizeObserver = new ResizeObserver(() => {
+      void scheduleLineFit()
+    })
+
+    if (textSurface.value) {
+      resizeObserver.observe(textSurface.value)
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+
+  if (fitFrame) {
+    cancelAnimationFrame(fitFrame)
+    fitFrame = 0
+  }
+})
 </script>
 
 <template>
   <article
+    v-if="!spread"
     dir="rtl"
     translate="no"
-    class="mx-auto flex w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)]"
-    :class="
-      spread
-        ? 'h-dvh min-h-0 max-w-none px-[clamp(12px,1.8vw,20px)] pb-[6px] pt-[8px]'
-        : 'min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-w-[500px] px-[clamp(18px,5vw,25px)] pb-[clamp(10px,2.8vw,14px)] pt-[clamp(14px,3.8vw,20px)] max-[360px]:px-3.5 min-[600px]:h-dvh min-[600px]:min-h-0 min-[600px]:max-w-[720px] min-[600px]:rounded-none min-[600px]:border-0 min-[600px]:shadow-none'
-    "
+    class="relative mx-auto flex h-dvh w-full max-w-[520px] flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
+    :aria-label="`صفحة المصحف ${toArabicNumber(page.pageNumber)}`"
+  >
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-[12px] z-20 border-[12px] border-solid border-transparent opacity-[0.62] [border-image-outset:0] [border-image-repeat:round_round] [border-image-slice:30%_30.5%] [border-image-source:url('/quran/decor/mushaf-frame-blue.svg')] [border-image-width:1.35em]"
+    />
+
+    <div
+      class="pointer-events-none absolute inset-x-[28px] top-[2px] z-30 flex items-center justify-between"
+      aria-hidden="true"
+    >
+      <MushafFrameCartouche>
+        {{ juzFrameLabel }}
+      </MushafFrameCartouche>
+
+      <MushafFrameCartouche>
+        {{ surahFrameLabel }}
+      </MushafFrameCartouche>
+    </div>
+
+    <section
+      ref="textSurface"
+      class="relative z-10 mt-[38px] grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[34px] pt-[4px]"
+      aria-label="نص صفحة المصحف"
+    >
+      <div
+        v-for="line in page.lines"
+        :key="line.lineNumber"
+        class="relative flex min-h-0 w-full items-center justify-center overflow-visible"
+        :data-line-number="line.lineNumber"
+        :data-line-type="line.type"
+      >
+        <div
+          v-if="line.type === 'ayah'"
+          :data-qcf-line="line.lineNumber"
+          class="absolute left-1/2 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+          :style="{
+            fontFamily,
+            transform: `translateX(-50%) scaleX(${pageLineScale})`,
+          }"
+        >
+          <span
+            v-for="word in line.words"
+            :key="word.location"
+            class="inline-block shrink-0 cursor-default select-text"
+            :class="
+              isVerseMarker(word)
+                ? 'text-[color:var(--sqc-poc-marker)]'
+                : ''
+            "
+            translate="no"
+            :data-location="word.location"
+            :data-verse-key="word.verseKey"
+            :data-word-position="word.position"
+            v-html="word.codeV2"
+          />
+        </div>
+
+        <MushafFrameCartouche
+          v-else-if="line.type === 'surah_name'"
+          class="max-w-[78%]"
+        >
+          {{
+            getSurahNameArabicVowelled(
+              line.surahNumber ?? page.chapters[0] ?? 0,
+            )
+          }}
+        </MushafFrameCartouche>
+
+        <div
+          v-else
+          class="text-center text-[22px] leading-none text-[color:var(--sqc-color-mushaf-ink)] [font-family:'Amiri_Quran','Noto_Naskh_Arabic',serif]"
+        >
+          ﷽
+        </div>
+      </div>
+    </section>
+
+    <div
+      class="pointer-events-none absolute bottom-[1px] left-1/2 z-30 -translate-x-1/2"
+      aria-hidden="true"
+    >
+      <MushafFrameCartouche compact>
+        {{ toArabicNumber(page.pageNumber) }}
+      </MushafFrameCartouche>
+    </div>
+  </article>
+
+  <article
+    v-else
+    dir="rtl"
+    translate="no"
+    class="mx-auto flex h-dvh min-h-0 w-full max-w-none flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] px-[clamp(12px,1.8vw,20px)] pb-[6px] pt-[8px]"
   >
     <MushafPageHeader
       :chapters="page.chapters"
       :juz-number="page.juzNumber"
-      :compact="spread"
+      compact
     />
 
     <section
-      class="flex min-h-0 flex-1 flex-col justify-evenly"
-      :class="spread ? 'pb-[2px] pt-[6px]' : 'pb-2 pt-[clamp(12px,2.4vh,20px)]'"
+      class="flex min-h-0 flex-1 flex-col justify-evenly pb-[2px] pt-[6px]"
       aria-label="صفحة المصحف"
     >
       <MushafLine
         v-for="line in page.lines"
         :key="line.lineNumber"
         :line="line"
-        :font-family="getQcfV2FontFamily(page.pageNumber)"
-        :compact="spread"
+        :font-family="fontFamily"
+        compact
       />
     </section>
 
     <footer
-      class="flex items-center justify-center text-[var(--sqc-color-mushaf-muted)] [font-family:'Noto_Naskh_Arabic','Amiri',serif]"
-      :class="spread ? 'min-h-[24px] text-[0.72rem]' : 'min-h-[38px] text-[0.84rem]'"
+      class="flex min-h-[24px] items-center justify-center text-[0.72rem] text-[var(--sqc-color-mushaf-muted)] [font-family:'Noto_Naskh_Arabic','Amiri',serif]"
       aria-label="رقم الصفحة"
     >
       <span
-        class="relative grid place-items-center before:absolute before:top-0.5 before:right-0 before:left-0 before:h-px before:bg-[var(--sqc-color-mushaf-border-subtle)] before:content-[''] after:absolute after:right-0 after:bottom-0.5 after:left-0 after:h-px after:bg-[var(--sqc-color-mushaf-border-subtle)] after:content-['']"
-        :class="spread ? 'min-h-[22px] min-w-[44px] px-2' : 'min-h-[30px] min-w-[52px] px-3'"
+        class="relative grid min-h-[22px] min-w-[44px] place-items-center px-2 before:absolute before:top-0.5 before:right-0 before:left-0 before:h-px before:bg-[var(--sqc-color-mushaf-border-subtle)] before:content-[''] after:absolute after:right-0 after:bottom-0.5 after:left-0 after:h-px after:bg-[var(--sqc-color-mushaf-border-subtle)] after:content-['']"
       >
         {{ toArabicNumber(page.pageNumber) }}
       </span>
