@@ -20,6 +20,9 @@ export function useTasmeeDailyAssignment() {
   const route = useRoute()
   const planCall = useHifzDailyPlanQuery()
   const plan = ref<HifzDailyPlanResponse | null>(null)
+  const loading = ref(false)
+  const failed = ref(false)
+  const error = ref<unknown>(null)
 
   const requestedAssignmentName = computed(() =>
     queryValue(route.query.assignment),
@@ -66,16 +69,30 @@ export function useTasmeeDailyAssignment() {
     return `سورة ${surahName.value} · ${rangeLabel.value} · جلسة فردية`
   })
 
-  const loading = computed(() => planCall.isPending.value)
-  const failed = computed(() =>
-    planCall.isError.value
-    || (!loading.value && plan.value !== null && !assignment.value),
-  )
-
   async function refresh() {
-    const response = await planCall.fetch()
-    plan.value = response ?? null
-    return response
+    loading.value = true
+    failed.value = false
+    error.value = null
+
+    try {
+      const response = await planCall.fetch()
+
+      if (!response?.ok) {
+        plan.value = null
+        failed.value = true
+        return null
+      }
+
+      plan.value = response
+      return response
+    } catch (cause) {
+      plan.value = null
+      failed.value = true
+      error.value = cause
+      return null
+    } finally {
+      loading.value = false
+    }
   }
 
   onMounted(() => {
@@ -90,7 +107,7 @@ export function useTasmeeDailyAssignment() {
     sessionMeta,
     loading,
     failed,
-    error: planCall.error,
+    error,
     refresh,
   }
 }
