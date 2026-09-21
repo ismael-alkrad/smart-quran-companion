@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
 
     <section
       ref="textSurface"
-      class="relative z-10 mt-[38px] grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[34px] pt-[4px]"
+      class="relative z-30 mt-[38px] grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[34px] pt-[4px]"
       aria-label="نص صفحة المصحف"
     >
       <div
