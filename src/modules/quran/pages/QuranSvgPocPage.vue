@@ -8,6 +8,7 @@ import {
   watch,
 } from 'vue'
 
+import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
 import { useMushafPage } from '@/modules/quran/composables/useMushafPage'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
@@ -203,32 +204,22 @@ onBeforeUnmount(() => {
         class="pointer-events-none absolute inset-[12px] z-20 border-[12px] border-solid border-transparent opacity-[0.62] [border-image-outset:0] [border-image-repeat:round_round] [border-image-slice:30%_30.5%] [border-image-source:url('/quran/decor/mushaf-frame-blue.svg')] [border-image-width:1.35em]"
       />
 
-      <header
-        class="relative z-30 mx-[34px] mt-[max(18px,env(safe-area-inset-top))] h-[30px] shrink-0 text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
+      <div
+        class="pointer-events-none absolute inset-x-[28px] top-[8px] z-30 flex items-center justify-between"
+        aria-hidden="true"
       >
-        <span
-          class="absolute inset-y-0 left-0 flex max-w-[42%] items-center truncate text-left"
-        >
+        <MushafFrameCartouche>
           سورة {{ surahName }}
-        </span>
+        </MushafFrameCartouche>
 
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center text-[color:var(--sqc-poc-accent-muted)]"
-        >
-          ◇
-        </span>
-
-        <span
-          class="absolute inset-y-0 right-0 flex max-w-[42%] items-center truncate text-right"
-        >
+        <MushafFrameCartouche>
           الجزء {{ toArabicNumber(page.juzNumber) }}
-        </span>
-      </header>
+        </MushafFrameCartouche>
+      </div>
 
       <section
         ref="textSurface"
-        class="relative z-10 grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[8px] pt-[12px]"
+        class="relative z-10 mt-[38px] grid min-h-0 flex-1 grid-rows-[repeat(15,minmax(0,1fr))] px-[30px] pb-[34px] pt-[4px]"
         aria-label="نص صفحة المصحف"
       >
         <div
@@ -285,15 +276,14 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <footer
-        class="relative z-30 flex h-[42px] shrink-0 items-start justify-center pb-[max(8px,env(safe-area-inset-bottom))] pt-[4px]"
+      <div
+        class="pointer-events-none absolute bottom-[7px] left-1/2 z-30 -translate-x-1/2"
+        aria-hidden="true"
       >
-        <span
-          class="flex min-h-[24px] min-w-[42px] items-center justify-center px-[8px] text-[12px] font-semibold text-[color:var(--sqc-poc-accent-strong)]"
-        >
+        <MushafFrameCartouche compact>
           {{ toArabicNumber(page.pageNumber) }}
-        </span>
-      </footer>
+        </MushafFrameCartouche>
+      </div>
     </article>
   </main>
 </template>
