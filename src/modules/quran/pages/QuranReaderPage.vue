@@ -874,7 +874,7 @@ onBeforeUnmount(() => {
 <template>
   <main
     dir="rtl"
-    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)]"
+    class="relative min-h-dvh w-full overflow-x-hidden bg-[var(--sqc-color-background-primary)] min-[600px]:bg-[var(--sqc-color-mushaf-paper)] [font-family:var(--sqc-font-family-ui)] [--sqc-reader-paper:#f8f5ef] [--sqc-reader-accent:#536f9f] [--sqc-reader-border:#9eafd0] [--sqc-reader-soft:#e9eef7] [--sqc-reader-muted:#8398bd]"
   >
     <div
       v-if="loading"
@@ -1062,70 +1062,91 @@ onBeforeUnmount(() => {
       </section>
 
       <div
-        class="pointer-events-none fixed inset-x-0 top-0 z-40 transition-opacity duration-200"
+        class="pointer-events-none fixed inset-x-0 top-0 z-40 px-[12px] pt-[max(10px,env(safe-area-inset-top))] transition-opacity duration-200"
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto flex min-h-[72px] w-full max-w-[1180px] items-center justify-between gap-[12px] border border-[var(--sqc-color-mushaf-border-subtle)] bg-[var(--sqc-color-mushaf-overlay)] px-[16px] pt-[max(12px,env(safe-area-inset-top))] pb-[12px] shadow-sm backdrop-blur md:mt-[12px] md:w-[calc(100%_-_32px)] md:rounded-[var(--sqc-dimension-radius-16)]"
+          class="pointer-events-auto relative mx-auto flex min-h-[54px] w-[min(440px,100%)] items-center justify-between gap-[10px] rounded-[12px] border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-paper)] px-[10px] shadow-[0_3px_10px_rgba(48,59,85,0.08)] before:pointer-events-none before:absolute before:inset-[3px] before:rounded-[9px] before:border before:border-[var(--sqc-reader-soft)] before:content-[''] after:pointer-events-none after:absolute after:left-1/2 after:top-[-4px] after:size-[7px] after:-translate-x-1/2 after:rotate-45 after:border after:border-[var(--sqc-reader-border)] after:bg-[var(--sqc-reader-paper)] after:content-['']"
         >
           <button
             type="button"
-            class="flex size-[40px] shrink-0 items-center justify-center rounded-[var(--sqc-dimension-radius-999)] text-[20px] text-[color:var(--sqc-color-mushaf-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-color-border-focus)]"
+            class="relative z-10 flex size-[34px] shrink-0 items-center justify-center rounded-[9px] text-[22px] leading-none text-[color:var(--sqc-reader-accent)] transition-colors hover:bg-[var(--sqc-reader-soft)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sqc-reader-border)]"
             aria-label="العودة"
             @click="goBack"
           >
             ›
           </button>
 
-          <div class="flex min-w-0 flex-1 flex-col items-center gap-[2px] text-center">
+          <div class="relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center gap-[1px] text-center">
             <strong
               dir="rtl"
-              class="max-w-full truncate text-[14px] font-semibold leading-[24px] text-[color:var(--sqc-color-mushaf-ink)]"
+              class="max-w-full truncate text-[13px] font-semibold leading-[20px] text-[color:var(--sqc-reader-accent)]"
             >
-              {{ metadataLabel }}
+              الْمُصْحَفُ الْكَرِيمُ
             </strong>
 
             <span
               v-if="savedPositionLabel"
               dir="rtl"
-              class="max-w-full truncate text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-mushaf-accent)]"
+              class="max-w-full truncate text-[10px] font-medium leading-[14px] text-[color:var(--sqc-reader-muted)]"
             >
               آخر موضع · {{ savedPositionLabel }}
             </span>
           </div>
 
-          <div class="size-[40px] shrink-0" aria-hidden="true" />
+          <div
+            class="relative z-10 grid size-[34px] shrink-0 place-items-center"
+            aria-hidden="true"
+          >
+            <span
+              class="size-[7px] rotate-45 border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-soft)]"
+            />
+          </div>
         </div>
       </div>
 
       <div
-        class="pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-opacity duration-200"
+        class="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-[12px] pb-[max(10px,env(safe-area-inset-bottom))] transition-opacity duration-200"
         :class="controlsVisible ? 'opacity-100' : 'opacity-0'"
       >
         <div
-          class="pointer-events-auto mx-auto mb-[max(12px,env(safe-area-inset-bottom))] flex h-[52px] w-[min(320px,calc(100%_-_32px))] items-center justify-between rounded-[var(--sqc-dimension-radius-999)] border border-[var(--sqc-color-mushaf-border-subtle)] bg-[var(--sqc-color-mushaf-overlay)] px-[8px] shadow-lg backdrop-blur"
+          class="pointer-events-auto relative mx-auto flex h-[44px] w-[min(300px,100%)] items-center justify-between rounded-[11px] border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-paper)] px-[7px] shadow-[0_3px_10px_rgba(48,59,85,0.08)] before:pointer-events-none before:absolute before:inset-[3px] before:rounded-[8px] before:border before:border-[var(--sqc-reader-soft)] before:content-['']"
         >
           <button
             type="button"
             dir="rtl"
-            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-accent)] disabled:opacity-40"
+            class="relative z-10 flex h-[32px] min-w-[74px] items-center justify-center rounded-[8px] px-[10px] text-[11px] font-semibold leading-[16px] text-[color:var(--sqc-reader-accent)] transition-colors hover:bg-[var(--sqc-reader-soft)] disabled:opacity-35"
             :disabled="!canNavigate('next')"
             @click="goNext"
           >
             التالي
           </button>
 
-          <span
-            dir="rtl"
-            class="text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-muted)]"
+          <div
+            class="relative z-10 flex items-center gap-[7px] text-[color:var(--sqc-reader-muted)]"
           >
-            {{ toArabicNumber(pageNumber) }} / ٦٠٤
-          </span>
+            <span
+              aria-hidden="true"
+              class="size-[5px] rotate-45 border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-soft)]"
+            />
+
+            <span
+              dir="rtl"
+              class="text-[11px] font-semibold leading-[16px]"
+            >
+              {{ toArabicNumber(pageNumber) }} / ٦٠٤
+            </span>
+
+            <span
+              aria-hidden="true"
+              class="size-[5px] rotate-45 border border-[var(--sqc-reader-border)] bg-[var(--sqc-reader-soft)]"
+            />
+          </div>
 
           <button
             type="button"
             dir="rtl"
-            class="h-[36px] rounded-[var(--sqc-dimension-radius-999)] px-[14px] text-[12px] font-medium leading-[18px] text-[color:var(--sqc-color-mushaf-accent)] disabled:opacity-40"
+            class="relative z-10 flex h-[32px] min-w-[74px] items-center justify-center rounded-[8px] px-[10px] text-[11px] font-semibold leading-[16px] text-[color:var(--sqc-reader-accent)] transition-colors hover:bg-[var(--sqc-reader-soft)] disabled:opacity-35"
             :disabled="!canNavigate('previous')"
             @click="goPrevious"
           >
