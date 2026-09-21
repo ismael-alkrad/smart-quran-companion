@@ -496,7 +496,12 @@ async function markReadyForTasmee() {
       assignment_name: context.assignmentName,
     })
 
-    await router.push('/quran/hifz/daily-plan')
+    await router.push({
+      name: 'tasmee-solo-setup',
+      query: {
+        assignment: context.assignmentName,
+      },
+    })
   } catch {
     tasmeeTransitionFailed.value = true
   } finally {
