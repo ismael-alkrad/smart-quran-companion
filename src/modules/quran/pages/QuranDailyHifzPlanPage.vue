@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import {
@@ -52,6 +52,54 @@ function openSurahProgress() {
   if (!surahNumber) return
 
   void router.push(`/quran/surah/${surahNumber}`)
+}
+
+function openTasmeeSetup() {
+  const assignment = plan.value?.assignment
+
+  if (!assignment) return
+
+  void router.push({
+    name: 'tasmee-solo-setup',
+    query: {
+      assignment: assignment.name,
+    },
+  })
+}
+
+const primaryActionLabel = computed(() => {
+  switch (assignmentStatus.value) {
+    case 'memorizing':
+      return 'متابعة الحفظ'
+    case 'pending_tasmee':
+      return 'ابدأ التسميع'
+    case 'pending_approval':
+      return 'بانتظار الاعتماد'
+    case 'approved':
+    case 'mastered':
+      return 'تم اعتماد الحفظ'
+    case 'needs_review':
+      return 'مراجعة المقطع'
+    default:
+      return 'ابدأ الحفظ'
+  }
+})
+
+const primaryActionDisabled = computed(() =>
+  assignmentStatus.value === 'pending_approval'
+  || assignmentStatus.value === 'approved'
+  || assignmentStatus.value === 'mastered',
+)
+
+function handlePrimaryAction() {
+  if (assignmentStatus.value === 'pending_tasmee') {
+    openTasmeeSetup()
+    return
+  }
+
+  if (primaryActionDisabled.value) return
+
+  void startHifz()
 }
 
 async function startHifz() {
@@ -244,11 +292,12 @@ onMounted(() => {
           size="large"
           variant="primary"
           class="w-full"
+          :disabled="primaryActionDisabled"
           :loading="openingReader"
           loading-text="جاري فتح موضع الحفظ"
-          @click="startHifz"
+          @click="handlePrimaryAction"
         >
-          {{ assignmentStatus === 'memorizing' ? 'متابعة الحفظ' : 'ابدأ الحفظ' }}
+          {{ primaryActionLabel }}
         </BaseButton>
       </div>
     </div>
