@@ -36,12 +36,21 @@ const props = withDefaults(
   },
 )
 
+interface HifzLineHighlightSegment {
+  left: number
+  width: number
+  top: number
+  height: number
+}
+
 const textSurface = ref<HTMLElement | null>(null)
 const pageLineScale = ref(1)
 const lineFitReady = ref(false)
+const hifzLineHighlights = ref<Record<number, HifzLineHighlightSegment[]>>({})
 
 let resizeObserver: ResizeObserver | null = null
 let fitFrame = 0
+let hifzHighlightFrame = 0
 
 const fontFamily = computed(() =>
   getQcfV2FontFamily(props.page.pageNumber),
@@ -108,6 +117,104 @@ function isHifzAssignmentWord(word: MushafWord) {
   )
 }
 
+function clearHifzLineHighlights() {
+  hifzLineHighlights.value = {}
+}
+
+function measureHifzLineHighlights() {
+  const surface = textSurface.value
+
+  if (!surface || !lineFitReady.value || !props.hifzContext) {
+    clearHifzLineHighlights()
+    return
+  }
+
+  const nextHighlights: Record<number, HifzLineHighlightSegment[]> = {}
+  const lineNodes = Array.from(
+    surface.querySelectorAll<HTMLElement>(
+      '[data-line-number][data-line-type="ayah"]',
+    ),
+  )
+
+  for (const lineNode of lineNodes) {
+    const lineNumber = Number(lineNode.dataset.lineNumber)
+
+    if (!Number.isInteger(lineNumber)) continue
+
+    const qcfLine = lineNode.querySelector<HTMLElement>('[data-qcf-line]')
+    if (!qcfLine) continue
+
+    const wordNodes = Array.from(
+      qcfLine.querySelectorAll<HTMLElement>('[data-verse-key]'),
+    )
+    const runs: HTMLElement[][] = []
+    let currentRun: HTMLElement[] = []
+
+    function flushRun() {
+      if (currentRun.length) {
+        runs.push(currentRun)
+        currentRun = []
+      }
+    }
+
+    for (const wordNode of wordNodes) {
+      const belongsToAssignment = wordNode.dataset.hifzAssignment === 'true'
+      const isMarker = wordNode.dataset.verseMarker === 'true'
+
+      if (!belongsToAssignment || isMarker) {
+        flushRun()
+        continue
+      }
+
+      currentRun.push(wordNode)
+    }
+
+    flushRun()
+
+    if (!runs.length) continue
+
+    const lineRect = lineNode.getBoundingClientRect()
+    const height = Math.max(
+      7,
+      Math.min(10, Math.round(lineRect.height * 0.22)),
+    )
+    const top = Math.min(
+      Math.max(0, lineRect.height - height),
+      Math.round(lineRect.height * 0.64),
+    )
+
+    nextHighlights[lineNumber] = runs
+      .map((run) => {
+        const rects = run.map(node => node.getBoundingClientRect())
+        const left = Math.min(...rects.map(rect => rect.left)) - lineRect.left
+        const right = Math.max(...rects.map(rect => rect.right)) - lineRect.left
+
+        return {
+          left: Math.max(0, left - 2),
+          width: Math.max(0, right - left + 4),
+          top,
+          height,
+        }
+      })
+      .filter(segment => segment.width > 0)
+  }
+
+  hifzLineHighlights.value = nextHighlights
+}
+
+async function scheduleHifzLineHighlights() {
+  await nextTick()
+
+  if (hifzHighlightFrame) {
+    cancelAnimationFrame(hifzHighlightFrame)
+  }
+
+  hifzHighlightFrame = requestAnimationFrame(() => {
+    hifzHighlightFrame = 0
+    measureHifzLineHighlights()
+  })
+}
+
 function fitQcfLines() {
   const surface = textSurface.value
   if (!surface) return
@@ -118,6 +225,7 @@ function fitQcfLines() {
 
   if (!lineNodes.length) {
     lineFitReady.value = true
+    clearHifzLineHighlights()
     return
   }
 
@@ -137,6 +245,7 @@ function fitQcfLines() {
 
   if (widestLine <= 0) {
     lineFitReady.value = true
+    clearHifzLineHighlights()
     return
   }
 
@@ -145,6 +254,7 @@ function fitQcfLines() {
     (availableWidth / widestLine) * 0.95,
   )
   lineFitReady.value = true
+  void scheduleHifzLineHighlights()
 }
 
 async function scheduleLineFit() {
@@ -164,9 +274,13 @@ watch(
   () => [
     props.page.pageNumber,
     props.spread,
+    props.hifzContext?.surahNumber ?? null,
+    props.hifzContext?.startAyah ?? null,
+    props.hifzContext?.endAyah ?? null,
   ] as const,
   () => {
     lineFitReady.value = false
+    clearHifzLineHighlights()
     void scheduleLineFit()
   },
 )
@@ -206,6 +320,13 @@ onBeforeUnmount(() => {
     cancelAnimationFrame(fitFrame)
     fitFrame = 0
   }
+
+  if (hifzHighlightFrame) {
+    cancelAnimationFrame(hifzHighlightFrame)
+    hifzHighlightFrame = 0
+  }
+
+  clearHifzLineHighlights()
 })
 </script>
 
@@ -213,7 +334,7 @@ onBeforeUnmount(() => {
   <article
     dir="rtl"
     translate="no"
-    class="relative mx-auto flex h-dvh w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8]"
+    class="relative mx-auto flex h-dvh w-full flex-col overflow-hidden bg-[var(--sqc-color-mushaf-paper)] [--sqc-poc-accent:#7189b7] [--sqc-poc-accent-strong:#536f9f] [--sqc-poc-accent-soft:#e9eef7] [--sqc-poc-accent-border:#9eafd0] [--sqc-poc-accent-muted:#8398bd] [--sqc-poc-marker:#6f89b8] [--sqc-poc-hifz-wash:rgba(158,175,208,0.30)]"
     :class="
       spread
         ? 'min-h-0 max-w-none'
@@ -252,9 +373,22 @@ onBeforeUnmount(() => {
         :data-line-type="line.type"
       >
         <div
+          v-for="(segment, index) in hifzLineHighlights[line.lineNumber] ?? []"
+          :key="`hifz-${line.lineNumber}-${index}`"
+          aria-hidden="true"
+          class="pointer-events-none absolute z-0 rounded-[5px] bg-[var(--sqc-poc-hifz-wash)]"
+          :style="{
+            left: `${segment.left}px`,
+            width: `${segment.width}px`,
+            top: `${segment.top}px`,
+            height: `${segment.height}px`,
+          }"
+        />
+
+        <div
           v-if="line.type === 'ayah'"
           :data-qcf-line="line.lineNumber"
-          class="absolute left-1/2 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+          class="absolute left-1/2 z-10 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
           :class="lineFitReady ? 'visible' : 'invisible'"
           :style="{
             fontFamily,
@@ -271,11 +405,6 @@ onBeforeUnmount(() => {
                 : 'cursor-pointer',
               selectedWordLocation === word.location && !isVerseMarker(word)
                 ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
-                : '',
-              isHifzAssignmentWord(word)
-                && selectedWordLocation !== word.location
-                && !isVerseMarker(word)
-                ? '[box-shadow:inset_0_-0.30em_0_var(--sqc-poc-accent-soft)]'
                 : '',
             ]"
             translate="no"
