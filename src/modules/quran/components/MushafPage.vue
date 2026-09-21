@@ -35,6 +35,7 @@ const props = withDefaults(
 
 const textSurface = ref<HTMLElement | null>(null)
 const pageLineScale = ref(1)
+const lineFitReady = ref(false)
 
 let resizeObserver: ResizeObserver | null = null
 let fitFrame = 0
@@ -95,7 +96,10 @@ function fitQcfLines() {
     surface.querySelectorAll<HTMLElement>('[data-qcf-line]'),
   )
 
-  if (!lineNodes.length) return
+  if (!lineNodes.length) {
+    lineFitReady.value = true
+    return
+  }
 
   const styles = getComputedStyle(surface)
   const horizontalPadding =
@@ -111,12 +115,16 @@ function fitQcfLines() {
     ...lineNodes.map(node => node.scrollWidth),
   )
 
-  if (widestLine <= 0) return
+  if (widestLine <= 0) {
+    lineFitReady.value = true
+    return
+  }
 
   pageLineScale.value = Math.min(
     1,
     (availableWidth / widestLine) * 0.95,
   )
+  lineFitReady.value = true
 }
 
 async function scheduleLineFit() {
@@ -138,7 +146,7 @@ watch(
     props.spread,
   ] as const,
   () => {
-    pageLineScale.value = 1
+    lineFitReady.value = false
     void scheduleLineFit()
   },
 )
@@ -227,6 +235,7 @@ onBeforeUnmount(() => {
           v-if="line.type === 'ayah'"
           :data-qcf-line="line.lineNumber"
           class="absolute left-1/2 inline-flex w-max shrink-0 origin-center items-baseline justify-center whitespace-nowrap text-[clamp(1.5rem,7.1vw,1.92rem)] leading-[1.08] text-[color:var(--sqc-color-mushaf-ink)] [font-kerning:normal] [text-rendering:optimizeLegibility]"
+          :class="lineFitReady ? 'visible' : 'invisible'"
           :style="{
             fontFamily,
             transform: `translateX(-50%) scaleX(${pageLineScale})`,
