@@ -9,6 +9,9 @@ import {
 } from 'vue'
 
 import MushafFrameCartouche from '@/modules/quran/components/MushafFrameCartouche.vue'
+import MushafHizbMarker from '@/modules/quran/components/MushafHizbMarker.vue'
+import MushafSurahBanner from '@/modules/quran/components/MushafSurahBanner.vue'
+import { getHizbMarkersForPage } from '@/modules/quran/data/hizbMarkers'
 import { getJuzNameArabicVowelled } from '@/modules/quran/data/juzNames'
 import { getSurahNameArabicVowelled } from '@/modules/quran/data/surahNamesVowelled'
 import { getQcfV2FontFamily } from '@/modules/quran/services/qcfFont.service'
@@ -50,6 +53,16 @@ const surahFrameLabel = computed(() => {
 
 const juzFrameLabel = computed(() =>
   getJuzNameArabicVowelled(props.page.juzNumber),
+)
+
+const hizbMarkers = computed(() =>
+  getHizbMarkersForPage(props.page),
+)
+
+const pageOuterSide = computed<'left' | 'right'>(() =>
+  props.page.pageNumber % 2 === 0
+    ? 'left'
+    : 'right',
 )
 
 const verseMarkerLocations = computed(() => {
@@ -239,16 +252,14 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <MushafFrameCartouche
+        <MushafSurahBanner
           v-else-if="line.type === 'surah_name'"
-          class="max-w-[78%]"
-        >
-          {{
+          :label="
             getSurahNameArabicVowelled(
               line.surahNumber ?? page.chapters[0] ?? 0,
             )
-          }}
-        </MushafFrameCartouche>
+          "
+        />
 
         <div
           v-else
@@ -257,6 +268,17 @@ onBeforeUnmount(() => {
           ﷽
         </div>
       </div>
+
+      <MushafHizbMarker
+        v-for="marker in hizbMarkers"
+        :key="marker.globalQuarter"
+        :marker="marker"
+        :side="pageOuterSide"
+        class="-translate-y-1/2"
+        :style="{
+          top: `${((marker.lineNumber - 0.5) / 15) * 100}%`,
+        }"
+      />
     </section>
 
     <div
