@@ -46,7 +46,6 @@ const waveformLevels = ref<number[]>(
   Array.from({ length: 9 }, () => 0.1),
 )
 const finishing = ref(false)
-const savedRecordingId = ref<string | null>(null)
 
 let mediaStream: MediaStream | null = null
 let mediaRecorder: MediaRecorder | null = null
@@ -392,7 +391,6 @@ async function endSession() {
       createdAt: new Date().toISOString(),
     })
 
-    savedRecordingId.value = recordingId
     sessionState.value = 'ended'
   } catch {
     sessionState.value = 'error'
