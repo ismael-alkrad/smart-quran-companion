@@ -70,6 +70,20 @@ export interface HifzDailyPlanResponse {
 }
 
 
+export type HifzDailyTransitionParams = {
+  assignment_name: string
+}
+
+export interface HifzDailyTransitionResponse {
+  ok: true
+  status: 'memorizing' | 'pending_tasmee'
+  date: string
+  task_state: HifzDailyTaskState
+  assignment: HifzDailyAssignment | null
+  progress: HifzSurahProgress | null
+}
+
+
 export interface QuranReadingPosition {
   name: string
   page_number: number
