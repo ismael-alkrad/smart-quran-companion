@@ -272,6 +272,11 @@ onBeforeUnmount(() => {
               selectedWordLocation === word.location && !isVerseMarker(word)
                 ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
                 : '',
+              isHifzAssignmentWord(word)
+                && selectedWordLocation !== word.location
+                && !isVerseMarker(word)
+                ? '[box-shadow:inset_0_-0.30em_0_var(--sqc-poc-accent-soft)]'
+                : '',
             ]"
             translate="no"
             :data-location="word.location"
