@@ -140,6 +140,24 @@ const router = createRouter({
       component: () => import('@/modules/home/pages/HomeCompletedDayPage.vue'),
     },
     {
+      path: '/tasmee/solo/setup',
+      name: 'tasmee-solo-setup',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeSoloSetupPage.vue'),
+    },
+    {
+      path: '/tasmee/solo/mic-check',
+      name: 'tasmee-solo-mic-check',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeSoloMicCheckPage.vue'),
+    },
+    {
+      path: '/tasmee/solo/ready',
+      name: 'tasmee-solo-ready',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeSoloReadyPage.vue'),
+    },
+    {
       path: '/quran',
       name: 'quran-hifz-overview',
       meta: { requiresOnboarding: true },
