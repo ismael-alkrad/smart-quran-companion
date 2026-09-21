@@ -244,12 +244,12 @@ onBeforeUnmount(() => {
           <span
             v-for="word in line.words"
             :key="word.location"
-            class="inline-block shrink-0 cursor-pointer select-none rounded-[5px] transition-colors duration-100"
+            class="inline-block shrink-0 select-none rounded-[5px] transition-colors duration-100"
             :class="[
               isVerseMarker(word)
-                ? 'text-[color:var(--sqc-poc-marker)]'
-                : '',
-              selectedWordLocation === word.location
+                ? 'cursor-default text-[color:var(--sqc-poc-marker)]'
+                : 'cursor-pointer',
+              selectedWordLocation === word.location && !isVerseMarker(word)
                 ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
                 : '',
             ]"
@@ -257,6 +257,7 @@ onBeforeUnmount(() => {
             :data-location="word.location"
             :data-verse-key="word.verseKey"
             :data-word-position="word.position"
+            :data-verse-marker="isVerseMarker(word) ? 'true' : undefined"
             v-html="word.codeV2"
           />
         </div>
