@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { Skeleton as FrappeSkeleton } from 'frappe-ui'
-import { computed } from 'vue'
-
-import { useThemeStore } from '@/shared/theme'
 
 export type BaseLoadingStyle = 'spinner' | 'skeleton'
 
@@ -17,13 +14,6 @@ withDefaults(
   },
 )
 
-const themeStore = useThemeStore()
-
-const spinnerSource = computed(() =>
-  themeStore.resolvedTheme === 'dark'
-    ? '/assets/loading/loading-spinner-32-dark.svg'
-    : '/assets/loading/loading-spinner-32.svg',
-)
 </script>
 
 <template>
@@ -34,11 +24,9 @@ const spinnerSource = computed(() =>
     dir="rtl"
     class="flex h-[112px] w-[160px] flex-col items-center justify-center gap-[var(--sqc-dimension-spacing-12)] [font-family:var(--sqc-font-family-ui)]"
   >
-    <img
-      :src="spinnerSource"
-      alt=""
+    <span
       aria-hidden="true"
-      class="size-[32px] shrink-0 animate-spin motion-reduce:animate-none"
+      class="size-[32px] shrink-0 animate-spin rounded-full border-[3px] border-[var(--sqc-color-border-subtle)] border-t-[var(--sqc-color-action-primary)] motion-reduce:animate-none"
     />
 
     <span
