@@ -10,13 +10,6 @@ import {
 import MushafPage from '@/modules/quran/components/MushafPage.vue'
 import type { MushafPage as MushafPageData } from '@/modules/quran/types/mushaf'
 
-interface HighlightRect {
-  top: number
-  left: number
-  width: number
-  height: number
-}
-
 const props = withDefaults(
   defineProps<{
     page: MushafPageData
@@ -43,10 +36,14 @@ const emit = defineEmits<{
 }>()
 
 const root = ref<HTMLElement | null>(null)
-const highlightRects = ref<HighlightRect[]>([])
-const markerPosition = ref<{ top: number; left: number } | null>(null)
+const selectedWordLocation = ref<string | null>(null)
+const markerPosition = ref<{
+  top: number
+  left: number
+} | null>(null)
 
 let resizeObserver: ResizeObserver | null = null
+let measureFrame = 0
 
 function selectorForVerse(verseKey: string) {
   if (typeof CSS !== 'undefined' && CSS.escape) {
@@ -56,74 +53,52 @@ function selectorForVerse(verseKey: string) {
   return `[data-verse-key="${verseKey.replaceAll('"', '\\"')}"]`
 }
 
-function measureSavedAyah() {
+function measureSavedPosition() {
   const container = root.value
   const verseKey = props.savedVerseKey
 
   if (!container || !verseKey) {
-    highlightRects.value = []
     markerPosition.value = null
     return
   }
 
-  const words = Array.from(
-    container.querySelectorAll<HTMLElement>(
-      selectorForVerse(verseKey),
-    ),
+  const firstWord = container.querySelector<HTMLElement>(
+    selectorForVerse(verseKey),
   )
 
-  if (!words.length) {
-    highlightRects.value = []
+  if (!firstWord) {
     markerPosition.value = null
     return
   }
 
   const containerRect = container.getBoundingClientRect()
-  const byLine = new Map<HTMLElement, DOMRect[]>()
+  const wordRect = firstWord.getBoundingClientRect()
 
-  for (const word of words) {
-    const line = word.closest<HTMLElement>('[data-line-number]')
-
-    if (!line) continue
-
-    const rects = byLine.get(line) ?? []
-    rects.push(word.getBoundingClientRect())
-    byLine.set(line, rects)
+  markerPosition.value = {
+    top: Math.max(
+      props.spread ? 36 : 42,
+      wordRect.top - containerRect.top - 26,
+    ),
+    left: Math.max(
+      58,
+      Math.min(
+        wordRect.left - containerRect.left + (wordRect.width / 2),
+        container.clientWidth - 58,
+      ),
+    ),
   }
-
-  const measured = Array.from(byLine.values())
-    .map((rects) => {
-      const left = Math.min(...rects.map(rect => rect.left))
-      const right = Math.max(...rects.map(rect => rect.right))
-      const top = Math.min(...rects.map(rect => rect.top))
-      const bottom = Math.max(...rects.map(rect => rect.bottom))
-
-      return {
-        top: top - containerRect.top - 2,
-        left: left - containerRect.left - 3,
-        width: right - left + 6,
-        height: bottom - top + 4,
-      }
-    })
-    .sort((a, b) => a.top - b.top)
-
-  highlightRects.value = measured
-
-  const first = measured[0]
-
-  markerPosition.value = first
-    ? {
-        top: Math.max(8, first.top - 30),
-        left: Math.max(8, Math.min(first.left, container.clientWidth - 88)),
-      }
-    : null
 }
 
 async function scheduleMeasure() {
   await nextTick()
 
-  requestAnimationFrame(() => {
-    measureSavedAyah()
+  if (measureFrame) {
+    cancelAnimationFrame(measureFrame)
+  }
+
+  measureFrame = requestAnimationFrame(() => {
+    measureFrame = 0
+    measureSavedPosition()
   })
 }
 
@@ -137,11 +112,14 @@ function handleClick(event: MouseEvent) {
 
   const word = target.closest<HTMLElement>('[data-verse-key]')
   const verseKey = word?.dataset.verseKey
+  const location = word?.dataset.location
 
-  if (!verseKey) {
+  if (!word || !verseKey || !location) {
     emit('toggle-controls')
     return
   }
+
+  selectedWordLocation.value = location
 
   const [surahText, ayahText] = verseKey.split(':')
   const surahNumber = Number(surahText)
@@ -162,7 +140,15 @@ function handleClick(event: MouseEvent) {
 }
 
 watch(
-  () => [props.savedVerseKey, props.page.pageNumber],
+  () => props.page.pageNumber,
+  () => {
+    selectedWordLocation.value = null
+    void scheduleMeasure()
+  },
+)
+
+watch(
+  () => props.savedVerseKey,
   () => {
     void scheduleMeasure()
   },
@@ -173,7 +159,7 @@ onMounted(() => {
 
   if (root.value && typeof ResizeObserver !== 'undefined') {
     resizeObserver = new ResizeObserver(() => {
-      measureSavedAyah()
+      void scheduleMeasure()
     })
     resizeObserver.observe(root.value)
   }
@@ -182,52 +168,53 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   resizeObserver = null
+
+  if (measureFrame) {
+    cancelAnimationFrame(measureFrame)
+    measureFrame = 0
+  }
 })
 </script>
 
 <template>
   <div
     ref="root"
-    class="relative mx-auto w-full overflow-hidden"
-    :class="spread ? '' : 'max-w-[720px]'"
+    class="relative mx-auto h-dvh w-full overflow-hidden"
+    :class="
+      spread
+        ? ''
+        : 'max-w-[720px]'
+    "
     @click="handleClick"
   >
     <MushafPage
       :page="page"
       :spread="spread"
+      :selected-word-location="selectedWordLocation"
       class="!my-0 !rounded-none !shadow-none"
       :class="
         spread
           ? '!h-dvh !min-h-0 !max-w-none'
-          : '!max-w-[720px] min-[600px]:!h-dvh min-[600px]:!min-h-0 min-[600px]:!w-full'
+          : '!h-dvh !max-w-[720px]'
       "
     />
 
     <div
-      v-if="highlightRects.length"
+      v-if="markerPosition"
       aria-hidden="true"
-      class="pointer-events-none absolute inset-0 z-10"
+      class="pointer-events-none absolute z-40 flex -translate-x-1/2 items-center gap-[5px]"
+      :style="{
+        top: `${markerPosition.top}px`,
+        left: `${markerPosition.left}px`,
+      }"
     >
       <span
-        v-for="(rect, index) in highlightRects"
-        :key="index"
-        class="absolute rounded-[6px] bg-[var(--sqc-color-action-primary)] opacity-[0.12]"
-        :style="{
-          top: `${rect.top}px`,
-          left: `${rect.left}px`,
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-        }"
+        class="size-[7px] rotate-45 border border-[#9eafd0] bg-[#e9eef7]"
       />
 
       <span
-        v-if="markerPosition"
         dir="rtl"
-        class="absolute z-20 rounded-[var(--sqc-dimension-radius-999)] bg-[var(--sqc-color-action-primary)] px-[8px] py-[4px] text-[11px] font-medium leading-[16px] text-[color:var(--sqc-color-text-inverse)] [font-family:var(--sqc-font-family-ui)]"
-        :style="{
-          top: `${markerPosition.top}px`,
-          left: `${markerPosition.left}px`,
-        }"
+        class="rounded-[8px] border border-[#9eafd0] bg-[var(--sqc-color-mushaf-paper)] px-[7px] py-[2px] text-[10px] font-semibold leading-[14px] text-[#536f9f] shadow-sm [font-family:var(--sqc-font-family-ui)]"
       >
         {{ markerLabel }}
       </span>
