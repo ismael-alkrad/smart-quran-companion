@@ -2,12 +2,16 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import {
+  useStartHifzDailyAssignmentMutation,
+} from '@/modules/quran/api'
 import QuranHifzStatusBadge from '@/modules/quran/components/QuranHifzStatusBadge.vue'
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import QuranStrengthIndicator from '@/modules/quran/components/QuranStrengthIndicator.vue'
 import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
 import { useDailyHifzPlan } from '@/modules/quran/composables/useDailyHifzPlan'
 import { getMushafPageNumberForAyah } from '@/modules/quran/repositories/quran.repository'
+import { getHifzStatusLabel } from '@/modules/quran/utils/hifz'
 import {
   BaseAppBar,
   BaseBanner,
@@ -19,12 +23,15 @@ import {
 
 const router = useRouter()
 const openingReader = ref(false)
+const startFailed = ref(false)
+const startHifzCall = useStartHifzDailyAssignmentMutation()
 
 const {
   plan,
   metadata,
   surahName,
   progressValue,
+  assignmentStatus,
   loading,
   failed,
   refresh,
@@ -53,8 +60,13 @@ async function startHifz() {
   if (!assignment || openingReader.value) return
 
   openingReader.value = true
+  startFailed.value = false
 
   try {
+    await startHifzCall.submit({
+      assignment_name: assignment.name,
+    })
+
     const pageNumber = await getMushafPageNumberForAyah(
       assignment.surah_number,
       assignment.start_ayah,
@@ -64,11 +76,14 @@ async function startHifz() {
       path: `/quran/${pageNumber}`,
       query: {
         mode: 'hifz',
+        assignment: assignment.name,
         surah: String(assignment.surah_number),
         startAyah: String(assignment.start_ayah),
         endAyah: String(assignment.end_ayah),
       },
     })
+  } catch {
+    startFailed.value = true
   } finally {
     openingReader.value = false
   }
@@ -182,13 +197,13 @@ onMounted(() => {
           :surah-name="surahName"
           :completed-ayahs="0"
           :ayah-count="metadata.ayahCount"
-          status="initial_hifz"
-          progress-text="حفظ أولي"
+          :status="assignmentStatus"
+          :progress-text="getHifzStatusLabel(assignmentStatus)"
           interactive
           @select="openSurahProgress"
         />
 
-        <QuranHifzStatusBadge status="initial_hifz" />
+        <QuranHifzStatusBadge :status="assignmentStatus" />
 
         <BaseBanner
           title="خطوة اليوم"
@@ -217,6 +232,14 @@ onMounted(() => {
           مراجعة قبل التسميع
         </BaseButton>
 
+        <p
+          v-if="startFailed"
+          dir="rtl"
+          class="w-full text-right text-[12px] font-medium leading-[20px] text-[color:var(--sqc-color-status-error)]"
+        >
+          تعذر بدء جلسة الحفظ. حاول مرة أخرى.
+        </p>
+
         <BaseButton
           size="large"
           variant="primary"
@@ -225,7 +248,7 @@ onMounted(() => {
           loading-text="جاري فتح موضع الحفظ"
           @click="startHifz"
         >
-          ابدأ الحفظ
+          {{ assignmentStatus === 'memorizing' ? 'متابعة الحفظ' : 'ابدأ الحفظ' }}
         </BaseButton>
       </div>
     </div>
