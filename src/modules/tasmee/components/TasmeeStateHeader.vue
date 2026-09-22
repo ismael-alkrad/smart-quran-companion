@@ -11,6 +11,7 @@ export type TasmeeStateHeaderState =
   | 'uploading'
   | 'uploaded'
   | 'analyzing'
+  | 'analysis-pending'
   | 'failed'
   | 'report-ready'
 
@@ -53,6 +54,7 @@ const stateClasses = computed(() => {
     props.state === 'uploading'
     || props.state === 'uploaded'
     || props.state === 'analyzing'
+    || props.state === 'analysis-pending'
   ) {
     return {
       background: 'bg-[var(--sqc-color-ai-analyzing-background)]',
