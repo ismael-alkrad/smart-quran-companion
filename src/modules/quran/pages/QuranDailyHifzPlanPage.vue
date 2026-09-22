@@ -79,7 +79,7 @@ const primaryActionLabel = computed(() => {
     case 'mastered':
       return 'تم اعتماد الحفظ'
     case 'needs_review':
-      return 'مراجعة المقطع'
+      return 'إعادة التسميع'
     default:
       return 'ابدأ الحفظ'
   }
@@ -92,7 +92,10 @@ const primaryActionDisabled = computed(() =>
 )
 
 function handlePrimaryAction() {
-  if (assignmentStatus.value === 'pending_tasmee') {
+  if (
+    assignmentStatus.value === 'pending_tasmee'
+    || assignmentStatus.value === 'needs_review'
+  ) {
     openTasmeeSetup()
     return
   }
@@ -100,6 +103,27 @@ function handlePrimaryAction() {
   if (primaryActionDisabled.value) return
 
   void startHifz()
+}
+
+async function openAssignmentReader() {
+  const assignment = plan.value?.assignment
+
+  if (!assignment || openingReader.value) return
+
+  openingReader.value = true
+  startFailed.value = false
+
+  try {
+    await openAssignmentReader()
+  } catch {
+    startFailed.value = true
+  } finally {
+    openingReader.value = false
+  }
+}
+
+async function reviewBeforeTasmee() {
+  await openAssignmentReader()
 }
 
 async function startHifz() {
@@ -273,9 +297,16 @@ onMounted(() => {
         />
 
         <BaseButton
+          v-if="
+            assignmentStatus === 'pending_tasmee'
+            || assignmentStatus === 'needs_review'
+          "
           size="large"
           variant="secondary"
           class="w-full"
+          :loading="openingReader"
+          loading-text="جاري فتح المقطع"
+          @click="reviewBeforeTasmee"
         >
           مراجعة قبل التسميع
         </BaseButton>
