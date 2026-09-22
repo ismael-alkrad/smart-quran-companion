@@ -17,6 +17,7 @@ export type {
   SaveQuranReadingPositionResponse,
 } from '@/modules/quran/api/contracts'
 export {
+  useEnsureHifzDailyAssignmentMutation,
   useHifzDailyPlanQuery,
   useHifzOverviewQuery,
   useHifzSurahProgressQuery,
