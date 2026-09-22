@@ -22,7 +22,7 @@ const emit = defineEmits<{
       dir="rtl"
       class="w-full text-right text-[14px] font-normal leading-[24px] text-[color:var(--sqc-color-text-secondary)]"
     >
-      ابدأ جلسة تسميع فردية أو مع رفيق أو محفّظ.
+      انتقل إلى مهمة الحفظ اليومية وابدأ التسميع عندما يصبح المقطع جاهزًا.
     </p>
 
     <BaseButton
