@@ -8,6 +8,11 @@ export type TasmeeStateHeaderState =
   | 'listening'
   | 'paused'
   | 'session-ended'
+  | 'uploading'
+  | 'uploaded'
+  | 'analyzing'
+  | 'failed'
+  | 'report-ready'
 
 const props = withDefaults(
   defineProps<{
@@ -41,6 +46,31 @@ const stateClasses = computed(() => {
     return {
       background: 'bg-[var(--sqc-color-potentialissue-hesitation-background)]',
       dot: 'bg-[var(--sqc-color-potentialissue-hesitation-foreground)]',
+    }
+  }
+
+  if (
+    props.state === 'uploading'
+    || props.state === 'uploaded'
+    || props.state === 'analyzing'
+  ) {
+    return {
+      background: 'bg-[var(--sqc-color-ai-analyzing-background)]',
+      dot: 'bg-[var(--sqc-color-ai-analyzing-foreground)]',
+    }
+  }
+
+  if (props.state === 'failed') {
+    return {
+      background: 'bg-[var(--sqc-color-potentialissue-substitution-background)]',
+      dot: 'bg-[var(--sqc-color-potentialissue-substitution-foreground)]',
+    }
+  }
+
+  if (props.state === 'report-ready') {
+    return {
+      background: 'bg-[var(--sqc-color-ai-active-background)]',
+      dot: 'bg-[var(--sqc-color-ai-active-foreground)]',
     }
   }
 
