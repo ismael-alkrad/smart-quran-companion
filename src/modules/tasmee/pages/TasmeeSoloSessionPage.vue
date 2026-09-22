@@ -17,9 +17,12 @@ import {
   useStartTasmeeAnalysisMutation,
   type TasmeeSession,
 } from '@/modules/tasmee/api'
+import TasmeeIssueRow from '@/modules/tasmee/components/TasmeeIssueRow.vue'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
-import TasmeeVerificationBadge from '@/modules/tasmee/components/TasmeeVerificationBadge.vue'
+import TasmeeVerificationBadge, {
+  type TasmeeVerificationBadgeState,
+} from '@/modules/tasmee/components/TasmeeVerificationBadge.vue'
 import {
   getTasmeeRecording,
   updateTasmeeRecording,
@@ -55,6 +58,7 @@ const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
+const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 const analysisErrorCode = ref('')
 const analysisErrorMessage = ref('')
@@ -105,6 +109,99 @@ const analysisErrorText = computed(() => {
   return analysisErrorMessage.value
     || 'تعذر إكمال التحليل تقنيًا. التسجيل المرفوع ما يزال محفوظًا.'
 })
+
+const reportSessionMeta = computed(() => {
+  const session = serverSession.value
+
+  if (!session) return ''
+
+  const surahName = getSurahNameArabic(session.surah_number)
+  const ayahRange = session.start_ayah === session.end_ayah
+    ? `الآية ${toArabicNumber(session.start_ayah)}`
+    : `الآيات ${toArabicNumber(session.start_ayah)}–${toArabicNumber(session.end_ayah)}`
+
+  return `سورة ${surahName} · ${ayahRange}`
+})
+
+const verificationBadgeState = computed<TasmeeVerificationBadgeState>(() => {
+  const level = serverSession.value?.verification_level
+
+  if (level === 'human_verified') return 'human-verified'
+  if (level === 'ai_high_confidence') return 'ai-high-confidence'
+  if (level === 'ai_analyzed') return 'ai-analyzed'
+  return 'self'
+})
+
+const verificationBadgeLabel = computed(() => {
+  const level = serverSession.value?.verification_level
+
+  if (level === 'human_verified') return 'تم التحقق بشريًا'
+  if (level === 'ai_high_confidence') return 'تحليل آلي عالي الثقة'
+  if (level === 'ai_analyzed') return 'تم التحليل بالذكاء الاصطناعي'
+  return 'تحقق ذاتي'
+})
+
+function issuesForAyah(ayahNumber: number) {
+  return serverSession.value?.issues.filter(
+    issue => issue.ayah_number === ayahNumber,
+  ) ?? []
+}
+
+function ayahOutcomeLabel(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
+  if (outcome === 'correct') return 'صحيحة'
+  if (outcome === 'incorrect') return 'تحتاج مراجعة'
+  if (outcome === 'audio_uncertain') return 'الصوت غير واضح'
+  if (outcome === 'needs_attention') return 'تحتاج انتباه'
+  return 'غير مقيمة'
+}
+
+function ayahOutcomeMeta(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
+  if (outcome === 'correct') {
+    return 'لم تُرصد مشكلة حفظ في هذه الآية'
+  }
+
+  if (outcome === 'incorrect') {
+    return 'رُصدت ملاحظات حفظ مرجّحة وتبقى خاضعة لسياسة التحقق'
+  }
+
+  if (outcome === 'audio_uncertain') {
+    return 'عدم يقين صوتي · لا يُحتسب كخطأ حفظ'
+  }
+
+  if (outcome === 'needs_attention') {
+    return 'تحتاج مراجعة دون اعتمادها كخطأ حفظ تلقائيًا'
+  }
+
+  return 'لم يكتمل تقييم هذه الآية'
+}
+
+function ayahOutcomeClasses(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
+  if (outcome === 'correct') {
+    return [
+      'bg-[var(--sqc-color-toast-success-background,#f0f8f6)]',
+      'text-[color:var(--sqc-color-status-success,#237a63)]',
+    ]
+  }
+
+  if (outcome === 'incorrect') {
+    return [
+      'bg-[var(--sqc-color-potentialissue-substitution-background,#fef2f2)]',
+      'text-[color:var(--sqc-color-potentialissue-substitution-foreground,#b91c1c)]',
+    ]
+  }
+
+  if (outcome === 'audio_uncertain') {
+    return [
+      'bg-[var(--sqc-color-potentialissue-audiounclear-background,#eff6ff)]',
+      'text-[color:var(--sqc-color-potentialissue-audiounclear-foreground,#1d4ed8)]',
+    ]
+  }
+
+  return [
+    'bg-[var(--sqc-color-potentialissue-hesitation-background,#fffbeb)]',
+    'text-[color:var(--sqc-color-potentialissue-hesitation-foreground,#92400e)]',
+  ]
+}
 
 const sessionMeta = computed(() => {
   const current = recording.value
@@ -164,6 +261,7 @@ function scheduleAnalysisPolling() {
 }
 
 function applyServerSessionState(session: TasmeeSession) {
+  serverSession.value = session
   analysisErrorCode.value = session.analysis_error_code ?? ''
   analysisErrorMessage.value = session.analysis_error_message ?? ''
 
@@ -423,8 +521,10 @@ onBeforeUnmount(() => {
     class="mx-auto flex min-h-dvh w-full max-w-[390px] flex-col gap-[var(--sqc-dimension-spacing-16)] bg-[var(--sqc-color-background-primary)] px-[var(--sqc-dimension-spacing-16)] py-[var(--sqc-dimension-spacing-24)] [font-family:var(--sqc-font-family-ui)]"
   >
     <BaseAppBar
-      title="التسميع"
+      :title="state === 'report-ready' ? 'تقرير التسميع' : 'التسميع'"
+      :type="state === 'report-ready' ? 'back' : 'default'"
       class="shrink-0"
+      @back="returnLater"
     />
 
     <div
@@ -672,24 +772,65 @@ onBeforeUnmount(() => {
         </BaseButton>
       </template>
 
-      <template v-else-if="state === 'report-ready'">
+      <template v-else-if="state === 'report-ready' && serverSession">
         <TasmeeStateHeader
           state="report-ready"
           title="التقرير جاهز"
-          subtitle="اكتمل تحليل جلسة التسميع."
+          :subtitle="reportSessionMeta"
+        />
+
+        <TasmeeVerificationBadge
+          :state="verificationBadgeState"
+          :label="verificationBadgeLabel"
         />
 
         <BaseBanner
           tone="info"
-          title="نتائج التحليل جاهزة"
-          body="سيتم عرض نتائج الآيات والملاحظات ومستوى التحقق في شاشة التقرير."
+          title="مستوى التحقق: AI Analyzed"
+          body="هذا تحليل آلي وليس اعتمادًا بشريًا. التقرير وحده لا يغيّر حالة الحفظ تلقائيًا."
         />
 
-        <div class="min-h-[16px] flex-1" />
+        <section class="flex w-full flex-col gap-[10px]">
+          <h2 class="w-full text-right text-[16px] font-semibold leading-[24px] text-[color:var(--sqc-color-text-primary)]">
+            نتائج الآيات
+          </h2>
+
+          <div
+            v-for="result in serverSession.ayah_results"
+            :key="result.ayah_number"
+            class="flex w-full flex-col gap-[8px]"
+          >
+            <article
+              class="w-full rounded-[var(--sqc-dimension-radius-12)] px-[12px] py-[10px] text-right"
+              :class="ayahOutcomeClasses(result.outcome)"
+            >
+              <h3 class="text-[14px] font-semibold leading-[22px]">
+                الآية {{ toArabicNumber(result.ayah_number) }} · {{ ayahOutcomeLabel(result.outcome) }}
+              </h3>
+              <p class="mt-[4px] text-[12px] font-normal leading-[20px]">
+                {{ ayahOutcomeMeta(result.outcome) }}
+              </p>
+              <p
+                v-if="result.transcript_text"
+                class="mt-[4px] break-words text-[12px] font-normal leading-[20px] opacity-80"
+              >
+                المسموع: {{ result.transcript_text }}
+              </p>
+            </article>
+
+            <TasmeeIssueRow
+              v-for="(issue, issueIndex) in issuesForAyah(result.ayah_number)"
+              :key="`${result.ayah_number}-${issue.word_location ?? issueIndex}-${issue.issue_type}`"
+              :issue="issue"
+            />
+          </div>
+        </section>
+
+        <div class="min-h-[8px] flex-1" />
 
         <BaseButton
           size="large"
-          variant="secondary"
+          variant="primary"
           class="w-full"
           @click="returnLater"
         >
