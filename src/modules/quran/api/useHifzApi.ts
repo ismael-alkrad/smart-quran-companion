@@ -15,6 +15,7 @@ const HIFZ_QUERY_METHODS = {
 } as const
 
 const HIFZ_MUTATION_METHODS = {
+  ensureDailyAssignment: 'hifz.ensure_daily_assignment',
   startDailyHifz: 'hifz.start_daily_hifz',
   readyForTasmee: 'hifz.mark_daily_hifz_ready_for_tasmee',
 } as const
@@ -49,6 +50,17 @@ export function useHifzDailyPlanQuery() {
     HIFZ_QUERY_METHODS.dailyPlan,
     {
       method: 'GET',
+      immediate: false,
+    },
+  )
+}
+
+
+export function useEnsureHifzDailyAssignmentMutation() {
+  return useSmartQuranCall<HifzDailyPlanResponse>(
+    HIFZ_MUTATION_METHODS.ensureDailyAssignment,
+    {
+      method: 'POST',
       immediate: false,
     },
   )
