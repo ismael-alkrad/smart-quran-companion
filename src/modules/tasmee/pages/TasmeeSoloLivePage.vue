@@ -385,6 +385,9 @@ async function endSession() {
     await saveTasmeeRecording({
       id: recordingId,
       assignmentName: currentAssignment.name,
+      surahNumber: currentAssignment.surah_number,
+      startAyah: currentAssignment.start_ayah,
+      endAyah: currentAssignment.end_ayah,
       blob: recordingBlob,
       mimeType: recordingBlob.type || recorderMimeType,
       durationSeconds: elapsedSeconds.value,
@@ -392,6 +395,16 @@ async function endSession() {
     })
 
     sessionState.value = 'ended'
+
+    await router.replace({
+      name: 'tasmee-solo-session',
+      params: {
+        recordingId,
+      },
+      query: {
+        assignment: currentAssignment.name,
+      },
+    })
   } catch {
     sessionState.value = 'error'
     sessionError.value = 'تعذر حفظ تسجيل الجلسة محليًا. لم يتم إرسال أي تقييم.'
