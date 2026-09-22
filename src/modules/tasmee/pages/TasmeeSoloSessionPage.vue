@@ -81,8 +81,16 @@ const analysisErrorText = computed(() => {
     return 'خدمة التعرف الصوتي غير مهيأة بعد. التسجيل مرفوع ومحفوظ ولن تحتاج إلى رفعه من جديد.'
   }
 
+  if (analysisErrorCode.value === 'alignment_failed') {
+    return 'تم تحويل التسجيل إلى نص، لكن تعذرت محاذاته مع النص القرآني المرجعي. التسجيل والنص محفوظان ويمكن إعادة المحاولة.'
+  }
+
+  if (analysisErrorCode.value === 'classification_not_configured') {
+    return 'تم تحويل الصوت إلى نص ومحاذاة كلمات القرآن بنجاح. الخطوة التالية هي تصنيف الملاحظات قبل إنشاء التقرير.'
+  }
+
   if (analysisErrorCode.value === 'alignment_not_configured') {
-    return 'تم التعرف على الصوت وتحويله إلى نص بنجاح. الخطوة التالية هي ربط محاذاة كلمات القرآن قبل إنشاء التقرير.'
+    return 'تم التعرف على الصوت وتحويله إلى نص بنجاح. الخطوة التالية هي محاذاة كلمات القرآن.'
   }
 
   if (analysisErrorCode.value === 'recording_not_ready') {
