@@ -1,6 +1,4 @@
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-
 import {
   type HifzDailyPlanResponse,
   useHifzDailyPlanQuery,
@@ -8,40 +6,16 @@ import {
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
-function queryValue(value: unknown) {
-  if (Array.isArray(value)) {
-    return typeof value[0] === 'string' ? value[0] : null
-  }
-
-  return typeof value === 'string' ? value : null
-}
-
 export function useTasmeeDailyAssignment() {
-  const route = useRoute()
   const planCall = useHifzDailyPlanQuery()
   const plan = ref<HifzDailyPlanResponse | null>(null)
   const loading = ref(false)
   const failed = ref(false)
   const error = ref<unknown>(null)
 
-  const requestedAssignmentName = computed(() =>
-    queryValue(route.query.assignment),
+  const assignment = computed(() =>
+    plan.value?.assignment ?? null,
   )
-
-  const assignment = computed(() => {
-    const requestedName = requestedAssignmentName.value
-    const currentAssignment = plan.value?.assignment
-
-    if (
-      !requestedName
-      || !currentAssignment
-      || currentAssignment.name !== requestedName
-    ) {
-      return null
-    }
-
-    return currentAssignment
-  })
 
   const surahName = computed(() => {
     const surahNumber = assignment.value?.surah_number
