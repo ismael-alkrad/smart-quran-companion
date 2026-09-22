@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import {
+  computed,
+  ref,
+  watch,
+} from 'vue'
 import { useRouter } from 'vue-router'
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import { useTasmeeDailyAssignment } from '@/modules/tasmee/composables/useTasmeeDailyAssignment'
+import {
+  getLatestTasmeeRecordingForAssignment,
+} from '@/modules/tasmee/repositories/tasmeeRecording.repository'
 import {
   BaseAppBar,
   BaseBanner,
@@ -14,6 +21,8 @@ import {
 } from '@/shared/components'
 
 const router = useRouter()
+const checkingResume = ref(false)
+const resumeCheckedFor = ref('')
 
 const {
   assignment,
@@ -44,6 +53,48 @@ function openMicCheck() {
     },
   })
 }
+
+
+async function resumeStoredSession(assignmentName: string) {
+  if (
+    checkingResume.value
+    || resumeCheckedFor.value === assignmentName
+  ) {
+    return
+  }
+
+  checkingResume.value = true
+  resumeCheckedFor.value = assignmentName
+
+  try {
+    const stored = await getLatestTasmeeRecordingForAssignment(
+      assignmentName,
+    )
+
+    if (!stored) return
+
+    await router.replace({
+      name: 'tasmee-solo-session',
+      params: {
+        recordingId: stored.id,
+      },
+      query: {
+        assignment: assignmentName,
+      },
+    })
+  } finally {
+    checkingResume.value = false
+  }
+}
+
+watch(
+  () => assignment.value?.name ?? '',
+  (assignmentName) => {
+    if (!assignmentName) return
+    void resumeStoredSession(assignmentName)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -59,7 +110,7 @@ function openMicCheck() {
     />
 
     <div
-      v-if="loading"
+      v-if="loading || checkingResume"
       class="grid flex-1 place-items-center"
     >
       <BaseLoading label="جاري تجهيز جلسة التسميع" />
