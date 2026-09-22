@@ -86,6 +86,10 @@ const analysisErrorText = computed(() => {
     return 'تم تحويل التسجيل إلى نص، لكن تعذرت محاذاته مع النص القرآني المرجعي. التسجيل والنص محفوظان ويمكن إعادة المحاولة.'
   }
 
+  if (analysisErrorCode.value === 'classification_failed') {
+    return 'اكتملت المحاذاة، لكن تعذر تصنيف الملاحظات تقنيًا. التسجيل والمحاذاة محفوظان ويمكن إعادة المحاولة.'
+  }
+
   if (analysisErrorCode.value === 'classification_not_configured') {
     return 'تم تحويل الصوت إلى نص ومحاذاة كلمات القرآن بنجاح. الخطوة التالية هي تصنيف الملاحظات قبل إنشاء التقرير.'
   }
