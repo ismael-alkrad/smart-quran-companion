@@ -42,6 +42,7 @@ type PostRecordingState =
   | 'upload-failed'
   | 'uploaded'
   | 'analyzing'
+  | 'analysis-pending'
   | 'analysis-failed'
   | 'report-ready'
   | 'missing'
@@ -165,6 +166,12 @@ function applyServerSessionState(session: TasmeeSession) {
   if (session.status === 'report_ready') {
     stopAnalysisPolling()
     state.value = 'report-ready'
+    return
+  }
+
+  if (session.status === 'analysis_pending') {
+    stopAnalysisPolling()
+    state.value = 'analysis-pending'
     return
   }
 
@@ -589,6 +596,42 @@ onBeforeUnmount(() => {
         />
 
         <div class="min-h-[16px] flex-1" />
+      </template>
+
+      <template v-else-if="state === 'analysis-pending'">
+        <TasmeeStateHeader
+          state="analysis-pending"
+          title="اكتملت المحاذاة"
+          subtitle="تم تحويل التسجيل إلى نص وربط الكلمات مع المرجع القرآني بنجاح."
+        />
+
+        <TasmeeVerificationBadge label="المحاذاة مكتملة" />
+
+        <BaseBanner
+          tone="info"
+          title="الخطوة التالية: تصنيف الملاحظات"
+          body="المحاذاة اكتملت بنجاح. لم نصدر حكمًا على الحفظ بعد؛ المرحلة التالية ستصنّف الاختلافات وتقدّر الثقة قبل إنشاء التقرير."
+        />
+
+        <div class="min-h-[16px] flex-1" />
+
+        <BaseButton
+          size="large"
+          variant="secondary"
+          class="w-full"
+          @click="returnLater"
+        >
+          العودة لخطة اليوم
+        </BaseButton>
+
+        <BaseButton
+          size="large"
+          variant="primary"
+          class="w-full"
+          @click="startAnalysis"
+        >
+          متابعة التحليل
+        </BaseButton>
       </template>
 
       <template v-else-if="state === 'analysis-failed'">
