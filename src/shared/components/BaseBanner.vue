@@ -55,7 +55,7 @@ const toneClasses = computed(() => {
     :theme="frappeTheme"
     :icon="false"
     dir="rtl"
-    class="!w-[358px] !max-w-full !rounded-[var(--sqc-dimension-radius-12)] !p-[var(--sqc-dimension-spacing-16)] text-right [font-family:var(--sqc-font-family-ui)] [&>div:first-child]:!items-start [&>div:first-child]:!gap-[var(--sqc-dimension-spacing-12)] [&_[data-slot=prefix]]:!size-[10px] [&_[data-slot=title]]:!min-w-0 [&_[data-slot=title]]:!text-[16px] [&_[data-slot=title]]:!font-semibold [&_[data-slot=title]]:!leading-[26px] [&_[data-slot=description]]:!mr-[22px] [&_[data-slot=description]]:!h-[40px] [&_[data-slot=description]]:!w-[280px] [&_[data-slot=description]]:!max-w-[calc(100%-22px)] [&_[data-slot=description]]:!text-right [&_[data-slot=description]]:!text-[14px] [&_[data-slot=description]]:!font-normal [&_[data-slot=description]]:!leading-[24px]"
+    class="!w-[358px] !max-w-full !rounded-[var(--sqc-dimension-radius-12)] !p-[var(--sqc-dimension-spacing-16)] text-right [font-family:var(--sqc-font-family-ui)] [&>div:first-child]:!min-w-0 [&>div:first-child]:!items-start [&>div:first-child]:!gap-[var(--sqc-dimension-spacing-12)] [&_[data-slot=prefix]]:!size-[10px] [&_[data-slot=title]]:!min-w-0 [&_[data-slot=title]]:!text-[16px] [&_[data-slot=title]]:!font-semibold [&_[data-slot=title]]:!leading-[26px] [&_[data-slot=description]]:!mr-[22px] [&_[data-slot=description]]:!h-auto [&_[data-slot=description]]:!min-h-[40px] [&_[data-slot=description]]:!w-[calc(100%-22px)] [&_[data-slot=description]]:!max-w-[calc(100%-22px)] [&_[data-slot=description]]:!whitespace-normal [&_[data-slot=description]]:!break-words [&_[data-slot=description]]:!text-right [&_[data-slot=description]]:!text-[14px] [&_[data-slot=description]]:!font-normal [&_[data-slot=description]]:!leading-[24px]"
     :class="[toneClasses.background, toneClasses.foreground]"
   >
     <template #prefix>
@@ -69,7 +69,7 @@ const toneClasses = computed(() => {
     <template #title>
       <span
         dir="rtl"
-        class="block whitespace-nowrap"
+        class="block min-w-0 whitespace-normal break-words"
         :class="toneClasses.foreground"
       >
         {{ title }}
@@ -79,7 +79,7 @@ const toneClasses = computed(() => {
     <template #description>
       <span
         dir="rtl"
-        class="block"
+        class="block min-w-0 whitespace-normal break-words"
         :class="toneClasses.foreground"
       >
         <slot>{{ body }}</slot>
