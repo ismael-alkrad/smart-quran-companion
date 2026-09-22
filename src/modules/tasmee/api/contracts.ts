@@ -110,6 +110,7 @@ export interface TasmeeSession {
   analysis_error_code: string | null
   analysis_error_message: string | null
   analyzer_version: string | null
+  classifier_version: string | null
   overall_confidence: number | null
   ayah_results: TasmeeAyahResult[]
   issues: TasmeeIssue[]
