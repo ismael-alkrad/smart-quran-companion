@@ -73,8 +73,16 @@ const recordingId = computed(() => {
 })
 
 const analysisErrorText = computed(() => {
-  if (analysisErrorCode.value === 'analyzer_not_configured') {
-    return 'محرك تحليل التسميع غير مربوط بعد. التسجيل مرفوع ومحفوظ ويمكن إعادة التحليل بعد تهيئة المحرك.'
+  if (analysisErrorCode.value === 'transcription_failed') {
+    return 'تعذر تحويل التسجيل إلى نص. التسجيل مرفوع ومحفوظ ويمكن إعادة التحليل بعد تشغيل خدمة التعرف الصوتي.'
+  }
+
+  if (analysisErrorCode.value === 'transcription_not_configured') {
+    return 'خدمة التعرف الصوتي غير مهيأة بعد. التسجيل مرفوع ومحفوظ ولن تحتاج إلى رفعه من جديد.'
+  }
+
+  if (analysisErrorCode.value === 'alignment_not_configured') {
+    return 'تم التعرف على الصوت وتحويله إلى نص بنجاح. الخطوة التالية هي ربط محاذاة كلمات القرآن قبل إنشاء التقرير.'
   }
 
   if (analysisErrorCode.value === 'recording_not_ready') {
