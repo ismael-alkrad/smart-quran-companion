@@ -43,6 +43,10 @@ const navRoutes: BaseBottomNavRoutes = {
   quran: '/quran',
 }
 
+function openDailyHifzPlan() {
+  void router.push('/quran/hifz/daily-plan')
+}
+
 function openSurah(surahNumber: number) {
   void router.push(`/quran/surah/${surahNumber}`)
 }
@@ -128,6 +132,15 @@ onMounted(() => {
           :state="hasNeedsReview ? 'needs-review' : 'on-track'"
           :value="overallProgress"
         />
+
+        <BaseButton
+          size="large"
+          variant="primary"
+          class="w-full"
+          @click="openDailyHifzPlan"
+        >
+          خطة الحفظ اليومية
+        </BaseButton>
 
         <h2
           dir="rtl"
