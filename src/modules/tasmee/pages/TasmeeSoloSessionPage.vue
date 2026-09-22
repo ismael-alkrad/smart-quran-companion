@@ -12,7 +12,6 @@ import {
 import {
   uploadTasmeeRecording,
   useCreateTasmeeSessionMutation,
-  type TasmeeSession,
 } from '@/modules/tasmee/api'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
@@ -45,7 +44,6 @@ const createSessionCall = useCreateTasmeeSessionMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
-const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 
 const recordingId = computed(() => {
@@ -129,8 +127,6 @@ async function ensureServerSession(current: StoredTasmeeRecording) {
     session_mode: 'solo',
   })
 
-  serverSession.value = response.session
-
   await updateTasmeeRecording(current.id, {
     serverSessionName: response.session.name,
   })
@@ -158,11 +154,9 @@ async function uploadRecording() {
     const response = await uploadTasmeeRecording({
       sessionName,
       blob: current.blob,
-      fileName: `tasmee-${current.id.replace(/[^a-zA-Z0-9_-]/g, '-') }.${extension}`,
+      fileName: `tasmee-${current.id.replace(/[^a-zA-Z0-9_-]/g, '-')}.${extension}`,
       durationSeconds: current.durationSeconds,
     })
-
-    serverSession.value = response.session
 
     const updated = await updateTasmeeRecording(current.id, {
       serverSessionName: response.session.name,
