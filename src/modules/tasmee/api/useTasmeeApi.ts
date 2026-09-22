@@ -1,10 +1,12 @@
 import {
+  getSmartQuranMethod,
   postSmartQuranFormData,
   useSmartQuranCall,
 } from '@/shared/api'
 import type {
   CreateTasmeeSessionParams,
   GetTasmeeSessionParams,
+  StartTasmeeAnalysisParams,
   TasmeeSessionResponse,
 } from '@/modules/tasmee/api/contracts'
 
@@ -14,6 +16,7 @@ const TASMEE_QUERY_METHODS = {
 
 const TASMEE_MUTATION_METHODS = {
   createSession: 'tasmee.create_session',
+  startAnalysis: 'tasmee.start_analysis',
   uploadRecording: 'tasmee.upload_recording',
 } as const
 
@@ -25,6 +28,25 @@ export function useCreateTasmeeSessionMutation() {
     method: 'POST',
     immediate: false,
   })
+}
+
+export function useStartTasmeeAnalysisMutation() {
+  return useSmartQuranCall<
+    TasmeeSessionResponse,
+    StartTasmeeAnalysisParams
+  >(TASMEE_MUTATION_METHODS.startAnalysis, {
+    method: 'POST',
+    immediate: false,
+  })
+}
+
+export async function getTasmeeSession(sessionName: string) {
+  return await getSmartQuranMethod<TasmeeSessionResponse>(
+    TASMEE_QUERY_METHODS.session,
+    {
+      session_name: sessionName,
+    },
+  )
 }
 
 export function useTasmeeSessionQuery(sessionName: string) {
