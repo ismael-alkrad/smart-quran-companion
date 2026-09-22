@@ -21,7 +21,7 @@ import {
   updateTasmeeRecording,
   type StoredTasmeeRecording,
 } from '@/modules/tasmee/repositories/tasmeeRecording.repository'
-import { useHifzDailyPlanQuery } from '@/modules/quran/api'
+import { useEnsureHifzDailyAssignmentMutation } from '@/modules/quran/api'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 import {
@@ -42,7 +42,7 @@ type PostRecordingState =
 const route = useRoute()
 const router = useRouter()
 const createSessionCall = useCreateTasmeeSessionMutation()
-const dailyPlanCall = useHifzDailyPlanQuery()
+const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
@@ -125,7 +125,7 @@ async function reconcileRecordingAssignment(
     return current
   }
 
-  const response = await dailyPlanCall.fetch()
+  const response = await dailyPlanCall.submit()
   const currentAssignment = response?.assignment
 
   if (!currentAssignment) {
