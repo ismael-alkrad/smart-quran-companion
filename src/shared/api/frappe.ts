@@ -180,7 +180,7 @@ export function useSmartQuranCall<
   const callerBeforeSubmit = options?.beforeSubmit
 
   return useCall<TResponse, TParams>({
-    ...(options ?? {}),
+    ...options,
     url: smartQuranApiUrl(method),
     beforeSubmit:
       requestMethod === 'GET' && !callerBeforeSubmit
