@@ -1,13 +1,13 @@
 import { computed, onMounted, ref } from 'vue'
 import {
   type HifzDailyPlanResponse,
-  useHifzDailyPlanQuery,
+  useEnsureHifzDailyAssignmentMutation,
 } from '@/modules/quran/api'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
 export function useTasmeeDailyAssignment() {
-  const planCall = useHifzDailyPlanQuery()
+  const planCall = useEnsureHifzDailyAssignmentMutation()
   const plan = ref<HifzDailyPlanResponse | null>(null)
   const loading = ref(false)
   const failed = ref(false)
@@ -49,7 +49,7 @@ export function useTasmeeDailyAssignment() {
     error.value = null
 
     try {
-      const response = await planCall.fetch()
+      const response = await planCall.submit()
 
       if (!response?.ok) {
         plan.value = null
