@@ -1,10 +1,15 @@
 export interface StoredTasmeeRecording {
   id: string
   assignmentName: string
+  surahNumber: number
+  startAyah: number
+  endAyah: number
   blob: Blob
   mimeType: string
   durationSeconds: number
   createdAt: string
+  serverSessionName?: string
+  uploadedAt?: string
 }
 
 const DATABASE_NAME = 'smart-quran-tasmee'
@@ -79,6 +84,24 @@ export async function saveTasmeeRecording(
   }
 
   return recording
+}
+
+
+export async function updateTasmeeRecording(
+  id: string,
+  patch: Partial<Omit<StoredTasmeeRecording, 'id'>>,
+) {
+  const current = await getTasmeeRecording(id)
+
+  if (!current) {
+    throw new Error('Tasmee recording was not found.')
+  }
+
+  return await saveTasmeeRecording({
+    ...current,
+    ...patch,
+    id,
+  })
 }
 
 export async function getTasmeeRecording(id: string) {
