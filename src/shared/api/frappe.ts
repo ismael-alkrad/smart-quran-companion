@@ -97,6 +97,73 @@ async function bootstrapBrowserCsrfToken() {
   await csrfBootstrapPromise
 }
 
+
+type SmartQuranMethodEnvelope<TResponse> = {
+  data?: TResponse
+  message?: TResponse
+  exception?: string
+  exc_type?: string
+}
+
+function frappeRequestHeaders() {
+  if (typeof window === 'undefined') {
+    return {
+      Accept: 'application/json',
+    }
+  }
+
+  const token = getBrowserCsrfToken()
+
+  return {
+    Accept: 'application/json',
+    'X-Frappe-Site-Name': window.location.hostname,
+    ...(token
+      ? { 'X-Frappe-CSRF-Token': token }
+      : {}),
+  }
+}
+
+export async function postSmartQuranFormData<TResponse>(
+  method: string,
+  formData: FormData,
+) {
+  await bootstrapBrowserCsrfToken()
+
+  const response = await fetch(
+    smartQuranApiUrl(method),
+    {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: frappeRequestHeaders(),
+      body: formData,
+    },
+  )
+
+  let payload: SmartQuranMethodEnvelope<TResponse> | null = null
+
+  try {
+    payload = await response.json() as SmartQuranMethodEnvelope<TResponse>
+  } catch {
+    payload = null
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.exception
+      || payload?.exc_type
+      || `Smart Quran request failed with status ${response.status}.`,
+    )
+  }
+
+  const result = payload?.data ?? payload?.message
+
+  if (result === undefined) {
+    throw new Error('Smart Quran API returned an empty response.')
+  }
+
+  return result
+}
+
 export type SmartQuranCallOptions<
   TResponse,
   TParams extends BasicParams = undefined,
