@@ -123,6 +123,52 @@ function frappeRequestHeaders() {
   }
 }
 
+export async function getSmartQuranMethod<TResponse>(
+  method: string,
+  params: Record<string, string | number | boolean> = {},
+) {
+  const search = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(params)) {
+    search.set(key, String(value))
+  }
+
+  const query = search.toString()
+  const response = await fetch(
+    `${smartQuranApiUrl(method)}${query ? `?${query}` : ''}`,
+    {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: frappeRequestHeaders(),
+    },
+  )
+
+  let payload: SmartQuranMethodEnvelope<TResponse> | null = null
+
+  try {
+    payload = await response.json() as SmartQuranMethodEnvelope<TResponse>
+  } catch {
+    payload = null
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.exception
+      || payload?.exc_type
+      || `Smart Quran request failed with status ${response.status}.`,
+    )
+  }
+
+  const result = payload?.data ?? payload?.message
+
+  if (result === undefined) {
+    throw new Error('Smart Quran API returned an empty response.')
+  }
+
+  return result
+}
+
+
 export async function postSmartQuranFormData<TResponse>(
   method: string,
   formData: FormData,
