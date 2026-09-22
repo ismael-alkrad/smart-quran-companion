@@ -104,6 +104,47 @@ export async function updateTasmeeRecording(
   })
 }
 
+
+export async function getLatestTasmeeRecordingForAssignment(
+  assignmentName: string,
+) {
+  const database = await openTasmeeDatabase()
+
+  try {
+    return await new Promise<StoredTasmeeRecording | null>(
+      (resolve, reject) => {
+        const transaction = database.transaction(
+          RECORDING_STORE,
+          'readonly',
+        )
+        const index = transaction
+          .objectStore(RECORDING_STORE)
+          .index('assignmentName')
+        const request = index.getAll(assignmentName)
+
+        request.onsuccess = () => {
+          const recordings = (
+            request.result as StoredTasmeeRecording[]
+          ).sort((first, second) =>
+            second.createdAt.localeCompare(first.createdAt),
+          )
+
+          resolve(recordings[0] ?? null)
+        }
+
+        request.onerror = () => {
+          reject(
+            request.error
+            ?? new Error('Unable to find Tasmee recording.'),
+          )
+        }
+      },
+    )
+  } finally {
+    database.close()
+  }
+}
+
 export async function getTasmeeRecording(id: string) {
   const database = await openTasmeeDatabase()
 
