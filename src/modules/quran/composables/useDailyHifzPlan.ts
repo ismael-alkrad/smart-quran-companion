@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import {
   type HifzDailyPlanResponse,
   type HifzStatus,
-  useHifzDailyPlanQuery,
+  useEnsureHifzDailyAssignmentMutation,
 } from '@/modules/quran/api'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getQuranSurahMetadataByNumber } from '@/modules/quran/repositories/quran.repository'
@@ -11,7 +11,7 @@ import type { QuranSurahMetadata } from '@/modules/quran/types/mushaf'
 import { COMPLETED_HIFZ_STATUSES } from '@/modules/quran/utils/hifz'
 
 export function useDailyHifzPlan() {
-  const query = useHifzDailyPlanQuery()
+  const ensureAssignmentCall = useEnsureHifzDailyAssignmentMutation()
 
   const loading = ref(false)
   const failed = ref(false)
@@ -23,7 +23,7 @@ export function useDailyHifzPlan() {
     failed.value = false
 
     try {
-      const response = await query.fetch()
+      const response = await ensureAssignmentCall.submit()
 
       if (!response?.ok) {
         plan.value = null
