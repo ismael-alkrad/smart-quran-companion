@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   ref,
 } from 'vue'
@@ -10,8 +11,11 @@ import {
 } from 'vue-router'
 
 import {
+  getTasmeeSession,
   uploadTasmeeRecording,
   useCreateTasmeeSessionMutation,
+  useStartTasmeeAnalysisMutation,
+  type TasmeeSession,
 } from '@/modules/tasmee/api'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
@@ -37,16 +41,24 @@ type PostRecordingState =
   | 'uploading'
   | 'upload-failed'
   | 'uploaded'
+  | 'analyzing'
+  | 'analysis-failed'
+  | 'report-ready'
   | 'missing'
 
 const route = useRoute()
 const router = useRouter()
 const createSessionCall = useCreateTasmeeSessionMutation()
+const startAnalysisCall = useStartTasmeeAnalysisMutation()
 const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
 const uploadError = ref('')
+const analysisErrorCode = ref('')
+const analysisErrorMessage = ref('')
+
+let analysisPollTimer = 0
 
 const recordingId = computed(() => {
   const value = route.params.recordingId
@@ -58,6 +70,19 @@ const recordingId = computed(() => {
   return typeof value === 'string'
     ? value
     : ''
+})
+
+const analysisErrorText = computed(() => {
+  if (analysisErrorCode.value === 'analyzer_not_configured') {
+    return 'محرك تحليل التسميع غير مربوط بعد. التسجيل مرفوع ومحفوظ ويمكن إعادة التحليل بعد تهيئة المحرك.'
+  }
+
+  if (analysisErrorCode.value === 'recording_not_ready') {
+    return 'تعذر تجهيز التسجيل للتحليل. التسجيل محفوظ وسنراجع بيانات الملف قبل إعادة المحاولة.'
+  }
+
+  return analysisErrorMessage.value
+    || 'تعذر إكمال التحليل تقنيًا. التسجيل المرفوع ما يزال محفوظًا.'
 })
 
 const sessionMeta = computed(() => {
@@ -95,6 +120,77 @@ function recordingFileExtension(mimeType: string) {
   return 'webm'
 }
 
+function stopAnalysisPolling() {
+  if (!analysisPollTimer) return
+
+  window.clearTimeout(analysisPollTimer)
+  analysisPollTimer = 0
+}
+
+function scheduleAnalysisPolling() {
+  stopAnalysisPolling()
+
+  if (
+    typeof window === 'undefined'
+    || state.value !== 'analyzing'
+  ) {
+    return
+  }
+
+  analysisPollTimer = window.setTimeout(() => {
+    void pollAnalysis()
+  }, 1200)
+}
+
+function applyServerSessionState(session: TasmeeSession) {
+  analysisErrorCode.value = session.analysis_error_code ?? ''
+  analysisErrorMessage.value = session.analysis_error_message ?? ''
+
+  if (session.status === 'report_ready') {
+    stopAnalysisPolling()
+    state.value = 'report-ready'
+    return
+  }
+
+  if (
+    session.status === 'failed'
+    && session.analysis_started_at
+  ) {
+    stopAnalysisPolling()
+    state.value = 'analysis-failed'
+    return
+  }
+
+  if (session.status === 'analyzing') {
+    state.value = 'analyzing'
+    scheduleAnalysisPolling()
+    return
+  }
+
+  if (session.status === 'uploaded') {
+    stopAnalysisPolling()
+    state.value = 'uploaded'
+  }
+}
+
+async function pollAnalysis() {
+  const sessionName = recording.value?.serverSessionName
+
+  if (
+    !sessionName
+    || state.value !== 'analyzing'
+  ) {
+    return
+  }
+
+  try {
+    const response = await getTasmeeSession(sessionName)
+    applyServerSessionState(response.session)
+  } catch {
+    scheduleAnalysisPolling()
+  }
+}
+
 async function loadRecording() {
   state.value = 'loading'
   uploadError.value = ''
@@ -109,6 +205,24 @@ async function loadRecording() {
     }
 
     recording.value = stored
+
+    if (
+      stored.uploadedAt
+      && stored.serverSessionName
+    ) {
+      try {
+        const response = await getTasmeeSession(
+          stored.serverSessionName,
+        )
+
+        applyServerSessionState(response.session)
+        return
+      } catch {
+        state.value = 'uploaded'
+        return
+      }
+    }
+
     state.value = stored.uploadedAt
       ? 'uploaded'
       : 'ended'
@@ -229,12 +343,50 @@ async function uploadRecording() {
   }
 }
 
+async function startAnalysis() {
+  const sessionName = recording.value?.serverSessionName
+
+  if (
+    !sessionName
+    || state.value === 'analyzing'
+  ) {
+    return
+  }
+
+  stopAnalysisPolling()
+  state.value = 'analyzing'
+  analysisErrorCode.value = ''
+  analysisErrorMessage.value = ''
+
+  try {
+    const response = await startAnalysisCall.submit({
+      session_name: sessionName,
+    })
+
+    if (!response?.session) {
+      throw new Error('تعذر بدء تحليل جلسة التسميع.')
+    }
+
+    applyServerSessionState(response.session)
+  } catch (cause) {
+    stopAnalysisPolling()
+    analysisErrorMessage.value = cause instanceof Error
+      ? cause.message
+      : 'تعذر بدء تحليل جلسة التسميع.'
+    state.value = 'analysis-failed'
+  }
+}
+
 function returnLater() {
   void router.push('/quran/hifz/daily-plan')
 }
 
 onMounted(() => {
   void loadRecording()
+})
+
+onBeforeUnmount(() => {
+  stopAnalysisPolling()
 })
 </script>
 
@@ -399,9 +551,86 @@ onMounted(() => {
           size="large"
           variant="primary"
           class="w-full"
-          disabled
+          @click="startAnalysis"
         >
           بدء التحليل
+        </BaseButton>
+      </template>
+
+      <template v-else-if="state === 'analyzing'">
+        <TasmeeStateHeader
+          state="analyzing"
+          title="نحلّل التسميع الآن"
+          subtitle="تتم المعالجة بعد انتهاء القراءة حتى لا تتشتت أثناء التسميع."
+        />
+
+        <BaseLoading label="قيد التحليل" />
+
+        <BaseBanner
+          tone="info"
+          title="تحليل متعدد المراحل"
+          body="التعرّف على الكلام ← محاذاة كلمات القرآن ← تصنيف الملاحظات ← تقدير الثقة. لا نعرض نسبة تقدّم وهمية."
+        />
+
+        <div class="min-h-[16px] flex-1" />
+      </template>
+
+      <template v-else-if="state === 'analysis-failed'">
+        <TasmeeStateHeader
+          state="failed"
+          title="تعذّر إكمال التحليل"
+          subtitle="فشل التحليل تقنيًا، وليس هذا حكمًا على الحفظ."
+        />
+
+        <BaseBanner
+          tone="error"
+          title="لا حاجة لإعادة رفع التسجيل"
+          :body="analysisErrorText"
+        />
+
+        <div class="min-h-[16px] flex-1" />
+
+        <BaseButton
+          size="large"
+          variant="secondary"
+          class="w-full"
+          @click="returnLater"
+        >
+          العودة لخطة اليوم
+        </BaseButton>
+
+        <BaseButton
+          size="large"
+          variant="primary"
+          class="w-full"
+          @click="startAnalysis"
+        >
+          إعادة التحليل
+        </BaseButton>
+      </template>
+
+      <template v-else-if="state === 'report-ready'">
+        <TasmeeStateHeader
+          state="report-ready"
+          title="التقرير جاهز"
+          subtitle="اكتمل تحليل جلسة التسميع."
+        />
+
+        <BaseBanner
+          tone="info"
+          title="نتائج التحليل جاهزة"
+          body="سيتم عرض نتائج الآيات والملاحظات ومستوى التحقق في شاشة التقرير."
+        />
+
+        <div class="min-h-[16px] flex-1" />
+
+        <BaseButton
+          size="large"
+          variant="secondary"
+          class="w-full"
+          @click="returnLater"
+        >
+          العودة لخطة اليوم
         </BaseButton>
       </template>
     </template>
