@@ -164,6 +164,12 @@ const router = createRouter({
       component: () => import('@/modules/tasmee/pages/TasmeeSoloLivePage.vue'),
     },
     {
+      path: '/tasmee/solo/session/:recordingId',
+      name: 'tasmee-solo-session',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeSoloSessionPage.vue'),
+    },
+    {
       path: '/quran',
       name: 'quran-hifz-overview',
       meta: { requiresOnboarding: true },
