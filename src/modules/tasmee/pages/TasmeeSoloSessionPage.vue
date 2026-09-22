@@ -21,6 +21,7 @@ import {
   updateTasmeeRecording,
   type StoredTasmeeRecording,
 } from '@/modules/tasmee/repositories/tasmeeRecording.repository'
+import { useHifzDailyPlanQuery } from '@/modules/quran/api'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 import {
@@ -41,6 +42,7 @@ type PostRecordingState =
 const route = useRoute()
 const router = useRouter()
 const createSessionCall = useCreateTasmeeSessionMutation()
+const dailyPlanCall = useHifzDailyPlanQuery()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
@@ -116,6 +118,55 @@ async function loadRecording() {
   }
 }
 
+async function reconcileRecordingAssignment(
+  current: StoredTasmeeRecording,
+) {
+  if (current.serverSessionName) {
+    return current
+  }
+
+  const response = await dailyPlanCall.fetch()
+  const currentAssignment = response?.assignment
+
+  if (!currentAssignment) {
+    throw new Error('لا توجد مهمة حفظ يومية حالية لربط هذا التسجيل بها.')
+  }
+
+  if (current.assignmentName === currentAssignment.name) {
+    return current
+  }
+
+  const sameRange = (
+    current.surahNumber === currentAssignment.surah_number
+    && current.startAyah === currentAssignment.start_ayah
+    && current.endAyah === currentAssignment.end_ayah
+  )
+
+  if (!sameRange) {
+    throw new Error(
+      'هذا التسجيل مرتبط بمهمة حفظ قديمة تختلف عن مهمة اليوم الحالية.',
+    )
+  }
+
+  const updated = await updateTasmeeRecording(current.id, {
+    assignmentName: currentAssignment.name,
+  })
+
+  recording.value = updated
+
+  await router.replace({
+    name: 'tasmee-solo-session',
+    params: {
+      recordingId: current.id,
+    },
+    query: {
+      assignment: currentAssignment.name,
+    },
+  })
+
+  return updated
+}
+
 async function ensureServerSession(current: StoredTasmeeRecording) {
   if (current.serverSessionName) {
     return current.serverSessionName
@@ -152,17 +203,18 @@ async function uploadRecording() {
   uploadError.value = ''
 
   try {
-    const sessionName = await ensureServerSession(current)
-    const extension = recordingFileExtension(current.mimeType)
+    const activeRecording = await reconcileRecordingAssignment(current)
+    const sessionName = await ensureServerSession(activeRecording)
+    const extension = recordingFileExtension(activeRecording.mimeType)
 
     const response = await uploadTasmeeRecording({
       sessionName,
-      blob: current.blob,
-      fileName: `tasmee-${current.id.replace(/[^a-zA-Z0-9_-]/g, '-')}.${extension}`,
-      durationSeconds: current.durationSeconds,
+      blob: activeRecording.blob,
+      fileName: `tasmee-${activeRecording.id.replace(/[^a-zA-Z0-9_-]/g, '-')}.${extension}`,
+      durationSeconds: activeRecording.durationSeconds,
     })
 
-    const updated = await updateTasmeeRecording(current.id, {
+    const updated = await updateTasmeeRecording(activeRecording.id, {
       serverSessionName: response.session.name,
       uploadedAt: new Date().toISOString(),
     })
