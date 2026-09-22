@@ -6,6 +6,7 @@ export type TasmeeSessionStatus =
   | 'uploading'
   | 'uploaded'
   | 'analyzing'
+  | 'analysis_pending'
   | 'report_ready'
   | 'failed'
   | 'cancelled'
