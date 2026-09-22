@@ -105,16 +105,36 @@ function handlePrimaryAction() {
   void startHifz()
 }
 
-async function openAssignmentReader() {
+async function navigateToAssignmentReader() {
   const assignment = plan.value?.assignment
 
-  if (!assignment || openingReader.value) return
+  if (!assignment) return
+
+  const pageNumber = await getMushafPageNumberForAyah(
+    assignment.surah_number,
+    assignment.start_ayah,
+  )
+
+  await router.push({
+    path: `/quran/${pageNumber}`,
+    query: {
+      mode: 'hifz',
+      assignment: assignment.name,
+      surah: String(assignment.surah_number),
+      startAyah: String(assignment.start_ayah),
+      endAyah: String(assignment.end_ayah),
+    },
+  })
+}
+
+async function openAssignmentReader() {
+  if (openingReader.value) return
 
   openingReader.value = true
   startFailed.value = false
 
   try {
-    await openAssignmentReader()
+    await navigateToAssignmentReader()
   } catch {
     startFailed.value = true
   } finally {
@@ -139,21 +159,7 @@ async function startHifz() {
       assignment_name: assignment.name,
     })
 
-    const pageNumber = await getMushafPageNumberForAyah(
-      assignment.surah_number,
-      assignment.start_ayah,
-    )
-
-    await router.push({
-      path: `/quran/${pageNumber}`,
-      query: {
-        mode: 'hifz',
-        assignment: assignment.name,
-        surah: String(assignment.surah_number),
-        startAyah: String(assignment.start_ayah),
-        endAyah: String(assignment.end_ayah),
-      },
-    })
+    await navigateToAssignmentReader()
   } catch {
     startFailed.value = true
   } finally {
