@@ -9,12 +9,18 @@ const props = withDefaults(
   defineProps<{
     type?: HomeTodayTaskType
     state?: HomeTodayTaskState
+    interactive?: boolean
   }>(),
   {
     type: 'wird',
     state: 'pending',
+    interactive: false,
   },
 )
+
+const emit = defineEmits<{
+  select: []
+}>()
 
 const title = computed(() => {
   if (props.type === 'hifz') return 'حفظ جديد'
@@ -42,10 +48,18 @@ const dotClass = computed(() => {
 </script>
 
 <template>
-  <div
+  <component
+    :is="interactive ? 'button' : 'div'"
+    :type="interactive ? 'button' : undefined"
     dir="rtl"
-    class="flex h-[64px] w-full items-center justify-between rounded-[var(--sqc-dimension-radius-16)] px-[var(--sqc-dimension-spacing-16)] py-[10px] [font-family:var(--sqc-font-family-ui)]"
-    :class="surfaceClass"
+    class="flex h-[64px] w-full items-center justify-between rounded-[var(--sqc-dimension-radius-16)] px-[var(--sqc-dimension-spacing-16)] py-[10px] text-right [font-family:var(--sqc-font-family-ui)]"
+    :class="[
+      surfaceClass,
+      interactive
+        ? 'cursor-pointer transition-opacity active:opacity-70'
+        : '',
+    ]"
+    @click="interactive && emit('select')"
   >
     <div class="flex shrink-0 flex-col items-start gap-[2px] overflow-hidden text-right">
       <p
@@ -68,5 +82,5 @@ const dotClass = computed(() => {
       class="size-[8px] shrink-0 rounded-full"
       :class="dotClass"
     />
-  </div>
+  </component>
 </template>
