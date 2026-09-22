@@ -2,6 +2,7 @@ export type {
   CreateTasmeeSessionParams,
   GetTasmeeSessionParams,
   StartTasmeeAnalysisParams,
+  TasmeeAnalysisStage,
   TasmeeAudioQuality,
   TasmeeAyahOutcome,
   TasmeeAyahResult,
