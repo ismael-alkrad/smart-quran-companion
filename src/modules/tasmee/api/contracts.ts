@@ -16,6 +16,7 @@ export type TasmeeAnalysisStage =
   | 'transcribing'
   | 'transcribed'
   | 'aligning'
+  | 'aligned'
   | 'classifying'
   | 'complete'
   | 'failed'
@@ -103,6 +104,7 @@ export interface TasmeeSession {
   analysis_started_at: string | null
   analysis_stage: TasmeeAnalysisStage
   analysis_transcript: string | null
+  analysis_reference_source: string | null
   analysis_completed_at: string | null
   analysis_error_code: string | null
   analysis_error_message: string | null
