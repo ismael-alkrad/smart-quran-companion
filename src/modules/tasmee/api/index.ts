@@ -1,6 +1,7 @@
 export type {
   CreateTasmeeSessionParams,
   GetTasmeeSessionParams,
+  StartTasmeeAnalysisParams,
   TasmeeAudioQuality,
   TasmeeAyahOutcome,
   TasmeeAyahResult,
@@ -15,7 +16,9 @@ export type {
 } from '@/modules/tasmee/api/contracts'
 
 export {
+  getTasmeeSession,
   uploadTasmeeRecording,
   useCreateTasmeeSessionMutation,
+  useStartTasmeeAnalysisMutation,
   useTasmeeSessionQuery,
 } from '@/modules/tasmee/api/useTasmeeApi'
