@@ -47,6 +47,10 @@ const props = withDefaults(
 
 const router = useRouter()
 
+function openDailyHifzPlan() {
+  void router.push('/quran/hifz/daily-plan')
+}
+
 function resumeQuran() {
   if (!props.readingPageNumber) return
 
@@ -81,6 +85,8 @@ function resumeQuran() {
           <HomeTodayTaskRow
             type="hifz"
             :state="props.hifzState"
+            interactive
+            @select="openDailyHifzPlan"
           />
 
           <HomeTodayTaskRow
@@ -109,7 +115,7 @@ function resumeQuran() {
       <div
         class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
-        <HomeTasmeeCta />
+        <HomeTasmeeCta @start="openDailyHifzPlan" />
 
         <section
           v-if="showReading && readingLocationText && readingPageNumber"
