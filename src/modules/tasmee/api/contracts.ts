@@ -10,6 +10,16 @@ export type TasmeeSessionStatus =
   | 'failed'
   | 'cancelled'
 
+export type TasmeeAnalysisStage =
+  | 'pending'
+  | 'queued'
+  | 'transcribing'
+  | 'transcribed'
+  | 'aligning'
+  | 'classifying'
+  | 'complete'
+  | 'failed'
+
 export type TasmeeVerificationLevel =
   | 'self'
   | 'ai_analyzed'
@@ -91,6 +101,8 @@ export interface TasmeeSession {
   started_at: string | null
   ended_at: string | null
   analysis_started_at: string | null
+  analysis_stage: TasmeeAnalysisStage
+  analysis_transcript: string | null
   analysis_completed_at: string | null
   analysis_error_code: string | null
   analysis_error_message: string | null
