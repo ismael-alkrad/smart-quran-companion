@@ -143,7 +143,10 @@ const verificationBadgeLabel = computed(() => {
 
 function issuesForAyah(ayahNumber: number) {
   return serverSession.value?.issues.filter(
-    issue => issue.ayah_number === ayahNumber,
+    issue => (
+      issue.ayah_number === ayahNumber
+      && issue.category !== 'audio'
+    ),
   ) ?? []
 }
 
@@ -155,20 +158,28 @@ function ayahOutcomeLabel(outcome: TasmeeSession['ayah_results'][number]['outcom
   return 'غير مقيمة'
 }
 
-function ayahOutcomeMeta(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
-  if (outcome === 'correct') {
+function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
+  if (result.outcome === 'correct') {
     return 'لم تُرصد مشكلة حفظ في هذه الآية'
   }
 
-  if (outcome === 'incorrect') {
-    return 'رُصدت ملاحظات حفظ مرجّحة وتبقى خاضعة لسياسة التحقق'
+  if (result.outcome === 'incorrect') {
+    const memorizationCount = toArabicNumber(
+      result.memorization_issue_count,
+    )
+
+    return result.audio_issue_count > 0
+      ? `رُصدت ${memorizationCount} ملاحظات حفظ مرجّحة، مع ${toArabicNumber(result.audio_issue_count)} مواضع صوتية غير مؤكدة`
+      : `رُصدت ${memorizationCount} ملاحظات حفظ مرجّحة وتبقى خاضعة لسياسة التحقق`
   }
 
-  if (outcome === 'audio_uncertain') {
-    return 'عدم يقين صوتي · لا يُحتسب كخطأ حفظ'
+  if (result.outcome === 'audio_uncertain') {
+    const audioCount = toArabicNumber(result.audio_issue_count)
+
+    return `عدم يقين صوتي في ${audioCount} مواضع · لا يُحتسب كخطأ حفظ`
   }
 
-  if (outcome === 'needs_attention') {
+  if (result.outcome === 'needs_attention') {
     return 'تحتاج مراجعة دون اعتمادها كخطأ حفظ تلقائيًا'
   }
 
@@ -808,7 +819,7 @@ onBeforeUnmount(() => {
                 الآية {{ toArabicNumber(result.ayah_number) }} · {{ ayahOutcomeLabel(result.outcome) }}
               </h3>
               <p class="mt-[4px] text-[12px] font-normal leading-[20px]">
-                {{ ayahOutcomeMeta(result.outcome) }}
+                {{ ayahOutcomeMeta(result) }}
               </p>
               <p
                 v-if="result.transcript_text"
