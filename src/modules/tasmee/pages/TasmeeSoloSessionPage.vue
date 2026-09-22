@@ -127,6 +127,10 @@ async function ensureServerSession(current: StoredTasmeeRecording) {
     session_mode: 'solo',
   })
 
+  if (!response?.session) {
+    throw new Error('تعذر إنشاء جلسة التسميع على الخادم.')
+  }
+
   await updateTasmeeRecording(current.id, {
     serverSessionName: response.session.name,
   })
