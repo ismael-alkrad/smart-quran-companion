@@ -1,5 +1,6 @@
 export {
   FrappeResponseError,
+  getSmartQuranMethod,
   SMART_QURAN_API_PREFIX,
   postSmartQuranFormData,
   setBrowserCsrfToken,
