@@ -92,6 +92,8 @@ export interface TasmeeSession {
   ended_at: string | null
   analysis_started_at: string | null
   analysis_completed_at: string | null
+  analysis_error_code: string | null
+  analysis_error_message: string | null
   analyzer_version: string | null
   overall_confidence: number | null
   ayah_results: TasmeeAyahResult[]
@@ -105,6 +107,10 @@ export type CreateTasmeeSessionParams = {
 }
 
 export type GetTasmeeSessionParams = {
+  session_name: string
+}
+
+export type StartTasmeeAnalysisParams = {
   session_name: string
 }
 
