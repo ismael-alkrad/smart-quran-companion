@@ -14,6 +14,7 @@ import {
   getTasmeeSession,
   uploadTasmeeRecording,
   useCreateTasmeeSessionMutation,
+  useEvaluateTasmeeVerificationMutation,
   useStartTasmeeAnalysisMutation,
   type TasmeeSession,
 } from '@/modules/tasmee/api'
@@ -53,6 +54,7 @@ type PostRecordingState =
 const route = useRoute()
 const router = useRouter()
 const createSessionCall = useCreateTasmeeSessionMutation()
+const evaluateVerificationCall = useEvaluateTasmeeVerificationMutation()
 const startAnalysisCall = useStartTasmeeAnalysisMutation()
 const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
@@ -62,6 +64,7 @@ const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 const analysisErrorCode = ref('')
 const analysisErrorMessage = ref('')
+const verificationEvaluationPending = ref(false)
 
 let analysisPollTimer = 0
 
@@ -139,6 +142,40 @@ const verificationBadgeLabel = computed(() => {
   if (level === 'ai_high_confidence') return 'تحليل آلي عالي الثقة'
   if (level === 'ai_analyzed') return 'تم التحليل بالذكاء الاصطناعي'
   return 'تحقق ذاتي'
+})
+
+const verificationPolicyBody = computed(() => {
+  const session = serverSession.value
+
+  if (!session || session.verification_decision === 'pending') {
+    return 'يتم تقييم نتيجة التحليل وفق سياسة التحقق قبل السماح بأي تغيير على حالة الحفظ.'
+  }
+
+  if (session.verification_decision === 'approve') {
+    return 'النتيجة مؤهلة للاعتماد بثقة عالية، لكن التقرير وحده لم يغيّر حالة الحفظ بعد.'
+  }
+
+  if (session.verification_decision === 'needs_review') {
+    return 'رصدت السياسة ملاحظات حفظ عالية الثقة. لم نغيّر حالة الحفظ بعد؛ التطبيق يتم في خطوة منفصلة.'
+  }
+
+  if (session.verification_reason_code === 'audio_uncertainty') {
+    return 'يوجد عدم يقين صوتي، لذلك لن تغيّر نتيجة الذكاء الاصطناعي حالة الحفظ.'
+  }
+
+  if (session.verification_reason_code === 'audio_unusable') {
+    return 'جودة التسجيل غير كافية للتحقق، لذلك لا يوجد أي تغيير على حالة الحفظ.'
+  }
+
+  if (session.verification_reason_code === 'memorization_issue_not_reliable_enough') {
+    return 'ظهرت ملاحظات محتملة، لكن الدليل غير كافٍ لاعتمادها كتغيير على حالة الحفظ.'
+  }
+
+  if (session.verification_reason_code === 'incomplete_ayah_results') {
+    return 'نتائج الآيات غير مكتملة، لذلك لا يسمح النظام بأي تغيير على حالة الحفظ.'
+  }
+
+  return 'التقرير صالح للعرض، لكنه لم يحقق شروط السياسة اللازمة لتغيير حالة الحفظ.'
 })
 
 function issuesForAyah(ayahNumber: number) {
@@ -271,6 +308,30 @@ function scheduleAnalysisPolling() {
   }, 1200)
 }
 
+async function evaluatePendingVerification(session: TasmeeSession) {
+  if (
+    session.status !== 'report_ready'
+    || session.verification_decision !== 'pending'
+    || verificationEvaluationPending.value
+  ) {
+    return
+  }
+
+  verificationEvaluationPending.value = true
+
+  try {
+    const response = await evaluateVerificationCall.submit({
+      session_name: session.name,
+    })
+
+    if (response?.session) {
+      serverSession.value = response.session
+    }
+  } finally {
+    verificationEvaluationPending.value = false
+  }
+}
+
 function applyServerSessionState(session: TasmeeSession) {
   serverSession.value = session
   analysisErrorCode.value = session.analysis_error_code ?? ''
@@ -279,6 +340,7 @@ function applyServerSessionState(session: TasmeeSession) {
   if (session.status === 'report_ready') {
     stopAnalysisPolling()
     state.value = 'report-ready'
+    void evaluatePendingVerification(session)
     return
   }
 
@@ -797,8 +859,8 @@ onBeforeUnmount(() => {
 
         <BaseBanner
           tone="info"
-          title="مستوى التحقق: AI Analyzed"
-          body="هذا تحليل آلي وليس اعتمادًا بشريًا. التقرير وحده لا يغيّر حالة الحفظ تلقائيًا."
+          title="سياسة التحقق"
+          :body="verificationPolicyBody"
         />
 
         <section class="flex w-full flex-col gap-[10px]">
