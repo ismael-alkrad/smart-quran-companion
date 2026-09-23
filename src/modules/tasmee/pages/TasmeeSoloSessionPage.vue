@@ -182,6 +182,19 @@ const verificationPolicyBody = computed(() => {
   return 'التقرير صالح للعرض، لكنه لم يحقق شروط السياسة اللازمة لتغيير حالة الحفظ.'
 })
 
+const canStartNewTasmee = computed(() => {
+  const session = serverSession.value
+
+  return Boolean(
+    session
+    && session.status === 'report_ready'
+    && (
+      session.verification_decision === 'no_change'
+      || session.verification_decision === 'needs_review'
+    ),
+  )
+})
+
 const canApplyVerification = computed(() => {
   const session = serverSession.value
 
@@ -663,6 +676,19 @@ async function startAnalysis() {
   }
 }
 
+function startNewTasmee() {
+  const session = serverSession.value
+  if (!session) return
+
+  void router.push({
+    name: 'tasmee-solo-setup',
+    query: {
+      assignment: session.assignment,
+      fresh: String(Date.now()),
+    },
+  })
+}
+
 function returnLater() {
   void router.push('/quran/hifz/daily-plan')
 }
@@ -1016,8 +1042,18 @@ onBeforeUnmount(() => {
         </BaseButton>
 
         <BaseButton
+          v-if="canStartNewTasmee"
           size="large"
           :variant="canApplyVerification ? 'secondary' : 'primary'"
+          class="w-full"
+          @click="startNewTasmee"
+        >
+          بدء تسميع جديد
+        </BaseButton>
+
+        <BaseButton
+          size="large"
+          variant="secondary"
           class="w-full"
           @click="returnLater"
         >
