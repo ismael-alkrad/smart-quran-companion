@@ -3,9 +3,11 @@ export type {
   ApplyTasmeeVerificationResponse,
   CreateTasmeeSessionParams,
   EvaluateTasmeeVerificationParams,
+  GetTasmeeAnalysisStatusParams,
   GetTasmeeSessionParams,
   StartTasmeeAnalysisParams,
   TasmeeAnalysisStage,
+  TasmeeAnalysisStatusResponse,
   TasmeeAnalysisTimings,
   TasmeeAudioQuality,
   TasmeeAyahOutcome,
@@ -24,6 +26,7 @@ export type {
 } from '@/modules/tasmee/api/contracts'
 
 export {
+  getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
   useApplyTasmeeVerificationMutation,
