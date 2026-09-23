@@ -327,6 +327,8 @@ async function evaluatePendingVerification(session: TasmeeSession) {
     if (response?.session) {
       serverSession.value = response.session
     }
+  } catch {
+    // Keep the report usable even if verification evaluation is temporarily unavailable.
   } finally {
     verificationEvaluationPending.value = false
   }
