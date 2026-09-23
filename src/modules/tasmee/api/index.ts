@@ -1,8 +1,7 @@
 export type {
-  ApplyTasmeeVerificationParams,
-  ApplyTasmeeVerificationResponse,
+  ApplyTasmeeReviewResultParams,
+  ApplyTasmeeReviewResultResponse,
   CreateTasmeeSessionParams,
-  EvaluateTasmeeVerificationParams,
   FinalizeTasmeeReviewParams,
   GetTasmeeAnalysisStatusParams,
   GetTasmeeSessionParams,
@@ -27,18 +26,16 @@ export type {
   TasmeeSession,
   TasmeeSessionResponse,
   TasmeeSessionStatus,
-  TasmeeVerificationApplication,
-  TasmeeVerificationDecision,
-  TasmeeVerificationLevel,
+  TasmeeHifzReviewApplication,
+  TasmeeHifzReviewApplicationDecision,
 } from '@/modules/tasmee/api/contracts'
 
 export {
   getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
-  useApplyTasmeeVerificationMutation,
+  useApplyTasmeeReviewResultMutation,
   useCreateTasmeeSessionMutation,
-  useEvaluateTasmeeVerificationMutation,
   useFinalizeTasmeeReviewMutation,
   useReviewTasmeeIssueMutation,
   useStartTasmeeAnalysisMutation,
