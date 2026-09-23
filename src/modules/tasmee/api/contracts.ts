@@ -1,3 +1,9 @@
+import type {
+  HifzDailyAssignment,
+  HifzDailyTaskState,
+  HifzSurahProgress,
+} from '@/modules/quran/api/contracts'
+
 export type TasmeeSessionStatus =
   | 'created'
   | 'recording'
@@ -124,6 +130,11 @@ export interface TasmeeSession {
   verification_reason: string | null
   verification_confidence: number | null
   verification_evaluated_at: string | null
+  verification_application_version: string | null
+  verification_applied: boolean
+  verification_applied_decision: Exclude<TasmeeVerificationDecision, 'pending'> | null
+  verification_hifz_changed: boolean
+  verification_applied_at: string | null
   ayah_results: TasmeeAyahResult[]
   issues: TasmeeIssue[]
 }
@@ -144,6 +155,31 @@ export type StartTasmeeAnalysisParams = {
 
 export type EvaluateTasmeeVerificationParams = {
   session_name: string
+}
+
+export type ApplyTasmeeVerificationParams = {
+  session_name: string
+}
+
+export interface TasmeeVerificationApplication {
+  decision: Exclude<TasmeeVerificationDecision, 'pending'>
+  changed: boolean
+  affected_ayahs: number[]
+}
+
+export interface TasmeeAppliedDailyPlan {
+  date: string
+  task_state: HifzDailyTaskState
+  assignment: HifzDailyAssignment | null
+  progress: HifzSurahProgress | null
+}
+
+export interface ApplyTasmeeVerificationResponse {
+  ok: true
+  status: TasmeeSessionStatus
+  session: TasmeeSession
+  application: TasmeeVerificationApplication
+  daily_plan: TasmeeAppliedDailyPlan
 }
 
 export interface TasmeeSessionResponse {
