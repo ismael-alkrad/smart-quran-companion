@@ -707,6 +707,32 @@ async function startAnalysis() {
 
     applyServerSessionState(response.session)
   } catch (cause) {
+    try {
+      const status = await getTasmeeAnalysisStatus(sessionName)
+
+      analysisErrorCode.value = status.analysis_error_code ?? ''
+      analysisErrorMessage.value = status.analysis_error_message ?? ''
+
+      if (status.status === 'analyzing') {
+        state.value = 'analyzing'
+        scheduleAnalysisPolling()
+        return
+      }
+
+      if (
+        status.status === 'report_ready'
+        || status.status === 'analysis_pending'
+        || status.status === 'failed'
+      ) {
+        const response = await getTasmeeSession(sessionName)
+        applyServerSessionState(response.session)
+        return
+      }
+    } catch {
+      // Fall through to the original start-analysis error only when
+      // the lightweight status endpoint cannot recover the session.
+    }
+
     stopAnalysisPolling()
     analysisErrorMessage.value = cause instanceof Error
       ? cause.message
