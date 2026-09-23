@@ -17,7 +17,9 @@ import {
   useApplyTasmeeVerificationMutation,
   useCreateTasmeeSessionMutation,
   useEvaluateTasmeeVerificationMutation,
+  useReviewTasmeeIssueMutation,
   useStartTasmeeAnalysisMutation,
+  type TasmeeIssueReviewState,
   type TasmeeSession,
 } from '@/modules/tasmee/api'
 import TasmeeIssueRow from '@/modules/tasmee/components/TasmeeIssueRow.vue'
@@ -58,6 +60,7 @@ const router = useRouter()
 const applyVerificationCall = useApplyTasmeeVerificationMutation()
 const createSessionCall = useCreateTasmeeSessionMutation()
 const evaluateVerificationCall = useEvaluateTasmeeVerificationMutation()
+const reviewIssueCall = useReviewTasmeeIssueMutation()
 const startAnalysisCall = useStartTasmeeAnalysisMutation()
 const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
@@ -70,6 +73,8 @@ const analysisErrorMessage = ref('')
 const verificationEvaluationPending = ref(false)
 const verificationApplyPending = ref(false)
 const verificationApplyError = ref('')
+const reviewPendingIssueId = ref<string | null>(null)
+const reviewErrors = ref<Record<string, string>>({})
 
 const ANALYSIS_POLL_INTERVAL_MS = 5000
 const ANALYSIS_POLL_RETRY_MS = 15000
@@ -147,9 +152,23 @@ const verificationBadgeLabel = computed(() => {
   const level = serverSession.value?.verification_level
 
   if (level === 'human_verified') return 'تم التحقق بشريًا'
-  if (level === 'ai_high_confidence') return 'تحليل آلي عالي الثقة'
-  if (level === 'ai_analyzed') return 'تم التحليل بالذكاء الاصطناعي'
+  if (level === 'ai_high_confidence') return 'تحليل آلي بانتظار المراجعة'
+  if (level === 'ai_analyzed') return 'تحليل آلي للمراجعة'
   return 'تحقق ذاتي'
+})
+
+const issueReviewSummaryBody = computed(() => {
+  const summary = serverSession.value?.issue_review_summary
+
+  if (!summary || summary.reviewable === 0) {
+    return ''
+  }
+
+  if (summary.pending > 0) {
+    return `راجع ${toArabicNumber(summary.pending)} من الملاحظات المحتملة وحدد ما إذا كان الخطأ حدث فعلًا أثناء قراءتك. اختيارك يُحفظ كمراجعة منفصلة ولا يغيّر دليل التحليل الأصلي.`
+  }
+
+  return `اكتملت مراجعتك: ${toArabicNumber(summary.confirmed)} مؤكدة، و${toArabicNumber(summary.dismissed)} قراءتها صحيحة.`
 })
 
 const verificationPolicyBody = computed(() => {
@@ -273,8 +292,8 @@ function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
     )
 
     return result.audio_issue_count > 0
-      ? `رُصدت ${memorizationCount} ملاحظات حفظ مرجّحة، مع ${toArabicNumber(result.audio_issue_count)} مواضع صوتية غير مؤكدة`
-      : `رُصدت ${memorizationCount} ملاحظات حفظ مرجّحة وتبقى خاضعة لسياسة التحقق`
+      ? `رُصدت ${memorizationCount} ملاحظات حفظ محتملة، مع ${toArabicNumber(result.audio_issue_count)} مواضع صوتية غير مؤكدة`
+      : `رُصدت ${memorizationCount} ملاحظات حفظ محتملة وتحتاج مراجعتك`
   }
 
   if (result.outcome === 'audio_uncertain') {
@@ -375,6 +394,49 @@ function scheduleAnalysisPolling(
   analysisPollTimer = window.setTimeout(() => {
     void pollAnalysis()
   }, delayMs)
+}
+
+async function reviewIssue(
+  issueId: string,
+  reviewState: Extract<TasmeeIssueReviewState, 'confirmed' | 'dismissed'>,
+) {
+  const session = serverSession.value
+
+  if (
+    !session
+    || reviewPendingIssueId.value
+  ) {
+    return
+  }
+
+  reviewPendingIssueId.value = issueId
+
+  const nextErrors = {
+    ...reviewErrors.value,
+  }
+  delete nextErrors[issueId]
+  reviewErrors.value = nextErrors
+
+  try {
+    const response = await reviewIssueCall.submit({
+      session_name: session.name,
+      issue_id: issueId,
+      state: reviewState,
+    })
+
+    if (response?.session) {
+      serverSession.value = response.session
+    }
+  } catch (cause) {
+    reviewErrors.value = {
+      ...reviewErrors.value,
+      [issueId]: cause instanceof Error
+        ? cause.message
+        : 'تعذر حفظ مراجعتك لهذه الملاحظة.',
+    }
+  } finally {
+    reviewPendingIssueId.value = null
+  }
 }
 
 async function applyVerificationDecision(
@@ -1054,6 +1116,13 @@ onBeforeUnmount(() => {
         />
 
         <BaseBanner
+          v-if="serverSession.issue_review_summary.reviewable > 0"
+          tone="info"
+          title="راجع الملاحظات المحتملة"
+          :body="issueReviewSummaryBody"
+        />
+
+        <BaseBanner
           v-if="serverSession.verification_applied && serverSession.verification_hifz_changed"
           :tone="serverSession.verification_applied_decision === 'needs_review' ? 'warning' : 'info'"
           title="تم تطبيق قرار التحقق"
@@ -1096,9 +1165,12 @@ onBeforeUnmount(() => {
             </article>
 
             <TasmeeIssueRow
-              v-for="(issue, issueIndex) in issuesForAyah(result.ayah_number)"
-              :key="`${result.ayah_number}-${issue.word_location ?? issueIndex}-${issue.issue_type}`"
+              v-for="issue in issuesForAyah(result.ayah_number)"
+              :key="issue.issue_id"
               :issue="issue"
+              :reviewing="reviewPendingIssueId === issue.issue_id"
+              :review-error="reviewErrors[issue.issue_id] ?? ''"
+              @review="reviewIssue(issue.issue_id, $event)"
             />
           </div>
         </section>
