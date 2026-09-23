@@ -238,15 +238,76 @@ function issuesForAyah(ayahNumber: number) {
   ) ?? []
 }
 
-function ayahOutcomeLabel(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
-  if (outcome === 'correct') return 'لم تُرصد ملاحظة حفظ'
-  if (outcome === 'incorrect') return 'ملاحظة حفظ محتملة'
-  if (outcome === 'audio_uncertain') return 'الصوت غير واضح'
-  if (outcome === 'needs_attention') return 'ملاحظة تحتاج انتباه'
+type TasmeeAyahResult = TasmeeSession['ayah_results'][number]
+
+function verifiedIssuesForAyah(ayahNumber: number) {
+  return verifiedResult.value?.issues.filter(
+    issue => issue.ayah_number === ayahNumber,
+  ) ?? []
+}
+
+function ayahReviewCounts(ayahNumber: number) {
+  const issues = verifiedIssuesForAyah(ayahNumber)
+
+  return {
+    reviewable: issues.length,
+    pending: issues.filter(issue => issue.resolution === 'pending').length,
+    confirmed: issues.filter(
+      issue => issue.resolution === 'confirmed_mistake',
+    ).length,
+    dismissed: issues.filter(
+      issue => issue.resolution === 'dismissed',
+    ).length,
+  }
+}
+
+function ayahOutcomeLabel(result: TasmeeAyahResult) {
+  const review = ayahReviewCounts(result.ayah_number)
+
+  if (review.pending > 0) {
+    return review.confirmed > 0
+      ? 'مراجعة غير مكتملة'
+      : 'ملاحظات بانتظار مراجعتك'
+  }
+
+  if (review.confirmed > 0) {
+    return 'خطأ أكدته بالمراجعة'
+  }
+
+  if (review.reviewable > 0) {
+    return 'لم تؤكد أي خطأ'
+  }
+
+  if (result.outcome === 'correct') return 'لم تُرصد ملاحظة حفظ'
+  if (result.outcome === 'incorrect') return 'ملاحظة تحليل غير مؤكدة'
+  if (result.outcome === 'audio_uncertain') return 'الصوت غير واضح'
+  if (result.outcome === 'needs_attention') return 'ملاحظة تحتاج انتباه'
   return 'غير مقيمة'
 }
 
-function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
+function ayahOutcomeMeta(result: TasmeeAyahResult) {
+  const review = ayahReviewCounts(result.ayah_number)
+
+  if (review.pending > 0) {
+    if (review.confirmed > 0) {
+      return `أكدت ${toArabicNumber(review.confirmed)} من الملاحظات، وبقيت ${toArabicNumber(review.pending)} بانتظار مراجعتك. لا تُعامل الملاحظات المعلقة كأخطاء مؤكدة.`
+    }
+
+    return `بقيت ${toArabicNumber(review.pending)} من الملاحظات المحتملة بانتظار مراجعتك. لا تُحتسب كأخطاء مؤكدة قبل تأكيدك.`
+  }
+
+  if (review.confirmed > 0) {
+    const dismissed = review.dismissed > 0
+      ? `، واستبعدت ${toArabicNumber(review.dismissed)}`
+      : ''
+
+    return `أكدت ${toArabicNumber(review.confirmed)} من ملاحظات التحليل في هذه الآية${dismissed}. لا يغيّر ذلك حالة الحفظ تلقائيًا.`
+  }
+
+  if (review.reviewable > 0) {
+    return `راجعت ${toArabicNumber(review.reviewable)} من الملاحظات المحتملة ولم تؤكد أيًّا منها. هذا لا يُعد اعتمادًا للحفظ.`
+  }
+
   if (result.outcome === 'correct') {
     return 'لم يرصد التحليل ملاحظة حفظ في هذه الآية · لا يعني ذلك اعتماد الحفظ'
   }
@@ -257,8 +318,8 @@ function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
     )
 
     return result.audio_issue_count > 0
-      ? `رُصدت ${memorizationCount} ملاحظات حفظ محتملة، مع ${toArabicNumber(result.audio_issue_count)} مواضع صوتية غير مؤكدة`
-      : `رُصدت ${memorizationCount} ملاحظات حفظ محتملة وتحتاج مراجعتك`
+      ? `رصد التحليل ${memorizationCount} ملاحظات محتملة، مع ${toArabicNumber(result.audio_issue_count)} مواضع صوتية غير مؤكدة · لا تُعد نتيجة مؤكدة`
+      : `رصد التحليل ${memorizationCount} ملاحظات محتملة · لا تُعد أخطاء مؤكدة دون مراجعة`
   }
 
   if (result.outcome === 'audio_uncertain') {
@@ -274,22 +335,31 @@ function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
   return 'لم يكتمل تقييم هذه الآية'
 }
 
-function ayahOutcomeClasses(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
-  if (outcome === 'correct') {
+function ayahOutcomeClasses(result: TasmeeAyahResult) {
+  const review = ayahReviewCounts(result.ayah_number)
+
+  if (review.pending > 0) {
     return [
-      'bg-[var(--sqc-color-toast-success-background,#f0f8f6)]',
-      'text-[color:var(--sqc-color-status-success,#237a63)]',
+      'bg-[var(--sqc-color-potentialissue-hesitation-background,#fffbeb)]',
+      'text-[color:var(--sqc-color-potentialissue-hesitation-foreground,#92400e)]',
     ]
   }
 
-  if (outcome === 'incorrect') {
+  if (review.confirmed > 0) {
     return [
       'bg-[var(--sqc-color-potentialissue-substitution-background,#fef2f2)]',
       'text-[color:var(--sqc-color-potentialissue-substitution-foreground,#b91c1c)]',
     ]
   }
 
-  if (outcome === 'audio_uncertain') {
+  if (review.reviewable > 0 || result.outcome === 'correct') {
+    return [
+      'bg-[var(--sqc-color-toast-success-background,#f0f8f6)]',
+      'text-[color:var(--sqc-color-status-success,#237a63)]',
+    ]
+  }
+
+  if (result.outcome === 'audio_uncertain') {
     return [
       'bg-[var(--sqc-color-potentialissue-audiounclear-background,#eff6ff)]',
       'text-[color:var(--sqc-color-potentialissue-audiounclear-foreground,#1d4ed8)]',
@@ -1018,10 +1088,10 @@ onBeforeUnmount(() => {
           >
             <article
               class="w-full rounded-[var(--sqc-dimension-radius-12)] px-[12px] py-[10px] text-right"
-              :class="ayahOutcomeClasses(result.outcome)"
+              :class="ayahOutcomeClasses(result)"
             >
               <h3 class="text-[14px] font-semibold leading-[22px]">
-                الآية {{ toArabicNumber(result.ayah_number) }} · {{ ayahOutcomeLabel(result.outcome) }}
+                الآية {{ toArabicNumber(result.ayah_number) }} · {{ ayahOutcomeLabel(result) }}
               </h3>
               <p class="mt-[4px] text-[12px] font-normal leading-[20px]">
                 {{ ayahOutcomeMeta(result) }}
