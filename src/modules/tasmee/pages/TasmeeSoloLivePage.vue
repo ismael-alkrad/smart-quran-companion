@@ -12,6 +12,7 @@ import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue
 import TasmeeVerificationBadge from '@/modules/tasmee/components/TasmeeVerificationBadge.vue'
 import TasmeeWaveform from '@/modules/tasmee/components/TasmeeWaveform.vue'
 import { useTasmeeDailyAssignment } from '@/modules/tasmee/composables/useTasmeeDailyAssignment'
+import { requestTasmeeMicrophone } from '@/modules/tasmee/lib/tasmeeAudioCapture'
 import {
   saveTasmeeRecording,
 } from '@/modules/tasmee/repositories/tasmeeRecording.repository'
@@ -258,14 +259,7 @@ async function startLiveSession() {
   }
 
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-      video: false,
-    })
+    mediaStream = await requestTasmeeMicrophone()
 
     audioContext = new AudioContext()
 
