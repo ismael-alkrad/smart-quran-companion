@@ -72,6 +72,27 @@ export type TasmeeIssueSeverity =
   | 'attention'
   | 'error'
 
+export interface TasmeeAnalysisTimings {
+  queue_wait_ms?: number
+  upload_save_ms?: number
+  audio_normalize_ms?: number
+  audio_read_ms?: number
+  audio_decode_ms?: number
+  model_load_ms?: number
+  asr_inference_ms?: number
+  asr_service_total_ms?: number
+  asr_http_roundtrip_ms?: number
+  transcription_stage_ms?: number
+  quran_reference_ms?: number
+  alignment_compute_ms?: number
+  alignment_stage_ms?: number
+  classification_ms?: number
+  verification_ms?: number
+  analysis_job_ms?: number
+  analysis_end_to_end_ms?: number
+  real_time_factor?: number
+}
+
 export interface TasmeeAyahResult {
   ayah_number: number
   outcome: TasmeeAyahOutcome
@@ -118,6 +139,7 @@ export interface TasmeeSession {
   analysis_stage: TasmeeAnalysisStage
   analysis_transcript: string | null
   analysis_reference_source: string | null
+  analysis_timings: TasmeeAnalysisTimings | null
   analysis_completed_at: string | null
   analysis_error_code: string | null
   analysis_error_message: string | null
