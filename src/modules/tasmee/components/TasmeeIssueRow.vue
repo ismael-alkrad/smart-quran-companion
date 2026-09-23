@@ -50,9 +50,21 @@ const meta = computed(() => {
     return 'ملاحظة طلاقة · تحتاج انتباه · لا تعني خطأ حفظ'
   }
 
-  return props.issue.reviewable
-    ? 'ملاحظة حفظ محتملة · تحتاج تأكيدك قبل أن تُستخدم كنتيجة موثوقة'
-    : 'ملاحظة حفظ غير مؤكدة · لا تُحتسب تلقائيًا'
+  if (!props.issue.reviewable) {
+    return 'ملاحظة حفظ غير مؤكدة · لا تُحتسب تلقائيًا'
+  }
+
+  const state = props.issue.review?.state ?? 'pending'
+
+  if (state === 'confirmed') {
+    return 'ملاحظة من التحليل · أكدت أنت أنها حدثت أثناء التسميع'
+  }
+
+  if (state === 'dismissed') {
+    return 'ملاحظة من التحليل · استبعدتها أنت بعد المراجعة'
+  }
+
+  return 'ملاحظة حفظ محتملة · بانتظار تأكيدك'
 })
 
 const comparison = computed(() => {
