@@ -13,6 +13,7 @@ import TasmeeAudioQuality, {
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import TasmeeWaveform from '@/modules/tasmee/components/TasmeeWaveform.vue'
 import { useTasmeeDailyAssignment } from '@/modules/tasmee/composables/useTasmeeDailyAssignment'
+import { requestTasmeeMicrophone } from '@/modules/tasmee/lib/tasmeeAudioCapture'
 import {
   BaseAppBar,
   BaseBanner,
@@ -124,14 +125,7 @@ async function runMicCheck() {
   const currentRun = ++runId
 
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-      video: false,
-    })
+    const stream = await requestTasmeeMicrophone()
 
     if (currentRun !== runId) {
       stream.getTracks().forEach(track => track.stop())
