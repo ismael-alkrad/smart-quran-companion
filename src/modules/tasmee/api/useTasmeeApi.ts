@@ -8,7 +8,6 @@ import type {
   ApplyTasmeeVerificationResponse,
   CreateTasmeeSessionParams,
   EvaluateTasmeeVerificationParams,
-  GetTasmeeAnalysisStatusParams,
   GetTasmeeSessionParams,
   StartTasmeeAnalysisParams,
   TasmeeAnalysisStatusResponse,
