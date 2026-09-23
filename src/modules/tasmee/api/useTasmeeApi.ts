@@ -5,6 +5,7 @@ import {
 } from '@/shared/api'
 import type {
   CreateTasmeeSessionParams,
+  EvaluateTasmeeVerificationParams,
   GetTasmeeSessionParams,
   StartTasmeeAnalysisParams,
   TasmeeSessionResponse,
@@ -16,6 +17,7 @@ const TASMEE_QUERY_METHODS = {
 
 const TASMEE_MUTATION_METHODS = {
   createSession: 'tasmee.create_session',
+  evaluateVerification: 'tasmee.evaluate_verification',
   startAnalysis: 'tasmee.start_analysis',
   uploadRecording: 'tasmee.upload_recording',
 } as const
@@ -25,6 +27,16 @@ export function useCreateTasmeeSessionMutation() {
     TasmeeSessionResponse,
     CreateTasmeeSessionParams
   >(TASMEE_MUTATION_METHODS.createSession, {
+    method: 'POST',
+    immediate: false,
+  })
+}
+
+export function useEvaluateTasmeeVerificationMutation() {
+  return useSmartQuranCall<
+    TasmeeSessionResponse,
+    EvaluateTasmeeVerificationParams
+  >(TASMEE_MUTATION_METHODS.evaluateVerification, {
     method: 'POST',
     immediate: false,
   })
