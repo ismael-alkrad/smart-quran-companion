@@ -8,12 +8,15 @@ import type {
   ApplyTasmeeVerificationResponse,
   CreateTasmeeSessionParams,
   EvaluateTasmeeVerificationParams,
+  GetTasmeeAnalysisStatusParams,
   GetTasmeeSessionParams,
   StartTasmeeAnalysisParams,
+  TasmeeAnalysisStatusResponse,
   TasmeeSessionResponse,
 } from '@/modules/tasmee/api/contracts'
 
 const TASMEE_QUERY_METHODS = {
+  analysisStatus: 'tasmee.get_analysis_status',
   session: 'tasmee.get_session',
 } as const
 
@@ -63,6 +66,15 @@ export function useStartTasmeeAnalysisMutation() {
     method: 'POST',
     immediate: false,
   })
+}
+
+export async function getTasmeeAnalysisStatus(sessionName: string) {
+  return await getSmartQuranMethod<TasmeeAnalysisStatusResponse>(
+    TASMEE_QUERY_METHODS.analysisStatus,
+    {
+      session_name: sessionName,
+    },
+  )
 }
 
 export async function getTasmeeSession(sessionName: string) {
