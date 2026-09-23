@@ -8,6 +8,7 @@ import type {
   ApplyTasmeeVerificationResponse,
   CreateTasmeeSessionParams,
   EvaluateTasmeeVerificationParams,
+  FinalizeTasmeeReviewParams,
   GetTasmeeSessionParams,
   ReviewTasmeeIssueParams,
   ReviewTasmeeIssueResponse,
@@ -25,6 +26,7 @@ const TASMEE_MUTATION_METHODS = {
   applyVerification: 'tasmee.apply_verification',
   createSession: 'tasmee.create_session',
   evaluateVerification: 'tasmee.evaluate_verification',
+  finalizeReview: 'tasmee.finalize_review',
   reviewIssue: 'tasmee.review_issue',
   startAnalysis: 'tasmee.start_analysis',
   uploadRecording: 'tasmee.upload_recording',
@@ -65,6 +67,16 @@ export function useReviewTasmeeIssueMutation() {
     ReviewTasmeeIssueResponse,
     ReviewTasmeeIssueParams
   >(TASMEE_MUTATION_METHODS.reviewIssue, {
+    method: 'POST',
+    immediate: false,
+  })
+}
+
+export function useFinalizeTasmeeReviewMutation() {
+  return useSmartQuranCall<
+    TasmeeSessionResponse,
+    FinalizeTasmeeReviewParams
+  >(TASMEE_MUTATION_METHODS.finalizeReview, {
     method: 'POST',
     immediate: false,
   })
