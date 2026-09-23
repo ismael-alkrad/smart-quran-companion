@@ -4,9 +4,13 @@ import {
   ref,
   watch,
 } from 'vue'
-import { useRouter } from 'vue-router'
+import {
+  useRoute,
+  useRouter,
+} from 'vue-router'
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
+import { getTasmeeSession } from '@/modules/tasmee/api'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import { useTasmeeDailyAssignment } from '@/modules/tasmee/composables/useTasmeeDailyAssignment'
 import {
@@ -20,6 +24,7 @@ import {
   BaseSearch,
 } from '@/shared/components'
 
+const route = useRoute()
 const router = useRouter()
 const checkingResume = ref(false)
 const resumeCheckedFor = ref('')
@@ -67,11 +72,33 @@ async function resumeStoredSession(assignmentName: string) {
   resumeCheckedFor.value = assignmentName
 
   try {
+    if (route.query.fresh) {
+      return
+    }
+
     const stored = await getLatestTasmeeRecordingForAssignment(
       assignmentName,
     )
 
     if (!stored) return
+
+    if (stored.serverSessionName) {
+      try {
+        const response = await getTasmeeSession(
+          stored.serverSessionName,
+        )
+
+        if (
+          response.session.status === 'report_ready'
+          || response.session.status === 'cancelled'
+        ) {
+          return
+        }
+      } catch {
+        // If the server session cannot be resolved, keep the local
+        // recovery behavior and let the session page handle it.
+      }
+    }
 
     await router.replace({
       name: 'tasmee-solo-session',
