@@ -533,6 +533,29 @@ async function loadRecording() {
         applyServerSessionState(response.session)
         return
       } catch {
+        try {
+          const status = await getTasmeeAnalysisStatus(
+            stored.serverSessionName,
+          )
+
+          analysisErrorCode.value = status.analysis_error_code ?? ''
+          analysisErrorMessage.value = status.analysis_error_message ?? ''
+
+          if (
+            status.status === 'analyzing'
+            || status.status === 'report_ready'
+            || status.status === 'analysis_pending'
+            || status.status === 'failed'
+          ) {
+            state.value = 'analyzing'
+            scheduleAnalysisPolling(ANALYSIS_POLL_RETRY_MS)
+            return
+          }
+        } catch {
+          // Fall back to the uploaded state only when neither status
+          // endpoint is currently reachable.
+        }
+
         state.value = 'uploaded'
         return
       }
