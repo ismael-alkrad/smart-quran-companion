@@ -4,6 +4,8 @@ import {
   useSmartQuranCall,
 } from '@/shared/api'
 import type {
+  ApplyTasmeeVerificationParams,
+  ApplyTasmeeVerificationResponse,
   CreateTasmeeSessionParams,
   EvaluateTasmeeVerificationParams,
   GetTasmeeSessionParams,
@@ -16,6 +18,7 @@ const TASMEE_QUERY_METHODS = {
 } as const
 
 const TASMEE_MUTATION_METHODS = {
+  applyVerification: 'tasmee.apply_verification',
   createSession: 'tasmee.create_session',
   evaluateVerification: 'tasmee.evaluate_verification',
   startAnalysis: 'tasmee.start_analysis',
@@ -27,6 +30,16 @@ export function useCreateTasmeeSessionMutation() {
     TasmeeSessionResponse,
     CreateTasmeeSessionParams
   >(TASMEE_MUTATION_METHODS.createSession, {
+    method: 'POST',
+    immediate: false,
+  })
+}
+
+export function useApplyTasmeeVerificationMutation() {
+  return useSmartQuranCall<
+    ApplyTasmeeVerificationResponse,
+    ApplyTasmeeVerificationParams
+  >(TASMEE_MUTATION_METHODS.applyVerification, {
     method: 'POST',
     immediate: false,
   })
