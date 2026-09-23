@@ -171,6 +171,10 @@ export type GetTasmeeSessionParams = {
   session_name: string
 }
 
+export type GetTasmeeAnalysisStatusParams = {
+  session_name: string
+}
+
 export type StartTasmeeAnalysisParams = {
   session_name: string
 }
@@ -202,6 +206,15 @@ export interface ApplyTasmeeVerificationResponse {
   session: TasmeeSession
   application: TasmeeVerificationApplication
   daily_plan: TasmeeAppliedDailyPlan
+}
+
+export interface TasmeeAnalysisStatusResponse {
+  ok: true
+  status: TasmeeSessionStatus
+  analysis_stage: TasmeeAnalysisStage
+  analysis_error_code: string | null
+  analysis_error_message: string | null
+  analysis_completed_at: string | null
 }
 
 export interface TasmeeSessionResponse {
