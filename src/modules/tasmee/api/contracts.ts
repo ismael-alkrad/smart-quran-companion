@@ -72,6 +72,30 @@ export type TasmeeIssueSeverity =
   | 'attention'
   | 'error'
 
+export type TasmeeIssueReviewState =
+  | 'pending'
+  | 'confirmed'
+  | 'dismissed'
+
+export type TasmeeIssueReviewerType =
+  | 'self'
+  | 'human'
+
+export interface TasmeeIssueReview {
+  name: string | null
+  state: TasmeeIssueReviewState
+  reviewer_type: TasmeeIssueReviewerType | null
+  reviewer: string | null
+  reviewed_at: string | null
+}
+
+export interface TasmeeIssueReviewSummary {
+  reviewable: number
+  pending: number
+  confirmed: number
+  dismissed: number
+}
+
 export interface TasmeeAnalysisTimings {
   queue_wait_ms?: number
   upload_save_ms?: number
@@ -103,6 +127,7 @@ export interface TasmeeAyahResult {
 }
 
 export interface TasmeeIssue {
+  issue_id: string
   ayah_number: number
   word_position: number | null
   verse_key: string | null
@@ -111,10 +136,12 @@ export interface TasmeeIssue {
   issue_type: TasmeeIssueType
   severity: TasmeeIssueSeverity
   counts_against_hifz: boolean
+  reviewable: boolean
   confidence: number | null
   acoustic_confidence: number | null
   expected_text: string | null
   observed_text: string | null
+  review: TasmeeIssueReview | null
 }
 
 export interface TasmeeSession {
@@ -126,6 +153,7 @@ export interface TasmeeSession {
   status: TasmeeSessionStatus
   verification_level: TasmeeVerificationLevel
   ai_hifz_updates_enabled: boolean
+  issue_review_summary: TasmeeIssueReviewSummary
   surah_number: number
   start_ayah: number
   end_ayah: number
@@ -185,6 +213,12 @@ export type EvaluateTasmeeVerificationParams = {
   session_name: string
 }
 
+export type ReviewTasmeeIssueParams = {
+  session_name: string
+  issue_id: string
+  state: TasmeeIssueReviewState
+}
+
 export type ApplyTasmeeVerificationParams = {
   session_name: string
 }
@@ -222,5 +256,12 @@ export interface TasmeeAnalysisStatusResponse {
 export interface TasmeeSessionResponse {
   ok: true
   status: TasmeeSessionStatus
+  session: TasmeeSession
+}
+
+export interface ReviewTasmeeIssueResponse {
+  ok: true
+  status: TasmeeSessionStatus
+  review: TasmeeIssueReview
   session: TasmeeSession
 }
