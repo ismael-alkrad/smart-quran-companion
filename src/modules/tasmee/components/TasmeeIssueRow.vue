@@ -12,9 +12,11 @@ const props = withDefaults(defineProps<{
   issue: TasmeeIssue
   reviewing?: boolean
   reviewError?: string
+  locked?: boolean
 }>(), {
   reviewing: false,
   reviewError: '',
+  locked: false,
 })
 
 const emit = defineEmits<{
@@ -92,14 +94,20 @@ const reviewState = computed(
 
 const reviewStatusText = computed(() => {
   if (reviewState.value === 'confirmed') {
-    return 'أكدت أن هذه الملاحظة تمثل خطأً في القراءة.'
+    return props.locked
+      ? 'تم تثبيت مراجعتك: أكدت أن هذا الخطأ حدث أثناء التسميع.'
+      : 'أكدت أن هذه الملاحظة تمثل خطأً في القراءة.'
   }
 
   if (reviewState.value === 'dismissed') {
-    return 'أكدت أن قراءتك كانت صحيحة في هذا الموضع.'
+    return props.locked
+      ? 'تم تثبيت مراجعتك: استبعدت هذه الملاحظة بعد المراجعة.'
+      : 'أكدت أن قراءتك كانت صحيحة في هذا الموضع.'
   }
 
-  return 'هل حدث هذا الخطأ فعلًا أثناء التسميع؟'
+  return props.locked
+    ? 'تم تثبيت المراجعة.'
+    : 'هل حدث هذا الخطأ فعلًا أثناء التسميع؟'
 })
 
 function reviewButtonClasses(
@@ -158,7 +166,10 @@ function reviewButtonClasses(
         {{ reviewStatusText }}
       </p>
 
-      <div class="grid grid-cols-2 gap-[8px]">
+      <div
+        v-if="!locked"
+        class="grid grid-cols-2 gap-[8px]"
+      >
         <button
           type="button"
           class="min-h-[42px] rounded-[var(--sqc-dimension-radius-10,10px)] border px-[10px] text-[12px] font-semibold leading-[18px] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
