@@ -13,6 +13,7 @@ import {
 import {
   getTasmeeSession,
   uploadTasmeeRecording,
+  useApplyTasmeeVerificationMutation,
   useCreateTasmeeSessionMutation,
   useEvaluateTasmeeVerificationMutation,
   useStartTasmeeAnalysisMutation,
@@ -53,6 +54,7 @@ type PostRecordingState =
 
 const route = useRoute()
 const router = useRouter()
+const applyVerificationCall = useApplyTasmeeVerificationMutation()
 const createSessionCall = useCreateTasmeeSessionMutation()
 const evaluateVerificationCall = useEvaluateTasmeeVerificationMutation()
 const startAnalysisCall = useStartTasmeeAnalysisMutation()
@@ -65,6 +67,8 @@ const uploadError = ref('')
 const analysisErrorCode = ref('')
 const analysisErrorMessage = ref('')
 const verificationEvaluationPending = ref(false)
+const verificationApplyPending = ref(false)
+const verificationApplyError = ref('')
 
 let analysisPollTimer = 0
 
@@ -176,6 +180,41 @@ const verificationPolicyBody = computed(() => {
   }
 
   return 'التقرير صالح للعرض، لكنه لم يحقق شروط السياسة اللازمة لتغيير حالة الحفظ.'
+})
+
+const canApplyVerification = computed(() => {
+  const session = serverSession.value
+
+  return Boolean(
+    session
+    && !session.verification_applied
+    && (
+      session.verification_decision === 'approve'
+      || session.verification_decision === 'needs_review'
+    ),
+  )
+})
+
+const verificationApplyLabel = computed(() => (
+  serverSession.value?.verification_decision === 'approve'
+    ? 'اعتماد نتيجة التسميع'
+    : 'إرسال الآيات للمراجعة'
+))
+
+const verificationAppliedBody = computed(() => {
+  const session = serverSession.value
+
+  if (!session?.verification_applied) return ''
+
+  if (session.verification_applied_decision === 'approve') {
+    return 'تم اعتماد آيات المهمة وتحديث مهمة الحفظ إلى مكتملة.'
+  }
+
+  if (session.verification_applied_decision === 'needs_review') {
+    return 'تم تحديث الآيات المتأثرة إلى تحتاج مراجعة، وبقيت مهمة الحفظ نشطة.'
+  }
+
+  return 'تم تثبيت قرار عدم التغيير، ولم تتغير حالة الحفظ.'
 })
 
 function issuesForAyah(ayahNumber: number) {
@@ -308,29 +347,76 @@ function scheduleAnalysisPolling() {
   }, 1200)
 }
 
-async function evaluatePendingVerification(session: TasmeeSession) {
+async function applyVerificationDecision(
+  session: TasmeeSession,
+  silent = false,
+) {
   if (
-    session.status !== 'report_ready'
-    || session.verification_decision !== 'pending'
-    || verificationEvaluationPending.value
+    session.verification_applied
+    || verificationApplyPending.value
   ) {
     return
   }
 
-  verificationEvaluationPending.value = true
+  verificationApplyPending.value = true
+
+  if (!silent) {
+    verificationApplyError.value = ''
+  }
 
   try {
-    const response = await evaluateVerificationCall.submit({
+    const response = await applyVerificationCall.submit({
       session_name: session.name,
     })
 
     if (response?.session) {
       serverSession.value = response.session
     }
-  } catch {
-    // Keep the report usable even if verification evaluation is temporarily unavailable.
+  } catch (cause) {
+    if (!silent) {
+      verificationApplyError.value = cause instanceof Error
+        ? cause.message
+        : 'تعذر تطبيق قرار التحقق على حالة الحفظ.'
+    }
   } finally {
-    verificationEvaluationPending.value = false
+    verificationApplyPending.value = false
+  }
+}
+
+async function syncVerificationState(session: TasmeeSession) {
+  if (
+    session.status !== 'report_ready'
+    || verificationEvaluationPending.value
+  ) {
+    return
+  }
+
+  let current = session
+
+  if (current.verification_decision === 'pending') {
+    verificationEvaluationPending.value = true
+
+    try {
+      const response = await evaluateVerificationCall.submit({
+        session_name: current.name,
+      })
+
+      if (response?.session) {
+        current = response.session
+        serverSession.value = current
+      }
+    } catch {
+      return
+    } finally {
+      verificationEvaluationPending.value = false
+    }
+  }
+
+  if (
+    current.verification_decision === 'no_change'
+    && !current.verification_applied
+  ) {
+    await applyVerificationDecision(current, true)
   }
 }
 
@@ -342,7 +428,7 @@ function applyServerSessionState(session: TasmeeSession) {
   if (session.status === 'report_ready') {
     stopAnalysisPolling()
     state.value = 'report-ready'
-    void evaluatePendingVerification(session)
+    void syncVerificationState(session)
     return
   }
 
@@ -865,6 +951,20 @@ onBeforeUnmount(() => {
           :body="verificationPolicyBody"
         />
 
+        <BaseBanner
+          v-if="serverSession.verification_applied && serverSession.verification_hifz_changed"
+          :tone="serverSession.verification_applied_decision === 'needs_review' ? 'warning' : 'info'"
+          title="تم تطبيق قرار التحقق"
+          :body="verificationAppliedBody"
+        />
+
+        <BaseBanner
+          v-if="verificationApplyError"
+          tone="error"
+          title="تعذر تطبيق قرار التحقق"
+          :body="verificationApplyError"
+        />
+
         <section class="flex w-full flex-col gap-[10px]">
           <h2 class="w-full text-right text-[16px] font-semibold leading-[24px] text-[color:var(--sqc-color-text-primary)]">
             نتائج الآيات
@@ -904,8 +1004,20 @@ onBeforeUnmount(() => {
         <div class="min-h-[8px] flex-1" />
 
         <BaseButton
+          v-if="canApplyVerification"
           size="large"
           variant="primary"
+          class="w-full"
+          :loading="verificationApplyPending"
+          loading-text="جارٍ تطبيق القرار"
+          @click="serverSession && applyVerificationDecision(serverSession)"
+        >
+          {{ verificationApplyLabel }}
+        </BaseButton>
+
+        <BaseButton
+          size="large"
+          :variant="canApplyVerification ? 'secondary' : 'primary'"
           class="w-full"
           @click="returnLater"
         >
