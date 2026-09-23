@@ -11,6 +11,7 @@ import {
 } from 'vue-router'
 
 import {
+  getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
   useApplyTasmeeVerificationMutation,
@@ -69,6 +70,9 @@ const analysisErrorMessage = ref('')
 const verificationEvaluationPending = ref(false)
 const verificationApplyPending = ref(false)
 const verificationApplyError = ref('')
+
+const ANALYSIS_POLL_INTERVAL_MS = 5000
+const ANALYSIS_POLL_RETRY_MS = 15000
 
 let analysisPollTimer = 0
 
@@ -345,7 +349,9 @@ function stopAnalysisPolling() {
   analysisPollTimer = 0
 }
 
-function scheduleAnalysisPolling() {
+function scheduleAnalysisPolling(
+  delayMs = ANALYSIS_POLL_INTERVAL_MS,
+) {
   stopAnalysisPolling()
 
   if (
@@ -357,7 +363,7 @@ function scheduleAnalysisPolling() {
 
   analysisPollTimer = window.setTimeout(() => {
     void pollAnalysis()
-  }, 1200)
+  }, delayMs)
 }
 
 async function applyVerificationDecision(
@@ -483,10 +489,20 @@ async function pollAnalysis() {
   }
 
   try {
+    const status = await getTasmeeAnalysisStatus(sessionName)
+
+    analysisErrorCode.value = status.analysis_error_code ?? ''
+    analysisErrorMessage.value = status.analysis_error_message ?? ''
+
+    if (status.status === 'analyzing') {
+      scheduleAnalysisPolling()
+      return
+    }
+
     const response = await getTasmeeSession(sessionName)
     applyServerSessionState(response.session)
   } catch {
-    scheduleAnalysisPolling()
+    scheduleAnalysisPolling(ANALYSIS_POLL_RETRY_MS)
   }
 }
 
