@@ -14,7 +14,7 @@ import {
   getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
-  useApplyTasmeeVerificationMutation,
+  useApplyTasmeeReviewResultMutation,
   useCreateTasmeeSessionMutation,
   useFinalizeTasmeeReviewMutation,
   useReviewTasmeeIssueMutation,
@@ -57,7 +57,7 @@ type PostRecordingState =
 
 const route = useRoute()
 const router = useRouter()
-const applyVerificationCall = useApplyTasmeeVerificationMutation()
+const applyReviewResultCall = useApplyTasmeeReviewResultMutation()
 const createSessionCall = useCreateTasmeeSessionMutation()
 const finalizeReviewCall = useFinalizeTasmeeReviewMutation()
 const reviewIssueCall = useReviewTasmeeIssueMutation()
@@ -619,7 +619,7 @@ async function applyConfirmedReview() {
   hifzApplyError.value = ''
 
   try {
-    const response = await applyVerificationCall.submit({
+    const response = await applyReviewResultCall.submit({
       session_name: session.name,
     })
 
