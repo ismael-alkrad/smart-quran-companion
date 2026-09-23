@@ -28,17 +28,9 @@ export type TasmeeAnalysisStage =
   | 'complete'
   | 'failed'
 
-export type TasmeeVerificationDecision =
-  | 'pending'
-  | 'approve'
+export type TasmeeHifzReviewApplicationDecision =
   | 'needs_review'
   | 'no_change'
-
-export type TasmeeVerificationLevel =
-  | 'self'
-  | 'ai_analyzed'
-  | 'ai_high_confidence'
-  | 'human_verified'
 
 export type TasmeeAudioQuality =
   | 'unknown'
@@ -130,7 +122,6 @@ export interface TasmeeVerifiedResult {
   review_finalized_by: string | null
   review_finalized_at: string | null
   has_confirmed_mistakes: boolean
-  supports_hifz_approval: boolean
   summary: TasmeeIssueReviewSummary
   confirmed_ayahs: number[]
   unresolved_ayahs: number[]
@@ -152,7 +143,6 @@ export interface TasmeeAnalysisTimings {
   alignment_compute_ms?: number
   alignment_stage_ms?: number
   classification_ms?: number
-  verification_ms?: number
   analysis_job_ms?: number
   analysis_end_to_end_ms?: number
   real_time_factor?: number
@@ -192,8 +182,6 @@ export interface TasmeeSession {
   client_session_id: string
   session_mode: 'solo'
   status: TasmeeSessionStatus
-  verification_level: TasmeeVerificationLevel
-  ai_hifz_updates_enabled: boolean
   self_confirmed_hifz_review_updates_enabled: boolean
   issue_review_summary: TasmeeIssueReviewSummary
   verified_result: TasmeeVerifiedResult
@@ -218,16 +206,9 @@ export interface TasmeeSession {
   analysis_error_message: string | null
   analyzer_version: string | null
   classifier_version: string | null
-  overall_confidence: number | null
-  verification_policy_version: string | null
-  verification_decision: TasmeeVerificationDecision
-  verification_reason_code: string | null
-  verification_reason: string | null
-  verification_confidence: number | null
-  verification_evaluated_at: string | null
   verification_application_version: string | null
   verification_applied: boolean
-  verification_applied_decision: Exclude<TasmeeVerificationDecision, 'pending'> | null
+  verification_applied_decision: TasmeeHifzReviewApplicationDecision | null
   verification_hifz_changed: boolean
   verification_applied_at: string | null
   ayah_results: TasmeeAyahResult[]
@@ -252,10 +233,6 @@ export type StartTasmeeAnalysisParams = {
   session_name: string
 }
 
-export type EvaluateTasmeeVerificationParams = {
-  session_name: string
-}
-
 export type ReviewTasmeeIssueParams = {
   session_name: string
   issue_id: string
@@ -266,12 +243,12 @@ export type FinalizeTasmeeReviewParams = {
   session_name: string
 }
 
-export type ApplyTasmeeVerificationParams = {
+export type ApplyTasmeeReviewResultParams = {
   session_name: string
 }
 
-export interface TasmeeVerificationApplication {
-  decision: Exclude<TasmeeVerificationDecision, 'pending'>
+export interface TasmeeHifzReviewApplication {
+  decision: TasmeeHifzReviewApplicationDecision
   changed: boolean
   affected_ayahs: number[]
 }
@@ -283,11 +260,11 @@ export interface TasmeeAppliedDailyPlan {
   progress: HifzSurahProgress | null
 }
 
-export interface ApplyTasmeeVerificationResponse {
+export interface ApplyTasmeeReviewResultResponse {
   ok: true
   status: TasmeeSessionStatus
   session: TasmeeSession
-  application: TasmeeVerificationApplication
+  application: TasmeeHifzReviewApplication
   daily_plan: TasmeeAppliedDailyPlan
 }
 
