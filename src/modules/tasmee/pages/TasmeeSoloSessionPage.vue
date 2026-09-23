@@ -14,7 +14,9 @@ import {
   getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
+  useApplyTasmeeVerificationMutation,
   useCreateTasmeeSessionMutation,
+  useFinalizeTasmeeReviewMutation,
   useReviewTasmeeIssueMutation,
   useStartTasmeeAnalysisMutation,
   type TasmeeIssueReviewState,
@@ -55,7 +57,9 @@ type PostRecordingState =
 
 const route = useRoute()
 const router = useRouter()
+const applyVerificationCall = useApplyTasmeeVerificationMutation()
 const createSessionCall = useCreateTasmeeSessionMutation()
+const finalizeReviewCall = useFinalizeTasmeeReviewMutation()
 const reviewIssueCall = useReviewTasmeeIssueMutation()
 const startAnalysisCall = useStartTasmeeAnalysisMutation()
 const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
@@ -68,6 +72,10 @@ const analysisErrorCode = ref('')
 const analysisErrorMessage = ref('')
 const reviewPendingIssueId = ref<string | null>(null)
 const reviewErrors = ref<Record<string, string>>({})
+const reviewFinalizePending = ref(false)
+const reviewFinalizeError = ref('')
+const hifzApplyPending = ref(false)
+const hifzApplyError = ref('')
 
 const ANALYSIS_POLL_INTERVAL_MS = 5000
 const ANALYSIS_POLL_RETRY_MS = 15000
@@ -149,6 +157,12 @@ const reviewBadgeLabel = computed(() => {
 
   if (!result) return 'نتيجة المراجعة غير متاحة'
   if (result.state === 'pending_review') return 'بانتظار مراجعتك'
+  if (
+    result.review_finalized
+    && result.summary.reviewable > 0
+  ) {
+    return 'تم تثبيت مراجعتك'
+  }
   if (result.state === 'no_reviewable_issues') {
     return 'لا توجد ملاحظات تحتاج تأكيدك'
   }
@@ -196,8 +210,9 @@ function formatVerifiedAyahs(ayahs: number[]) {
 
 const verifiedResultBannerBody = computed(() => {
   const result = verifiedResult.value
+  const session = serverSession.value
 
-  if (!result) {
+  if (!result || !session) {
     return 'تعذر تحميل نتيجة المراجعة الموثقة لهذه الجلسة.'
   }
 
@@ -209,25 +224,108 @@ const verifiedResultBannerBody = computed(() => {
     const ayahs = formatVerifiedAyahs(result.confirmed_ayahs)
     const location = ayahs ? ` في ${ayahs}` : ''
 
-    return `أكدت ${toArabicNumber(result.summary.confirmed)} من الملاحظات أثناء مراجعتك${location}. تبقى النتيجة تقريرًا للمراجعة، ولا تغيّر حالة الحفظ تلقائيًا.`
+    if (!result.review_finalized) {
+      return `أكدت ${toArabicNumber(result.summary.confirmed)} من الملاحظات أثناء مراجعتك${location}. ثبّت مراجعتك أولًا قبل أي تحديث لحالة الحفظ.`
+    }
+
+    if (
+      session.verification_applied
+      && session.verification_applied_decision === 'needs_review'
+      && session.verification_hifz_changed
+    ) {
+      return `تم تثبيت مراجعتك وتحديث ${ayahs || 'الآيات المؤكدة'} إلى «تحتاج مراجعة». لم يتم اعتماد أي آية تلقائيًا.`
+    }
+
+    if (session.self_confirmed_hifz_review_updates_enabled) {
+      return `تم تثبيت مراجعتك. يمكنك الآن إرسال ${ayahs || 'الآيات المؤكدة'} إلى «تحتاج مراجعة». لا يوجد مسار اعتماد تلقائي للحفظ.`
+    }
+
+    return `تم تثبيت مراجعتك${location}. الأخطاء المؤكدة محفوظة في التقرير، لكن تحديث Hifz المباشر غير مفعّل حاليًا.`
   }
 
   if (result.state === 'reviewed_no_confirmed_issues') {
-    return 'راجعت جميع الملاحظات المحتملة ولم تؤكد أيًّا منها. هذا لا يُعد اعتمادًا للحفظ، ولا يغيّر تقدّمك.'
+    if (!result.review_finalized) {
+      return 'راجعت جميع الملاحظات المحتملة ولم تؤكد أيًّا منها. ثبّت مراجعتك لحفظ هذه النتيجة نهائيًا.'
+    }
+
+    return 'تم تثبيت مراجعتك ولم تؤكد أي خطأ من الملاحظات المحتملة. هذا لا يُعد اعتمادًا للحفظ، ولا يغيّر تقدّمك.'
   }
 
   return 'لم يرصد التحليل ملاحظة حفظ قابلة للتأكيد. هذا لا يُعد اعتمادًا للحفظ، ولا يغيّر تقدّمك.'
 })
 
-const canStartNewTasmee = computed(() => {
+const canFinalizeReview = computed(() => {
   const session = serverSession.value
+  const result = session?.verified_result
 
   return Boolean(
     session
+    && result
     && session.status === 'report_ready'
-    && session.verified_result.review_complete,
+    && result.summary.reviewable > 0
+    && result.review_complete
+    && !result.review_finalized,
   )
 })
+
+const hasCurrentHifzApplication = computed(() => {
+  const session = serverSession.value
+
+  return Boolean(
+    session?.verification_applied
+    && session.verification_application_version === 'tasmee-hifz-application-v4',
+  )
+})
+
+const canApplyConfirmedReview = computed(() => {
+  const session = serverSession.value
+  const result = session?.verified_result
+
+  return Boolean(
+    session
+    && result
+    && session.status === 'report_ready'
+    && result.review_finalized
+    && result.has_confirmed_mistakes
+    && session.self_confirmed_hifz_review_updates_enabled
+    && !hasCurrentHifzApplication.value,
+  )
+})
+
+const canStartNewTasmee = computed(() => {
+  const session = serverSession.value
+
+  if (
+    !session
+    || session.status !== 'report_ready'
+  ) {
+    return false
+  }
+
+  const result = session.verified_result
+
+  if (!result.review_complete) {
+    return false
+  }
+
+  if (
+    result.summary.reviewable > 0
+    && !result.review_finalized
+  ) {
+    return false
+  }
+
+  if (
+    result.has_confirmed_mistakes
+    && session.self_confirmed_hifz_review_updates_enabled
+    && !hasCurrentHifzApplication.value
+  ) {
+    return false
+  }
+
+  return true
+})
+
 
 function issuesForAyah(ayahNumber: number) {
   return serverSession.value?.issues.filter(
@@ -439,6 +537,7 @@ async function reviewIssue(
 
   if (
     !session
+    || session.verified_result.review_finalized
     || reviewPendingIssueId.value
   ) {
     return
@@ -471,6 +570,68 @@ async function reviewIssue(
     }
   } finally {
     reviewPendingIssueId.value = null
+  }
+}
+
+async function finalizeReview() {
+  const session = serverSession.value
+
+  if (
+    !session
+    || !canFinalizeReview.value
+    || reviewFinalizePending.value
+  ) {
+    return
+  }
+
+  reviewFinalizePending.value = true
+  reviewFinalizeError.value = ''
+
+  try {
+    const response = await finalizeReviewCall.submit({
+      session_name: session.name,
+    })
+
+    if (response?.session) {
+      serverSession.value = response.session
+    }
+  } catch (cause) {
+    reviewFinalizeError.value = cause instanceof Error
+      ? cause.message
+      : 'تعذر تثبيت مراجعتك.'
+  } finally {
+    reviewFinalizePending.value = false
+  }
+}
+
+async function applyConfirmedReview() {
+  const session = serverSession.value
+
+  if (
+    !session
+    || !canApplyConfirmedReview.value
+    || hifzApplyPending.value
+  ) {
+    return
+  }
+
+  hifzApplyPending.value = true
+  hifzApplyError.value = ''
+
+  try {
+    const response = await applyVerificationCall.submit({
+      session_name: session.name,
+    })
+
+    if (response?.session) {
+      serverSession.value = response.session
+    }
+  } catch (cause) {
+    hifzApplyError.value = cause instanceof Error
+      ? cause.message
+      : 'تعذر إرسال الآيات المؤكدة إلى المراجعة.'
+  } finally {
+    hifzApplyPending.value = false
   }
 }
 
@@ -1076,6 +1237,20 @@ onBeforeUnmount(() => {
           :body="verifiedResultBannerBody"
         />
 
+        <BaseBanner
+          v-if="reviewFinalizeError"
+          tone="error"
+          title="تعذر تثبيت المراجعة"
+          :body="reviewFinalizeError"
+        />
+
+        <BaseBanner
+          v-if="hifzApplyError"
+          tone="error"
+          title="تعذر تحديث حالة المراجعة"
+          :body="hifzApplyError"
+        />
+
         <section class="flex w-full flex-col gap-[10px]">
           <h2 class="w-full text-right text-[16px] font-semibold leading-[24px] text-[color:var(--sqc-color-text-primary)]">
             نتائج الآيات
@@ -1108,6 +1283,7 @@ onBeforeUnmount(() => {
               v-for="issue in issuesForAyah(result.ayah_number)"
               :key="issue.issue_id"
               :issue="issue"
+              :locked="serverSession.verified_result.review_finalized"
               :reviewing="reviewPendingIssueId === issue.issue_id"
               :review-error="reviewErrors[issue.issue_id] ?? ''"
               @review="reviewIssue(issue.issue_id, $event)"
@@ -1116,6 +1292,30 @@ onBeforeUnmount(() => {
         </section>
 
         <div class="min-h-[8px] flex-1" />
+
+        <BaseButton
+          v-if="canFinalizeReview"
+          size="large"
+          variant="primary"
+          class="w-full"
+          :loading="reviewFinalizePending"
+          loading-text="جارٍ تثبيت المراجعة"
+          @click="finalizeReview"
+        >
+          تثبيت مراجعتي
+        </BaseButton>
+
+        <BaseButton
+          v-if="canApplyConfirmedReview"
+          size="large"
+          variant="primary"
+          class="w-full"
+          :loading="hifzApplyPending"
+          loading-text="جارٍ تحديث حالة الآيات"
+          @click="applyConfirmedReview"
+        >
+          إرسال الآيات المؤكدة للمراجعة
+        </BaseButton>
 
         <BaseButton
           v-if="canStartNewTasmee"
