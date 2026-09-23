@@ -112,6 +112,7 @@ export interface TasmeeIssue {
   severity: TasmeeIssueSeverity
   counts_against_hifz: boolean
   confidence: number | null
+  acoustic_confidence: number | null
   expected_text: string | null
   observed_text: string | null
 }
