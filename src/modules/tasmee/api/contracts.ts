@@ -96,6 +96,43 @@ export interface TasmeeIssueReviewSummary {
   dismissed: number
 }
 
+export type TasmeeVerifiedResultState =
+  | 'no_reviewable_issues'
+  | 'pending_review'
+  | 'reviewed_with_confirmed_issues'
+  | 'reviewed_no_confirmed_issues'
+
+export type TasmeeVerifiedIssueResolution =
+  | 'pending'
+  | 'confirmed_mistake'
+  | 'dismissed'
+
+export interface TasmeeVerifiedIssue {
+  issue_id: string
+  ayah_number: number
+  verse_key: string | null
+  word_position: number | null
+  word_location: string | null
+  issue_type: TasmeeIssueType
+  severity: TasmeeIssueSeverity
+  expected_text: string | null
+  observed_text: string | null
+  resolution: TasmeeVerifiedIssueResolution
+  review: TasmeeIssueReview
+}
+
+export interface TasmeeVerifiedResult {
+  version: string
+  state: TasmeeVerifiedResultState
+  review_complete: boolean
+  has_confirmed_mistakes: boolean
+  supports_hifz_approval: boolean
+  summary: TasmeeIssueReviewSummary
+  confirmed_ayahs: number[]
+  unresolved_ayahs: number[]
+  issues: TasmeeVerifiedIssue[]
+}
+
 export interface TasmeeAnalysisTimings {
   queue_wait_ms?: number
   upload_save_ms?: number
@@ -154,6 +191,7 @@ export interface TasmeeSession {
   verification_level: TasmeeVerificationLevel
   ai_hifz_updates_enabled: boolean
   issue_review_summary: TasmeeIssueReviewSummary
+  verified_result: TasmeeVerifiedResult
   surah_number: number
   start_ayah: number
   end_ayah: number
