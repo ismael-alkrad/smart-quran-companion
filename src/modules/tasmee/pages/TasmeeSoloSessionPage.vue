@@ -14,9 +14,7 @@ import {
   getTasmeeAnalysisStatus,
   getTasmeeSession,
   uploadTasmeeRecording,
-  useApplyTasmeeVerificationMutation,
   useCreateTasmeeSessionMutation,
-  useEvaluateTasmeeVerificationMutation,
   useReviewTasmeeIssueMutation,
   useStartTasmeeAnalysisMutation,
   type TasmeeIssueReviewState,
@@ -57,9 +55,7 @@ type PostRecordingState =
 
 const route = useRoute()
 const router = useRouter()
-const applyVerificationCall = useApplyTasmeeVerificationMutation()
 const createSessionCall = useCreateTasmeeSessionMutation()
-const evaluateVerificationCall = useEvaluateTasmeeVerificationMutation()
 const reviewIssueCall = useReviewTasmeeIssueMutation()
 const startAnalysisCall = useStartTasmeeAnalysisMutation()
 const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
@@ -70,9 +66,6 @@ const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 const analysisErrorCode = ref('')
 const analysisErrorMessage = ref('')
-const verificationEvaluationPending = ref(false)
-const verificationApplyPending = ref(false)
-const verificationApplyError = ref('')
 const reviewPendingIssueId = ref<string | null>(null)
 const reviewErrors = ref<Record<string, string>>({})
 
@@ -139,80 +132,91 @@ const reportSessionMeta = computed(() => {
   return `سورة ${surahName} · ${ayahRange}`
 })
 
-const verificationBadgeState = computed<TasmeeVerificationBadgeState>(() => {
-  const level = serverSession.value?.verification_level
+const verifiedResult = computed(
+  () => serverSession.value?.verified_result ?? null,
+)
 
-  if (level === 'human_verified') return 'human-verified'
-  if (level === 'ai_high_confidence') return 'ai-high-confidence'
-  if (level === 'ai_analyzed') return 'ai-analyzed'
+const reviewBadgeState = computed<TasmeeVerificationBadgeState>(() => {
+  if (verifiedResult.value?.state === 'pending_review') {
+    return 'ai-analyzed'
+  }
+
   return 'self'
 })
 
-const verificationBadgeLabel = computed(() => {
-  const level = serverSession.value?.verification_level
+const reviewBadgeLabel = computed(() => {
+  const result = verifiedResult.value
 
-  if (level === 'human_verified') return 'تم التحقق بشريًا'
-  if (level === 'ai_high_confidence') return 'تحليل آلي بانتظار المراجعة'
-  if (level === 'ai_analyzed') return 'تحليل آلي للمراجعة'
-  return 'تحقق ذاتي'
+  if (!result) return 'نتيجة المراجعة غير متاحة'
+  if (result.state === 'pending_review') return 'بانتظار مراجعتك'
+  if (result.state === 'no_reviewable_issues') {
+    return 'لا توجد ملاحظات تحتاج تأكيدك'
+  }
+
+  return 'اكتملت مراجعتك'
 })
 
-const issueReviewSummaryBody = computed(() => {
-  const summary = serverSession.value?.issue_review_summary
+const verifiedResultBannerTone = computed<'info' | 'warning'>(() => {
+  const resultState = verifiedResult.value?.state
 
-  if (!summary || summary.reviewable === 0) {
-    return ''
-  }
-
-  if (summary.pending > 0) {
-    return `راجع ${toArabicNumber(summary.pending)} من الملاحظات المحتملة وحدد ما إذا كان الخطأ حدث فعلًا أثناء قراءتك. اختيارك يُحفظ كمراجعة منفصلة ولا يغيّر دليل التحليل الأصلي.`
-  }
-
-  return `اكتملت مراجعتك: ${toArabicNumber(summary.confirmed)} مؤكدة، و${toArabicNumber(summary.dismissed)} قراءتها صحيحة.`
+  return (
+    resultState === 'pending_review'
+    || resultState === 'reviewed_with_confirmed_issues'
+  )
+    ? 'warning'
+    : 'info'
 })
 
-const verificationPolicyBody = computed(() => {
-  const session = serverSession.value
+const verifiedResultBannerTitle = computed(() => {
+  const resultState = verifiedResult.value?.state
 
-  if (!session || session.verification_decision === 'pending') {
-    return 'يتم تقييم نتيجة التحليل وفق سياسة التحقق قبل السماح بأي تغيير على حالة الحفظ.'
+  if (resultState === 'pending_review') return 'راجع الملاحظات المحتملة'
+  if (resultState === 'reviewed_with_confirmed_issues') {
+    return 'يوجد خطأ أكدته أثناء المراجعة'
+  }
+  if (resultState === 'reviewed_no_confirmed_issues') {
+    return 'اكتملت مراجعة الملاحظات'
+  }
+  if (resultState === 'no_reviewable_issues') {
+    return 'لا توجد ملاحظات حفظ تحتاج تأكيدًا'
   }
 
-  if (
-    !session.ai_hifz_updates_enabled
-    && (
-      session.verification_decision === 'approve'
-      || session.verification_decision === 'needs_review'
-    )
-  ) {
-    return 'نتيجة الذكاء الاصطناعي معروضة للمراجعة فقط حاليًا، ولن تغيّر حالة الحفظ حتى نعتمد دقة مسار التعرف الصوتي صراحة.'
+  return 'نتيجة المراجعة'
+})
+
+function formatVerifiedAyahs(ayahs: number[]) {
+  if (ayahs.length === 0) return ''
+
+  const numbers = ayahs.map(ayah => toArabicNumber(ayah))
+
+  return ayahs.length === 1
+    ? `الآية ${numbers[0]}`
+    : `الآيات ${numbers.join('، ')}`
+}
+
+const verifiedResultBannerBody = computed(() => {
+  const result = verifiedResult.value
+
+  if (!result) {
+    return 'تعذر تحميل نتيجة المراجعة الموثقة لهذه الجلسة.'
   }
 
-  if (session.verification_decision === 'approve') {
-    return 'النتيجة مؤهلة للاعتماد بثقة عالية، لكن التقرير وحده لم يغيّر حالة الحفظ بعد.'
+  if (result.state === 'pending_review') {
+    return `بقيت ${toArabicNumber(result.summary.pending)} من الملاحظات المحتملة بانتظار تأكيدك. لا تُعامل أي ملاحظة معلقة كخطأ مؤكد، ولا تغيّر حالة الحفظ.`
   }
 
-  if (session.verification_decision === 'needs_review') {
-    return 'رصدت السياسة ملاحظات حفظ عالية الثقة. لم نغيّر حالة الحفظ بعد؛ التطبيق يتم في خطوة منفصلة.'
+  if (result.state === 'reviewed_with_confirmed_issues') {
+    const ayahs = formatVerifiedAyahs(result.confirmed_ayahs)
+    const location = ayahs ? ` في ${ayahs}` : ''
+
+    return `أكدت ${toArabicNumber(result.summary.confirmed)} من الملاحظات أثناء مراجعتك${location}. تبقى النتيجة تقريرًا للمراجعة، ولا تغيّر حالة الحفظ تلقائيًا.`
   }
 
-  if (session.verification_reason_code === 'audio_uncertainty') {
-    return 'يوجد عدم يقين صوتي، لذلك لن تغيّر نتيجة الذكاء الاصطناعي حالة الحفظ.'
+  if (result.state === 'reviewed_no_confirmed_issues') {
+    return 'راجعت جميع الملاحظات المحتملة ولم تؤكد أيًّا منها. هذا لا يُعد اعتمادًا للحفظ، ولا يغيّر تقدّمك.'
   }
 
-  if (session.verification_reason_code === 'audio_unusable') {
-    return 'جودة التسجيل غير كافية للتحقق، لذلك لا يوجد أي تغيير على حالة الحفظ.'
-  }
-
-  if (session.verification_reason_code === 'memorization_issue_not_reliable_enough') {
-    return 'ظهرت ملاحظات محتملة، لكن الدليل غير كافٍ لاعتمادها كتغيير على حالة الحفظ.'
-  }
-
-  if (session.verification_reason_code === 'incomplete_ayah_results') {
-    return 'نتائج الآيات غير مكتملة، لذلك لا يسمح النظام بأي تغيير على حالة الحفظ.'
-  }
-
-  return 'التقرير صالح للعرض، لكنه لم يحقق شروط السياسة اللازمة لتغيير حالة الحفظ.'
+  return 'لم يرصد التحليل ملاحظة حفظ قابلة للتأكيد. هذا لا يُعد اعتمادًا للحفظ، ولا يغيّر تقدّمك.'
 })
 
 const canStartNewTasmee = computed(() => {
@@ -221,47 +225,8 @@ const canStartNewTasmee = computed(() => {
   return Boolean(
     session
     && session.status === 'report_ready'
-    && (
-      session.verification_decision === 'no_change'
-      || session.verification_decision === 'needs_review'
-    ),
+    && session.verified_result.review_complete,
   )
-})
-
-const canApplyVerification = computed(() => {
-  const session = serverSession.value
-
-  return Boolean(
-    session
-    && session.ai_hifz_updates_enabled
-    && !session.verification_applied
-    && (
-      session.verification_decision === 'approve'
-      || session.verification_decision === 'needs_review'
-    ),
-  )
-})
-
-const verificationApplyLabel = computed(() => (
-  serverSession.value?.verification_decision === 'approve'
-    ? 'اعتماد نتيجة التسميع'
-    : 'إرسال الآيات للمراجعة'
-))
-
-const verificationAppliedBody = computed(() => {
-  const session = serverSession.value
-
-  if (!session?.verification_applied) return ''
-
-  if (session.verification_applied_decision === 'approve') {
-    return 'تم اعتماد آيات المهمة وتحديث مهمة الحفظ إلى مكتملة.'
-  }
-
-  if (session.verification_applied_decision === 'needs_review') {
-    return 'تم تحديث الآيات المتأثرة إلى تحتاج مراجعة، وبقيت مهمة الحفظ نشطة.'
-  }
-
-  return 'تم تثبيت قرار عدم التغيير، ولم تتغير حالة الحفظ.'
 })
 
 function issuesForAyah(ayahNumber: number) {
@@ -274,16 +239,16 @@ function issuesForAyah(ayahNumber: number) {
 }
 
 function ayahOutcomeLabel(outcome: TasmeeSession['ayah_results'][number]['outcome']) {
-  if (outcome === 'correct') return 'صحيحة'
-  if (outcome === 'incorrect') return 'تحتاج مراجعة'
+  if (outcome === 'correct') return 'لم تُرصد ملاحظة حفظ'
+  if (outcome === 'incorrect') return 'ملاحظة حفظ محتملة'
   if (outcome === 'audio_uncertain') return 'الصوت غير واضح'
-  if (outcome === 'needs_attention') return 'تحتاج انتباه'
+  if (outcome === 'needs_attention') return 'ملاحظة تحتاج انتباه'
   return 'غير مقيمة'
 }
 
 function ayahOutcomeMeta(result: TasmeeSession['ayah_results'][number]) {
   if (result.outcome === 'correct') {
-    return 'لم تُرصد مشكلة حفظ في هذه الآية'
+    return 'لم يرصد التحليل ملاحظة حفظ في هذه الآية · لا يعني ذلك اعتماد الحفظ'
   }
 
   if (result.outcome === 'incorrect') {
@@ -439,79 +404,6 @@ async function reviewIssue(
   }
 }
 
-async function applyVerificationDecision(
-  session: TasmeeSession,
-  silent = false,
-) {
-  if (
-    session.verification_applied
-    || verificationApplyPending.value
-  ) {
-    return
-  }
-
-  verificationApplyPending.value = true
-
-  if (!silent) {
-    verificationApplyError.value = ''
-  }
-
-  try {
-    const response = await applyVerificationCall.submit({
-      session_name: session.name,
-    })
-
-    if (response?.session) {
-      serverSession.value = response.session
-    }
-  } catch (cause) {
-    if (!silent) {
-      verificationApplyError.value = cause instanceof Error
-        ? cause.message
-        : 'تعذر تطبيق قرار التحقق على حالة الحفظ.'
-    }
-  } finally {
-    verificationApplyPending.value = false
-  }
-}
-
-async function syncVerificationState(session: TasmeeSession) {
-  if (
-    session.status !== 'report_ready'
-    || verificationEvaluationPending.value
-  ) {
-    return
-  }
-
-  let current = session
-
-  if (current.verification_decision === 'pending') {
-    verificationEvaluationPending.value = true
-
-    try {
-      const response = await evaluateVerificationCall.submit({
-        session_name: current.name,
-      })
-
-      if (response?.session) {
-        current = response.session
-        serverSession.value = current
-      }
-    } catch {
-      return
-    } finally {
-      verificationEvaluationPending.value = false
-    }
-  }
-
-  if (
-    current.verification_decision === 'no_change'
-    && !current.verification_applied
-  ) {
-    await applyVerificationDecision(current, true)
-  }
-}
-
 function applyServerSessionState(session: TasmeeSession) {
   serverSession.value = session
   analysisErrorCode.value = session.analysis_error_code ?? ''
@@ -520,7 +412,6 @@ function applyServerSessionState(session: TasmeeSession) {
   if (session.status === 'report_ready') {
     stopAnalysisPolling()
     state.value = 'report-ready'
-    void syncVerificationState(session)
     return
   }
 
@@ -1105,35 +996,14 @@ onBeforeUnmount(() => {
         />
 
         <TasmeeVerificationBadge
-          :state="verificationBadgeState"
-          :label="verificationBadgeLabel"
+          :state="reviewBadgeState"
+          :label="reviewBadgeLabel"
         />
 
         <BaseBanner
-          tone="info"
-          title="سياسة التحقق"
-          :body="verificationPolicyBody"
-        />
-
-        <BaseBanner
-          v-if="serverSession.issue_review_summary.reviewable > 0"
-          tone="info"
-          title="راجع الملاحظات المحتملة"
-          :body="issueReviewSummaryBody"
-        />
-
-        <BaseBanner
-          v-if="serverSession.verification_applied && serverSession.verification_hifz_changed"
-          :tone="serverSession.verification_applied_decision === 'needs_review' ? 'warning' : 'info'"
-          title="تم تطبيق قرار التحقق"
-          :body="verificationAppliedBody"
-        />
-
-        <BaseBanner
-          v-if="verificationApplyError"
-          tone="error"
-          title="تعذر تطبيق قرار التحقق"
-          :body="verificationApplyError"
+          :tone="verifiedResultBannerTone"
+          :title="verifiedResultBannerTitle"
+          :body="verifiedResultBannerBody"
         />
 
         <section class="flex w-full flex-col gap-[10px]">
@@ -1178,21 +1048,9 @@ onBeforeUnmount(() => {
         <div class="min-h-[8px] flex-1" />
 
         <BaseButton
-          v-if="canApplyVerification"
-          size="large"
-          variant="primary"
-          class="w-full"
-          :loading="verificationApplyPending"
-          loading-text="جارٍ تطبيق القرار"
-          @click="serverSession && applyVerificationDecision(serverSession)"
-        >
-          {{ verificationApplyLabel }}
-        </BaseButton>
-
-        <BaseButton
           v-if="canStartNewTasmee"
           size="large"
-          :variant="canApplyVerification ? 'secondary' : 'primary'"
+          variant="primary"
           class="w-full"
           @click="startNewTasmee"
         >
