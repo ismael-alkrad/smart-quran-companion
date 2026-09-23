@@ -125,6 +125,7 @@ export interface TasmeeSession {
   session_mode: 'solo'
   status: TasmeeSessionStatus
   verification_level: TasmeeVerificationLevel
+  ai_hifz_updates_enabled: boolean
   surah_number: number
   start_ayah: number
   end_ayah: number
