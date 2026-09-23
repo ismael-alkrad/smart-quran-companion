@@ -4,10 +4,9 @@ import {
   useSmartQuranCall,
 } from '@/shared/api'
 import type {
-  ApplyTasmeeVerificationParams,
-  ApplyTasmeeVerificationResponse,
+  ApplyTasmeeReviewResultParams,
+  ApplyTasmeeReviewResultResponse,
   CreateTasmeeSessionParams,
-  EvaluateTasmeeVerificationParams,
   FinalizeTasmeeReviewParams,
   GetTasmeeSessionParams,
   ReviewTasmeeIssueParams,
@@ -23,9 +22,8 @@ const TASMEE_QUERY_METHODS = {
 } as const
 
 const TASMEE_MUTATION_METHODS = {
-  applyVerification: 'tasmee.apply_verification',
+  applyReviewResult: 'tasmee.apply_review_result',
   createSession: 'tasmee.create_session',
-  evaluateVerification: 'tasmee.evaluate_verification',
   finalizeReview: 'tasmee.finalize_review',
   reviewIssue: 'tasmee.review_issue',
   startAnalysis: 'tasmee.start_analysis',
@@ -42,21 +40,11 @@ export function useCreateTasmeeSessionMutation() {
   })
 }
 
-export function useApplyTasmeeVerificationMutation() {
+export function useApplyTasmeeReviewResultMutation() {
   return useSmartQuranCall<
-    ApplyTasmeeVerificationResponse,
-    ApplyTasmeeVerificationParams
-  >(TASMEE_MUTATION_METHODS.applyVerification, {
-    method: 'POST',
-    immediate: false,
-  })
-}
-
-export function useEvaluateTasmeeVerificationMutation() {
-  return useSmartQuranCall<
-    TasmeeSessionResponse,
-    EvaluateTasmeeVerificationParams
-  >(TASMEE_MUTATION_METHODS.evaluateVerification, {
+    ApplyTasmeeReviewResultResponse,
+    ApplyTasmeeReviewResultParams
+  >(TASMEE_MUTATION_METHODS.applyReviewResult, {
     method: 'POST',
     immediate: false,
   })
