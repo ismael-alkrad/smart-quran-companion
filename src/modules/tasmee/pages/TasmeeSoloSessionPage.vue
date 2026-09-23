@@ -159,6 +159,16 @@ const verificationPolicyBody = computed(() => {
     return 'يتم تقييم نتيجة التحليل وفق سياسة التحقق قبل السماح بأي تغيير على حالة الحفظ.'
   }
 
+  if (
+    !session.ai_hifz_updates_enabled
+    && (
+      session.verification_decision === 'approve'
+      || session.verification_decision === 'needs_review'
+    )
+  ) {
+    return 'نتيجة الذكاء الاصطناعي معروضة للمراجعة فقط حاليًا، ولن تغيّر حالة الحفظ حتى نعتمد دقة مسار التعرف الصوتي صراحة.'
+  }
+
   if (session.verification_decision === 'approve') {
     return 'النتيجة مؤهلة للاعتماد بثقة عالية، لكن التقرير وحده لم يغيّر حالة الحفظ بعد.'
   }
@@ -204,6 +214,7 @@ const canApplyVerification = computed(() => {
 
   return Boolean(
     session
+    && session.ai_hifz_updates_enabled
     && !session.verification_applied
     && (
       session.verification_decision === 'approve'
