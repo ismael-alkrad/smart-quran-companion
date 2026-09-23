@@ -22,6 +22,12 @@ export type TasmeeAnalysisStage =
   | 'complete'
   | 'failed'
 
+export type TasmeeVerificationDecision =
+  | 'pending'
+  | 'approve'
+  | 'needs_review'
+  | 'no_change'
+
 export type TasmeeVerificationLevel =
   | 'self'
   | 'ai_analyzed'
@@ -112,6 +118,12 @@ export interface TasmeeSession {
   analyzer_version: string | null
   classifier_version: string | null
   overall_confidence: number | null
+  verification_policy_version: string | null
+  verification_decision: TasmeeVerificationDecision
+  verification_reason_code: string | null
+  verification_reason: string | null
+  verification_confidence: number | null
+  verification_evaluated_at: string | null
   ayah_results: TasmeeAyahResult[]
   issues: TasmeeIssue[]
 }
@@ -127,6 +139,10 @@ export type GetTasmeeSessionParams = {
 }
 
 export type StartTasmeeAnalysisParams = {
+  session_name: string
+}
+
+export type EvaluateTasmeeVerificationParams = {
   session_name: string
 }
 
