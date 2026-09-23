@@ -125,6 +125,10 @@ export interface TasmeeVerifiedResult {
   version: string
   state: TasmeeVerifiedResultState
   review_complete: boolean
+  review_finalized: boolean
+  review_finalization_version: string | null
+  review_finalized_by: string | null
+  review_finalized_at: string | null
   has_confirmed_mistakes: boolean
   supports_hifz_approval: boolean
   summary: TasmeeIssueReviewSummary
@@ -190,6 +194,7 @@ export interface TasmeeSession {
   status: TasmeeSessionStatus
   verification_level: TasmeeVerificationLevel
   ai_hifz_updates_enabled: boolean
+  self_confirmed_hifz_review_updates_enabled: boolean
   issue_review_summary: TasmeeIssueReviewSummary
   verified_result: TasmeeVerifiedResult
   surah_number: number
@@ -255,6 +260,10 @@ export type ReviewTasmeeIssueParams = {
   session_name: string
   issue_id: string
   state: TasmeeIssueReviewState
+}
+
+export type FinalizeTasmeeReviewParams = {
+  session_name: string
 }
 
 export type ApplyTasmeeVerificationParams = {
