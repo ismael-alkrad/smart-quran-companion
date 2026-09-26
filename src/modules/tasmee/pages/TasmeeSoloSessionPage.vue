@@ -23,6 +23,8 @@ import {
   type TasmeeSession,
 } from '@/modules/tasmee/api'
 import TasmeeIssueRow from '@/modules/tasmee/components/TasmeeIssueRow.vue'
+import TeacherReviewSend from '@/modules/tasmee/components/TeacherReviewSend.vue'
+import { teacherAction } from '@/modules/tasmee/api/teacherReview'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import TasmeeVerificationBadge, {
@@ -771,6 +773,7 @@ async function reconcileRecordingAssignment(
   if (current.serverSessionName) {
     return current
   }
+  if (current.parentReview) return current
 
   const response = await dailyPlanCall.submit()
   const currentAssignment = response?.assignment
@@ -819,11 +822,15 @@ async function ensureServerSession(current: StoredTasmeeRecording) {
     return current.serverSessionName
   }
 
-  const response = await createSessionCall.submit({
-    assignment_name: current.assignmentName,
-    client_session_id: current.id,
-    session_mode: 'solo',
-  })
+  const response = current.parentReview
+    ? await teacherAction<{ session: { name: string } }>('create_retry', {
+        name: current.parentReview, client_session_id: current.id,
+      })
+    : await createSessionCall.submit({
+        assignment_name: current.assignmentName,
+        client_session_id: current.id,
+        session_mode: 'solo',
+      })
 
   if (!response?.session) {
     throw new Error('تعذر إنشاء جلسة التسميع على الخادم.')
@@ -1104,10 +1111,10 @@ onBeforeUnmount(() => {
 
         <TasmeeVerificationBadge label="التسجيل مرفوع" />
 
-        <BaseBanner
-          tone="info"
-          title="الخطوة التالية: التحليل"
-          body="نجاح الرفع لا يعني اعتماد الحفظ أو تغيير تقدّمك. سنربط محرك التحليل في الخطوة التالية."
+        <TeacherReviewSend
+          v-if="recording.serverSessionName"
+          :session-name="recording.serverSessionName"
+          :parent-review="recording.parentReview"
         />
 
         <div class="min-h-[16px] flex-1" />
@@ -1125,9 +1132,9 @@ onBeforeUnmount(() => {
           size="large"
           variant="primary"
           class="w-full"
-          @click="startAnalysis"
+          @click="router.push('/tasmee')"
         >
-          بدء التحليل
+          تسميعاتي ومراجعات المدرّس
         </BaseButton>
       </template>
 

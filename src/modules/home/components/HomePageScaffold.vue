@@ -17,6 +17,7 @@ withDefaults(
 const navRoutes: BaseBottomNavRoutes = {
   home: '/home',
   quran: '/quran',
+  tasmee: '/tasmee',
 }
 </script>
 

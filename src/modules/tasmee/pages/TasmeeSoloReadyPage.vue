@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import TasmeeAudioQuality from '@/modules/tasmee/components/TasmeeAudioQuality.vue'
@@ -12,6 +12,7 @@ import {
   BaseLoading,
 } from '@/shared/components'
 
+const route = useRoute()
 const router = useRouter()
 
 const {
@@ -29,7 +30,7 @@ function goBack() {
   void router.push({
     name: 'tasmee-solo-mic-check',
     query: current
-      ? { assignment: current.name }
+      ? { assignment: current.name, retry: route.query.retry }
       : {},
   })
 }
@@ -42,6 +43,7 @@ function startTasmee() {
   void router.push({
     name: 'tasmee-solo-live',
     query: {
+      retry: route.query.retry,
       assignment: current.name,
     },
   })
@@ -112,7 +114,7 @@ function startTasmee() {
           aria-hidden="true"
           class="size-[8px] shrink-0 rounded-full bg-[var(--sqc-color-ai-active-foreground)]"
         />
-        المساعد الذكي جاهز
+        جاهز لتسجيل التسميع
       </div>
 
       <TasmeeAudioQuality state="good" />

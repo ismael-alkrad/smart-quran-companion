@@ -54,6 +54,7 @@ function openMicCheck() {
   void router.push({
     name: 'tasmee-solo-mic-check',
     query: {
+      retry: route.query.retry,
       assignment: current.name,
     },
   })
@@ -81,6 +82,7 @@ async function resumeStoredSession(assignmentName: string) {
     )
 
     if (!stored) return
+    if ((stored.parentReview ?? '') !== (route.query.retry ?? '')) return
 
     if (stored.serverSessionName) {
       try {
@@ -106,6 +108,7 @@ async function resumeStoredSession(assignmentName: string) {
         recordingId: stored.id,
       },
       query: {
+      retry: route.query.retry,
         assignment: assignmentName,
       },
     })
@@ -171,7 +174,7 @@ watch(
       <TasmeeStateHeader
         state="preparing"
         title="تهيئة جلسة التسميع"
-        subtitle="تم اختيار مهمة الحفظ اليومية. راجع النطاق ثم افحص الميكروفون."
+        subtitle="راجع نطاق التسميع ثم افحص الميكروفون. يمكنك إرسال التسجيل للمدرّس بعد الانتهاء."
       />
 
       <BaseSearch

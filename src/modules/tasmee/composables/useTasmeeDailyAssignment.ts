@@ -1,4 +1,7 @@
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { getSmartQuranMethod } from '@/shared/api'
+import type { HifzDailyAssignment } from '@/modules/quran/api/contracts'
 import {
   type HifzDailyPlanResponse,
   useEnsureHifzDailyAssignmentMutation,
@@ -7,6 +10,8 @@ import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
 export function useTasmeeDailyAssignment() {
+  const route = useRoute()
+  const retryAssignment = ref<HifzDailyAssignment | null>(null)
   const planCall = useEnsureHifzDailyAssignmentMutation()
   const plan = ref<HifzDailyPlanResponse | null>(null)
   const loading = ref(false)
@@ -14,7 +19,7 @@ export function useTasmeeDailyAssignment() {
   const error = ref<unknown>(null)
 
   const assignment = computed(() =>
-    plan.value?.assignment ?? null,
+    retryAssignment.value ?? plan.value?.assignment ?? null,
   )
 
   const surahName = computed(() => {
@@ -49,6 +54,12 @@ export function useTasmeeDailyAssignment() {
     error.value = null
 
     try {
+      if (typeof route.query.retry === 'string') {
+        retryAssignment.value = await getSmartQuranMethod<HifzDailyAssignment>(
+          'teacher_review.retry_assignment', { name: route.query.retry },
+        )
+        return null
+      }
       const response = await planCall.submit()
 
       if (!response?.ok) {

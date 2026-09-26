@@ -1,0 +1,26 @@
+.teacher-page {
+  max-width: 720px; margin-inline: auto; min-height: 100dvh; padding: 24px 16px 40px;
+  display: flex; flex-direction: column; gap: 16px;
+  background: var(--sqc-color-background-primary); color: var(--sqc-color-text-primary);
+  font-family: var(--sqc-font-family-ui);
+}
+.teacher-card {
+  display: flex; flex-direction: column; gap: 16px; padding: 20px;
+  border-radius: var(--sqc-dimension-radius-12); background: var(--sqc-color-background-elevated);
+}
+.teacher-card h1 { font-size: 24px; line-height: 1.6; font-weight: 600; }
+.teacher-card h2 { font-size: 18px; line-height: 1.6; font-weight: 600; }
+.teacher-card p { font-size: 14px; line-height: 1.85; color: var(--sqc-color-text-secondary); }
+.teacher-eyebrow { font-size: 12px; color: var(--sqc-color-text-brand); }
+.teacher-review-link {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 12px;
+  background: var(--sqc-color-background-primary); font-size: 14px; line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.teacher-field {
+  width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--sqc-color-border-default);
+  border-radius: 12px; background: var(--sqc-color-background-elevated); color: inherit;
+}
+.teacher-field:focus-visible, .teacher-review-link:focus-visible {
+  outline: 2px solid var(--sqc-color-border-focus); outline-offset: 3px;
+}

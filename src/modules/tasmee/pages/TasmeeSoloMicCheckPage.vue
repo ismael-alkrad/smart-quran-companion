@@ -5,7 +5,7 @@ import {
   ref,
   watch,
 } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import TasmeeAudioQuality, {
   type TasmeeAudioQualityState,
@@ -21,6 +21,7 @@ import {
   BaseLoading,
 } from '@/shared/components'
 
+const route = useRoute()
 const router = useRouter()
 
 const {
@@ -74,7 +75,7 @@ function goBack() {
   void router.push({
     name: 'tasmee-solo-setup',
     query: current
-      ? { assignment: current.name }
+      ? { assignment: current.name, retry: route.query.retry }
       : {},
   })
 }
@@ -87,6 +88,7 @@ function continueToReady() {
   void router.push({
     name: 'tasmee-solo-ready',
     query: {
+      retry: route.query.retry,
       assignment: current.name,
     },
   })
