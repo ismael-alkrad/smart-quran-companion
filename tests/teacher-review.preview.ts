@@ -2,6 +2,7 @@
 // All API requests are answered locally; never reads or changes real accounts.
 import { createApp, h } from 'vue'
 import { createPinia } from 'pinia'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { useThemeStore } from '../src/shared/theme'
 import { createRouter, createWebHashHistory, RouterView } from 'vue-router'
 import { setBrowserCsrfToken } from '../src/shared/api'
@@ -13,9 +14,15 @@ import '../src/styles/app.css'
 const review: TeacherReview = {
   name: 'fixture-review', session: 'fixture-session', relationship: 'fixture-link',
   status: 'submitted', student_name: 'طالب تجريبي', teacher_name: 'مدرّس تجريبي',
-  is_reviewer: true, created_at: '2026-09-26T12:00:00', reviewed_at: null,
+  is_reviewer: true, created_at: '2026-09-26T12:00:00', reviewed_at: null, review_started_at: null, markers: [],
   parent_review: null, assignment: 'fixture-assignment', surah_number: 1,
   start_ayah: 1, end_ayah: 7, duration_seconds: 60, summary: '', notes: [],
+}
+// A long ayah crosses pages; exercise manual paging without any backend reads.
+if (new URLSearchParams(location.search).get('range') === 'long') {
+  review.surah_number = 2
+  review.start_ayah = 282
+  review.end_ayah = 283
 }
 function silence() {
   const wav = new ArrayBuffer(44 + 8000 * 60 * 2)
@@ -29,8 +36,11 @@ function silence() {
   return new Response(wav, { headers: { 'Content-Type': 'audio/wav' } })
 }
 setBrowserCsrfToken('isolated-preview')
+const assetFetch = window.fetch.bind(window)
 window.fetch = async (input, init) => {
   const url = String(input)
+  const resource = new URL(url, location.origin)
+  if (resource.origin === location.origin && resource.pathname.startsWith('/quran/')) return assetFetch(input, init)
   const method = url.split('teacher_review.')[1]?.split('?')[0]
   const values = init?.body instanceof FormData ? init.body : new FormData()
   let result: unknown = review
@@ -48,18 +58,32 @@ window.fetch = async (input, init) => {
       ? [{ ...review, name: 'fixture-mine', is_reviewer: false }]
       : [review],
   }
-  else if (method === 'add_note') {
+  else if (method === 'begin_review') {
+    review.status = 'in_review'
+    review.review_started_at ||= new Date().toISOString()
+  } else if (method === 'mark_ayah') {
+    const at = Math.round(Number(values.get('at_seconds')) * 100) / 100
+    review.markers = review.markers.filter(m => m.at_seconds !== at)
+    review.markers.push({ name: 'marker-' + at, at_seconds: at, ayah: Number(values.get('ayah')), author_name: review.teacher_name, added_at: new Date().toISOString() })
+    review.status = 'in_review'
+    review.review_started_at ||= new Date().toISOString()
+  } else if (method === 'remove_marker') {
+    review.markers = review.markers.filter(m => m.name !== values.get('marker'))
+  } else if (method === 'add_note') {
     review.notes.push({
       name: 'note-' + review.notes.length, at_seconds: Number(values.get('at_seconds')),
       ayah: Number(values.get('ayah')), category: String(values.get('category')),
       body: String(values.get('body')),
+      author_name: review.teacher_name, added_at: new Date().toISOString(),
     })
     review.status = 'in_review'
+    review.review_started_at ||= new Date().toISOString()
   } else if (method === 'remove_note') {
     review.notes = review.notes.filter(n => n.name !== values.get('note'))
   } else if (method === 'publish') {
     review.status = String(values.get('decision')) as TeacherReview['status']
     review.summary = String(values.get('summary'))
+    review.reviewed_at = new Date().toISOString()
   } else if (method !== 'detail' && method !== 'dashboard') {
     return new Response('{}', { status: 400 })
   }
@@ -72,4 +96,4 @@ const router = createRouter({
 })
 const pinia = createPinia()
 useThemeStore(pinia).initialize()
-createApp({ render: () => h(RouterView) }).use(pinia).use(router).mount('#app')
+createApp({ render: () => h(RouterView) }).use(pinia).use(VueQueryPlugin).use(router).mount('#app')

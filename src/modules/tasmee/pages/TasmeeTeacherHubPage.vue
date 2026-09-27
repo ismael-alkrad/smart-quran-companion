@@ -74,6 +74,8 @@ watch([scope, filter], () => load(), { immediate: true })
           <span class="teacher-eyebrow">{{ review.is_reviewer ? 'للمراجعة · ' + review.student_name : 'مع ' + review.teacher_name }}</span>
           <strong>سورة {{ getSurahNameArabic(review.surah_number) }} · {{ review.start_ayah }}–{{ review.end_ayah }}</strong>
           <span>{{ reviewLabels[review.status] }}</span>
+          <span v-if="review.reviewed_at">راجعها {{ review.teacher_name }} · الملاحظات المنشورة: {{ review.notes.length }}</span>
+          <span v-else-if="review.status === 'in_review'">بدأ {{ review.teacher_name }} المراجعة ولم ينشرها بعد</span>
           <small>{{ new Date(review.created_at).toLocaleDateString('ar') }}</small>
         </RouterLink>
         <BaseButton v-if="data.has_more" variant="secondary" :disabled="loading" :loading="loading" @click="load(true)">تحميل المزيد</BaseButton>

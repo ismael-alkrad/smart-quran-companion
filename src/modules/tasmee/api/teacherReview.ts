@@ -17,6 +17,15 @@ export interface TeacherNote {
   ayah: number
   category: string
   body: string
+  author_name: string
+  added_at: string | null
+}
+export interface RecitationMarker {
+  name: string
+  at_seconds: number
+  ayah: number
+  author_name: string
+  added_at: string
 }
 export interface TeacherReview {
   name: string
@@ -28,6 +37,8 @@ export interface TeacherReview {
   is_reviewer: boolean
   created_at: string
   reviewed_at: string | null
+  review_started_at: string | null
+  markers: RecitationMarker[]
   parent_review: string | null
   assignment: string | null
   surah_number: number

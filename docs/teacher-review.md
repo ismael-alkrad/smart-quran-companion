@@ -8,7 +8,7 @@ components. No AI analysis or Hifz mutation is triggered by this workflow.
 
 Backend companion branch: `codex/teacher-recorded-review` in `ismael-alkrad/smart_quran`.
 Run `bench --site quran.localhost migrate` after deploying the backend. The migration
-creates the Teacher Link, Teacher Review and Teacher Note DocTypes and the
+creates the Teacher Link, Teacher Review, Teacher Note and Recitation Marker DocTypes and the
 `Smart Quran Teacher` role. It does not assign this role to existing users.
 
 No teacher role assignment is needed. Any enabled regular account can learn and
@@ -58,6 +58,9 @@ erase audio that a recipient has already downloaded.
 
 ## Current limits
 
+- One assigned reviewer per recording currently. Group membership and supplementary
+  reviews by multiple people are specified in `product-roadmap.md`, not implemented.
+
 - Retries record the complete original assignment; selecting only a smaller
   ayah range is not implemented yet.
 - Notes support timestamps and optional ayah references, not word selection.
@@ -65,5 +68,23 @@ erase audio that a recipient has already downloaded.
 - Inbox refresh is manual/re-entry; API pagination is 20 reviews per page.
 - This work reuses the Figma design language; it does not add new Figma frames.
 
-The current integration suite has 11 tests, including all 114 surah boundaries,
+The current integration suite has 13 tests, including all 114 surah boundaries,
 standalone upload/review/retry, immutable scope, and unchanged Hifz document counts.
+
+## Review activity and manual Mushaf positions
+
+An explicit **بدء المراجعة**, first note, or first marker records the start time.
+Reading the detail or downloading audio does not. Both participants see the named
+reviewer's started/published state; existing reviews do not get a fabricated start
+time. Notes carry their author's name and creation time (legacy notes use the
+assigned reviewer's name, with no invented date).
+
+The companion reuses the local Quran pages and fonts. Select an in-range ayah from
+the dropdown or Mushaf, then pin it at the audio time. Markers are drafts until
+publication, immutable afterwards, and checked for time/range and access on the
+server. Equal timestamps replace one marker; repeated ayahs at different times
+are allowed. **متابعة المواضع المثبّتة** follows the latest anchor at or before the
+playback position, including seeking backwards. Before the first anchor there is
+no highlighted playback position. This is manual alignment, not automatic speech
+recognition, word tracking, or mistake detection. Render-only ayah highlighting
+does not change Hifz records.
