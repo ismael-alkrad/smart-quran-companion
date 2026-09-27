@@ -68,10 +68,10 @@ erase audio that a recipient has already downloaded.
 - Inbox refresh is manual/re-entry; API pagination is 20 reviews per page.
 - This work reuses the Figma design language; it does not add new Figma frames.
 
-The current integration suite has 13 tests, including all 114 surah boundaries,
+The current integration suite has 15 tests, including all 114 surah boundaries,
 standalone upload/review/retry, immutable scope, and unchanged Hifz document counts.
 
-## Review activity and manual Mushaf positions
+## Review activity and automatic Mushaf tracking
 
 An explicit **بدء المراجعة**, first note, or first marker records the start time.
 Reading the detail or downloading audio does not. Both participants see the named
@@ -79,12 +79,36 @@ reviewer's started/published state; existing reviews do not get a fabricated sta
 time. Notes carry their author's name and creation time (legacy notes use the
 assigned reviewer's name, with no invented date).
 
-The companion reuses the local Quran pages and fonts. Select an in-range ayah from
-the dropdown or Mushaf, then pin it at the audio time. Markers are drafts until
-publication, immutable afterwards, and checked for time/range and access on the
-server. Equal timestamps replace one marker; repeated ayahs at different times
-are allowed. **متابعة المواضع المثبّتة** follows the latest anchor at or before the
-playback position, including seeking backwards. Before the first anchor there is
-no highlighted playback position. This is manual alignment, not automatic speech
-recognition, word tracking, or mistake detection. Render-only ayah highlighting
-does not change Hifz records.
+Opening a review now starts automatic tracking preparation in a background job.
+Timed words from the existing local ASR service are matched to unique Quran
+phrases within the selected range. The player clock selects a word span, and the
+local Mushaf highlights that word and changes page as needed, including long
+ayahs spanning pages. Seeking/replaying follows the audio clock; uncertain gaps
+have no active word. Manual pinning has been removed from the main UI. Existing
+manual markers remain stored for compatibility but do not drive automatic tracking.
+
+This is an experimental navigation aid, not correctness/tajweed assessment.
+Conservative matching can leave gaps, and confident ASR errors remain possible.
+It has not been validated across student voices or real-time calls. Live audio
+chunking, latency evaluation and call transport are not implemented. Clicking an
+ayah is still available to attach a review note; it pauses following until the
+reviewer re-enables **متابعة التلاوة تلقائيًا**.
+
+The worker requires the existing ASR service to provide words and speech segment
+metadata, Quran reference access and a running Frappe long queue. Results are
+cached for 24 hours by review ID and recording hash; every status/prepare request
+rechecks participant access. Tracking does not start/complete the human review or
+modify Tasmee analysis, Hifz or scores. Preparation/poll failures keep audio usable.
+
+Verification also includes five matcher tests for repetition, backwards jumps,
+ambiguous text, invalid timing/confidence and silence evidence. An explicit
+`bench --site quran.localhost execute smart_quran.services.test_recitation_tracking.public_probe`
+uses a public [Alafasy 1:2 sample](https://everyayah.com/data/Alafasy_128kbps/001002.mp3),
+not historical user audio. It located the four verse words and omitted an extra
+word hallucinated after the verse; that single sample is not an accuracy benchmark.
+
+The optional local `/tests/teacher-review.html?audio=public#/tasmee/reviews/fixture-review`
+preview reads untracked `tests/.tracking-sample.json` (probe stdout) and
+`tests/.tracking-sample.mp3` (the sample above). They are locally ignored and are
+not shipped or committed. Its account/review data are synthetic; timing is actual
+probe output. The default preview remains a silent synthetic UI fixture.

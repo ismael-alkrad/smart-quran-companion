@@ -7,10 +7,12 @@ import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getTeacherReview, teacherAction, reviewLabels, noteLabels, recordingTime, type TeacherReview } from '../api/teacherReview'
 import '../teacher-review.css'
 import RecitationMushaf from '../components/RecitationMushaf.vue'
+import { useRecitationTracking } from '../composables/useRecitationTracking'
 
 const route = useRoute()
 const router = useRouter()
 const review = ref<TeacherReview | null>(null)
+const { tracking, prepare: prepareTracking, stop: stopTracking } = useRecitationTracking()
 const loading = ref(true)
 const busy = ref(false)
 const error = ref('')
@@ -35,6 +37,7 @@ async function load() {
   loading.value = true
   error.value = ''
   review.value = null
+  stopTracking()
   audioAbort?.abort()
   if (audioUrl.value) URL.revokeObjectURL(audioUrl.value)
   audioUrl.value = ''
@@ -45,7 +48,10 @@ async function load() {
   ayah.value = ''
   try {
     const result = await getTeacherReview(String(route.params.name))
-    if (version === loadVersion) review.value = result
+    if (version === loadVersion) {
+      review.value = result
+      void prepareTracking(result.name)
+    }
   } catch { if (version === loadVersion) error.value = 'تعذر فتح المراجعة. تحقق من الاتصال وصلاحية الوصول.' }
   finally { if (version === loadVersion) loading.value = false }
 }
@@ -76,10 +82,6 @@ async function seek(at: number) {
 function markTime() {
   noteTime.value = seconds.value
   player.value?.pause()
-}
-function markAyah(number: number) {
-  player.value?.pause()
-  return action('mark_ayah', { at_seconds: player.value?.currentTime ?? seconds.value, ayah: number })
 }
 function reviewDate(value: string) {
   return new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value.replace(' ', 'T')))
@@ -133,8 +135,8 @@ onBeforeUnmount(() => {
         <audio v-else ref="player" :src="audioUrl" controls preload="metadata" class="w-full" aria-label="تسجيل التسميع" @timeupdate="seconds = player?.currentTime ?? 0" @error="audioError = 'تعذر تشغيل هذا التسجيل على المتصفح.'" />
         <p v-if="audioError" role="alert">{{ audioError }}</p>
       </section>
-      <RecitationMushaf :key="review.name" :review="review" :seconds="seconds" :editable="!!editable" :busy="busy" :audio-ready="!!audioUrl"
-        @mark="markAyah" @remove="action('remove_marker', { marker: $event })" @seek="seek" @select-ayah="ayah = String($event); markTime()" />
+      <RecitationMushaf :key="review.name" :review="review" :seconds="seconds" :tracking="tracking"
+        @retry="prepareTracking(review.name)" @select-ayah="ayah = String($event); markTime()" />
       </div>
       <div class="grid min-w-0 content-start gap-4">
       <section class="teacher-card" aria-label="نشاط المراجعة">

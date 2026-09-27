@@ -24,6 +24,12 @@ if (new URLSearchParams(location.search).get('range') === 'long') {
   review.start_ayah = 282
   review.end_ayah = 283
 }
+const publicAudio = new URLSearchParams(location.search).get('audio') === 'public'
+if (publicAudio) {
+  review.start_ayah = 2
+  review.end_ayah = 2
+  review.duration_seconds = 5.534
+}
 function silence() {
   const wav = new ArrayBuffer(44 + 8000 * 60 * 2)
   const view = new DataView(wav)
@@ -41,10 +47,17 @@ window.fetch = async (input, init) => {
   const url = String(input)
   const resource = new URL(url, location.origin)
   if (resource.origin === location.origin && resource.pathname.startsWith('/quran/')) return assetFetch(input, init)
+  if (url.includes('recitation_tracking.')) {
+    // Public mode uses the actual local ASR probe output, never invented timings.
+    const result = publicAudio
+      ? await (await assetFetch('/tests/.tracking-sample.json')).json()
+      : { spans: [{ start: 1, end: 3, ayah: review.start_ayah, word: 1 }, { start: 3, end: 5, ayah: review.start_ayah, word: 2 }] }
+    return new Response(JSON.stringify({ data: { state: 'ready', spans: result.spans } }), { headers: { 'Content-Type': 'application/json' } })
+  }
   const method = url.split('teacher_review.')[1]?.split('?')[0]
   const values = init?.body instanceof FormData ? init.body : new FormData()
   let result: unknown = review
-  if (method === 'recording') return silence()
+  if (method === 'recording') return publicAudio ? assetFetch('/tests/.tracking-sample.mp3') : silence()
   if (method === 'dashboard') result = {
     is_teacher: true, has_more: false, links: [{
       name: 'fixture-link', teacher_name: review.teacher_name,
@@ -96,4 +109,17 @@ const router = createRouter({
 })
 const pinia = createPinia()
 useThemeStore(pinia).initialize()
-createApp({ render: () => h(RouterView) }).use(pinia).use(VueQueryPlugin).use(router).mount('#app')
+createApp({ render: () => h('div', [
+  publicAudio ? h('aside', { dir: 'rtl', class: 'teacher-card' }, [
+    h('p', 'مثال بتلاوة عامة للآية الثانية من الفاتحة، وتوقيت مستخرج بخدمة التعرّف المحلية. بيانات المراجعة وهمية.'),
+    h('a', { href: 'https://everyayah.com/data/Alafasy_128kbps/001002.mp3' }, 'مصدر التلاوة: العفاسي — EveryAyah'),
+    h('button', { type: 'button', onClick: async () => {
+      const audio = document.querySelector('audio')
+      if (!audio) return
+      audio.currentTime = 0
+      audio.playbackRate = 0.5
+      await audio.play()
+    } }, 'إعادة المثال ببطء (بعد تحميل التسجيل)'),
+  ]) : null,
+  h(RouterView),
+]) }).use(pinia).use(VueQueryPlugin).use(router).mount('#app')
