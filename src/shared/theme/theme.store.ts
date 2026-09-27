@@ -27,6 +27,11 @@ export const useThemeStore = defineStore('theme', () => {
   function initialize() {
     if (initialized || typeof window === 'undefined' || typeof document === 'undefined') return
 
+    try {
+      const saved = localStorage.getItem('sqc-theme')
+      if (saved === 'system' || saved === 'light' || saved === 'dark') preference.value = saved
+    } catch { /* Storage can be unavailable in private browsing. */ }
+
     mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     systemTheme.value = mediaQuery.matches ? 'dark' : 'light'
     initialized = true
@@ -37,6 +42,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   function setPreference(value: ThemePreference) {
     preference.value = value
+    try { localStorage.setItem('sqc-theme', value) } catch { /* Keep the current session preference. */ }
   }
 
   function dispose() {

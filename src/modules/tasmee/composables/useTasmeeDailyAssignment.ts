@@ -9,16 +9,18 @@ import {
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { toArabicNumber } from '@/modules/quran/utils/number'
 
+export interface TasmeeScope extends HifzDailyAssignment { is_practice?: boolean }
+
 export function useTasmeeDailyAssignment() {
   const route = useRoute()
-  const retryAssignment = ref<HifzDailyAssignment | null>(null)
+  const retryAssignment = ref<TasmeeScope | null>(null)
   const planCall = useEnsureHifzDailyAssignmentMutation()
   const plan = ref<HifzDailyPlanResponse | null>(null)
   const loading = ref(false)
   const failed = ref(false)
   const error = ref<unknown>(null)
 
-  const assignment = computed(() =>
+  const assignment = computed<TasmeeScope | null>(() =>
     retryAssignment.value ?? plan.value?.assignment ?? null,
   )
 
@@ -52,11 +54,21 @@ export function useTasmeeDailyAssignment() {
     loading.value = true
     failed.value = false
     error.value = null
+    retryAssignment.value = null
 
     try {
       if (typeof route.query.retry === 'string') {
-        retryAssignment.value = await getSmartQuranMethod<HifzDailyAssignment>(
+        retryAssignment.value = await getSmartQuranMethod<TasmeeScope>(
           'teacher_review.retry_assignment', { name: route.query.retry },
+        )
+        return null
+      }
+      if (route.query.practice === '1') {
+        retryAssignment.value = await getSmartQuranMethod<TasmeeScope>(
+          'teacher_review.practice_scope', {
+            surah: String(route.query.surah ?? ''), start: String(route.query.start ?? ''),
+            end: String(route.query.end ?? ''),
+          },
         )
         return null
       }

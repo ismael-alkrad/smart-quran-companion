@@ -11,6 +11,8 @@ import {
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import { getTasmeeSession } from '@/modules/tasmee/api'
+import { getSubmissionForSession } from '@/modules/tasmee/api/teacherReview'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import { useTasmeeDailyAssignment } from '@/modules/tasmee/composables/useTasmeeDailyAssignment'
 import {
@@ -44,7 +46,7 @@ const selectedSurahLabel = computed(() =>
 )
 
 function goBack() {
-  void router.push('/quran/hifz/daily-plan')
+  void router.push(assignment.value?.is_practice ? '/tasmee/select' : '/tasmee')
 }
 
 function openMicCheck() {
@@ -54,7 +56,7 @@ function openMicCheck() {
   void router.push({
     name: 'tasmee-solo-mic-check',
     query: {
-      retry: route.query.retry,
+      ...route.query,
       assignment: current.name,
     },
   })
@@ -82,6 +84,7 @@ async function resumeStoredSession(assignmentName: string) {
     )
 
     if (!stored) return
+    if (stored.ownerUser && stored.ownerUser !== useAuthSessionStore().user?.name) return
     if ((stored.parentReview ?? '') !== (route.query.retry ?? '')) return
 
     if (stored.serverSessionName) {
@@ -96,6 +99,7 @@ async function resumeStoredSession(assignmentName: string) {
         ) {
           return
         }
+        if ((await getSubmissionForSession(stored.serverSessionName)).review) return
       } catch {
         // If the server session cannot be resolved, keep the local
         // recovery behavior and let the session page handle it.
@@ -108,7 +112,7 @@ async function resumeStoredSession(assignmentName: string) {
         recordingId: stored.id,
       },
       query: {
-      retry: route.query.retry,
+      ...route.query,
         assignment: assignmentName,
       },
     })
@@ -174,7 +178,7 @@ watch(
       <TasmeeStateHeader
         state="preparing"
         title="تهيئة جلسة التسميع"
-        subtitle="راجع نطاق التسميع ثم افحص الميكروفون. يمكنك إرسال التسجيل للمدرّس بعد الانتهاء."
+        subtitle="راجع نطاق التسميع ثم افحص الميكروفون. يمكنك إرسال التسجيل لمدرّسك أو صاحبك بعد الانتهاء."
       />
 
       <BaseSearch

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import QuranHifzStatusBadge from '@/modules/quran/components/QuranHifzStatusBadge.vue'
@@ -9,6 +9,7 @@ import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
 import { useSurahProgress } from '@/modules/quran/composables/useSurahProgress'
 import { getHifzStatusLabel } from '@/modules/quran/utils/hifz'
 import { toArabicNumber } from '@/modules/quran/utils/number'
+import { getMushafPageNumberForAyah } from '@/modules/quran/repositories/quran.repository'
 import {
   BaseAppBar,
   BaseBanner,
@@ -22,6 +23,18 @@ const route = useRoute()
 const router = useRouter()
 
 const surahNumber = Number(route.params.surahNumber)
+const opening = ref(false)
+const openError = ref(false)
+async function openReview() {
+  opening.value = true
+  openError.value = false
+  try {
+    const ayah = progress.value?.ayahs.find(a => a.status === 'needs_review')?.ayah_number ?? 1
+    const page = await getMushafPageNumberForAyah(surahNumber, ayah)
+    await router.push(`/quran/${page}`)
+  } catch { openError.value = true }
+  finally { opening.value = false }
+}
 
 const {
   progress,
@@ -182,17 +195,21 @@ onMounted(() => {
           size="large"
           variant="secondary"
           class="w-full"
+          :loading="opening"
+          @click="openReview"
         >
-          ابدأ مراجعة
+          مراجعة السورة في المصحف
         </BaseButton>
 
         <BaseButton
           size="large"
           variant="primary"
           class="w-full"
+          @click="router.push({ path: '/tasmee/select', query: { surah: String(surahNumber) } })"
         >
-          ابدأ تسميع
+          اختيار مقطع من السورة للتسميع
         </BaseButton>
+        <BaseBanner v-if="openError" tone="error" title="تعذر فتح المصحف" body="تحقق من الاتصال وحاول مرة أخرى." />
       </div>
     </div>
 

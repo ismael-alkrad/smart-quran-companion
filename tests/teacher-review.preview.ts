@@ -39,7 +39,14 @@ window.fetch = async (input, init) => {
     is_teacher: true, has_more: false, links: [{
       name: 'fixture-link', teacher_name: review.teacher_name,
       student_name: review.student_name, status: 'active', is_teacher: true,
-    }], reviews: [review],
+      is_mutual: true, can_respond: false, can_submit: true, partner_name: 'صاحب تجريبي',
+    }, {
+      name: 'fixture-pending', teacher_name: 'حسابي', student_name: 'صاحب آخر',
+      status: 'pending', is_teacher: true, is_mutual: true, can_respond: true,
+      can_submit: false, partner_name: 'صاحب آخر',
+    }], reviews: new URL(url, location.origin).searchParams.get('scope') === 'mine'
+      ? [{ ...review, name: 'fixture-mine', is_reviewer: false }]
+      : [review],
   }
   else if (method === 'add_note') {
     review.notes.push({

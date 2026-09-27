@@ -6,6 +6,7 @@ import {
   watch,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
@@ -32,6 +33,7 @@ type LiveSessionState =
 
 const route = useRoute()
 const router = useRouter()
+const authSession = useAuthSessionStore()
 
 const {
   assignment,
@@ -380,6 +382,8 @@ async function endSession() {
     await saveTasmeeRecording({
       id: recordingId,
       parentReview: typeof route.query.retry === 'string' ? route.query.retry : undefined,
+      isPractice: currentAssignment.is_practice ?? false,
+      ownerUser: authSession.user?.name,
       assignmentName: currentAssignment.name,
       surahNumber: currentAssignment.surah_number,
       startAyah: currentAssignment.start_ayah,
@@ -398,7 +402,7 @@ async function endSession() {
         recordingId,
       },
       query: {
-      retry: route.query.retry,
+      ...route.query,
         assignment: currentAssignment.name,
       },
     })
@@ -412,7 +416,7 @@ async function endSession() {
 }
 
 function returnLater() {
-  void router.push('/quran/hifz/daily-plan')
+  void router.push('/tasmee')
 }
 
 function returnToReady() {
@@ -421,7 +425,7 @@ function returnToReady() {
   void router.push({
     name: 'tasmee-solo-ready',
     query: current
-      ? { assignment: current.name, retry: route.query.retry }
+      ? { ...route.query, assignment: current.name }
       : {},
   })
 }

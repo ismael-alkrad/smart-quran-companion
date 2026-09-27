@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import QuranProgressCard from '@/modules/quran/components/QuranProgressCard.vue'
 import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
@@ -31,6 +31,10 @@ const {
 } = useHifzOverview()
 
 const router = useRouter()
+const route = useRoute()
+watch(() => route.query.filter, value => {
+  filter.value = value === 'review' || value === 'memorizing' ? value : 'all'
+}, { immediate: true })
 
 const filterOptions: BaseSegmentedOption[] = [
   { value: 'all', label: 'الكل' },

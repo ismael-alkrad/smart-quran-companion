@@ -75,7 +75,7 @@ function goBack() {
   void router.push({
     name: 'tasmee-solo-setup',
     query: current
-      ? { assignment: current.name, retry: route.query.retry }
+      ? { ...route.query, assignment: current.name }
       : {},
   })
 }
@@ -88,7 +88,7 @@ function continueToReady() {
   void router.push({
     name: 'tasmee-solo-ready',
     query: {
-      retry: route.query.retry,
+      ...route.query,
       assignment: current.name,
     },
   })

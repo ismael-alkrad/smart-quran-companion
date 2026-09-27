@@ -11,6 +11,8 @@ export interface StoredTasmeeRecording {
   serverSessionName?: string
   uploadedAt?: string
   parentReview?: string
+  isPractice?: boolean
+  ownerUser?: string
 }
 
 const DATABASE_NAME = 'smart-quran-tasmee'

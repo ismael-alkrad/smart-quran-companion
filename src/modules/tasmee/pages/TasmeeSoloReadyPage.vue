@@ -30,7 +30,7 @@ function goBack() {
   void router.push({
     name: 'tasmee-solo-mic-check',
     query: current
-      ? { assignment: current.name, retry: route.query.retry }
+      ? { ...route.query, assignment: current.name }
       : {},
   })
 }
@@ -43,7 +43,7 @@ function startTasmee() {
   void router.push({
     name: 'tasmee-solo-live',
     query: {
-      retry: route.query.retry,
+      ...route.query,
       assignment: current.name,
     },
   })

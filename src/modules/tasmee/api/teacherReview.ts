@@ -6,6 +6,10 @@ export interface TeacherLink {
   student_name: string
   status: 'pending' | 'active' | 'declined' | 'revoked'
   is_teacher: boolean
+  is_mutual: boolean | number
+  can_respond: boolean
+  can_submit: boolean
+  partner_name: string
 }
 export interface TeacherNote {
   name: string
@@ -25,7 +29,7 @@ export interface TeacherReview {
   created_at: string
   reviewed_at: string | null
   parent_review: string | null
-  assignment: string
+  assignment: string | null
   surah_number: number
   start_ayah: number
   end_ayah: number
@@ -40,18 +44,20 @@ export interface TeacherDashboard {
   has_more: boolean
 }
 export const reviewLabels: Record<TeacherReview['status'], string> = {
-  submitted: 'بانتظار المدرّس',
+  submitted: 'بانتظار المراجعة',
   in_review: 'قيد المراجعة',
-  approved: 'اعتمد المدرّس التسميع',
+  approved: 'تم اعتماد التسميع',
   changes_requested: 'مطلوب إعادة التسميع',
 }
 export const noteLabels: Record<string, string> = {
   memorization: 'الحفظ', tajweed: 'التجويد', fluency: 'الطلاقة', encouragement: 'تشجيع',
 }
-export const getTeacherDashboard = (offset = 0) =>
-  getSmartQuranMethod<TeacherDashboard>('teacher_review.dashboard', { offset })
+export const getTeacherDashboard = (offset = 0, scope = 'all', status = 'all') =>
+  getSmartQuranMethod<TeacherDashboard>('teacher_review.dashboard', { offset, scope, status })
 export const getTeacherReview = (name: string) =>
   getSmartQuranMethod<TeacherReview>('teacher_review.detail', { name })
+export const getSubmissionForSession = (sessionName: string) =>
+  getSmartQuranMethod<{ review: TeacherReview | null }>('teacher_review.submission_for_session', { session_name: sessionName })
 export function teacherAction<T>(action: string, params: Record<string, string | number>) {
   const data = new FormData()
   for (const [key, value] of Object.entries(params)) data.set(key, String(value))

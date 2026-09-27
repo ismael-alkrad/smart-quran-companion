@@ -54,7 +54,10 @@ function select(value: BaseBottomNavValue) {
 }
 
 function routeFor(value: BaseBottomNavValue) {
-  return props.routes[value]
+  const defaults: BaseBottomNavRoutes = {
+    home: '/home', quran: '/quran', tasmee: '/tasmee', profile: '/profile',
+  }
+  return props.routes[value] ?? defaults[value]
 }
 </script>
 
@@ -120,6 +123,7 @@ function routeFor(value: BaseBottomNavValue) {
     </FrappeMobileNavItem>
 
     <FrappeMobileNavItem
+      v-if="routeFor('groups')"
       :label="labels.groups"
       :to="routeFor('groups')"
       :active="modelValue === 'groups'"

@@ -25,6 +25,7 @@ import {
 import TasmeeIssueRow from '@/modules/tasmee/components/TasmeeIssueRow.vue'
 import TeacherReviewSend from '@/modules/tasmee/components/TeacherReviewSend.vue'
 import { teacherAction } from '@/modules/tasmee/api/teacherReview'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import TasmeeVerificationBadge, {
@@ -710,7 +711,7 @@ async function loadRecording() {
   try {
     const stored = await getTasmeeRecording(recordingId.value)
 
-    if (!stored) {
+    if (!stored || (stored.ownerUser && stored.ownerUser !== useAuthSessionStore().user?.name)) {
       recording.value = null
       state.value = 'missing'
       return
@@ -773,7 +774,7 @@ async function reconcileRecordingAssignment(
   if (current.serverSessionName) {
     return current
   }
-  if (current.parentReview) return current
+  if (current.parentReview || current.isPractice) return current
 
   const response = await dailyPlanCall.submit()
   const currentAssignment = response?.assignment
@@ -826,7 +827,12 @@ async function ensureServerSession(current: StoredTasmeeRecording) {
     ? await teacherAction<{ session: { name: string } }>('create_retry', {
         name: current.parentReview, client_session_id: current.id,
       })
-    : await createSessionCall.submit({
+    : current.isPractice
+      ? await teacherAction<{ session: { name: string } }>('create_practice', {
+          surah: current.surahNumber, start: current.startAyah, end: current.endAyah,
+          client_session_id: current.id,
+        })
+      : await createSessionCall.submit({
         assignment_name: current.assignmentName,
         client_session_id: current.id,
         session_mode: 'solo',
@@ -957,7 +963,7 @@ function startNewTasmee() {
 }
 
 function returnLater() {
-  void router.push('/quran/hifz/daily-plan')
+  void router.push('/tasmee')
 }
 
 onMounted(() => {
@@ -1125,7 +1131,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
@@ -1134,7 +1140,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="router.push('/tasmee')"
         >
-          تسميعاتي ومراجعات المدرّس
+          تسميعاتي ومراجعات الشركاء
         </BaseButton>
       </template>
 

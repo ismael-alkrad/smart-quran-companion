@@ -111,16 +111,16 @@ onBeforeUnmount(() => {
         <span class="teacher-eyebrow">{{ reviewLabels[review.status] }}</span>
         <h1>سورة {{ getSurahNameArabic(review.surah_number) }}</h1>
         <p>الآيات {{ review.start_ayah }}–{{ review.end_ayah }} · {{ recordingTime(review.duration_seconds) }}</p>
-        <p>{{ review.is_reviewer ? 'تسميع ' + review.student_name : 'مع المدرّس ' + review.teacher_name }}</p>
+        <p>{{ review.is_reviewer ? 'تسميع ' + review.student_name : 'يراجع لك ' + review.teacher_name }}</p>
         <RouterLink v-if="review.parent_review" :to="'/tasmee/reviews/' + review.parent_review" class="teacher-eyebrow underline">العودة للمحاولة السابقة وملاحظاتها</RouterLink>
         <BaseButton v-if="!audioUrl" variant="secondary" :loading="audioLoading" @click="loadAudio">تحميل التسجيل للاستماع</BaseButton>
         <audio v-else ref="player" :src="audioUrl" controls preload="metadata" class="w-full" aria-label="تسجيل التسميع" @timeupdate="seconds = player?.currentTime ?? 0" @error="audioError = 'تعذر تشغيل هذا التسجيل على المتصفح.'" />
         <p v-if="audioError" role="alert">{{ audioError }}</p>
       </section>
       <section class="teacher-card">
-        <h2>ملاحظات {{ review.is_reviewer ? 'المراجعة' : 'المدرّس' }}</h2>
+        <h2>ملاحظات {{ review.is_reviewer ? 'المراجعة' : 'الشريك' }}</h2>
         <p v-if="editable">تُحفظ الملاحظات كمسودة. تظهر للطالب بعد نشر المراجعة.</p>
-        <p v-if="!notes.length">{{ editable ? 'استمع للتسجيل وأضف ملاحظتك عند موضعها.' : ['submitted', 'in_review'].includes(review.status) ? 'ستظهر الملاحظات هنا بعد أن ينشر المدرّس مراجعته.' : 'لم يضف المدرّس ملاحظات زمنية.' }}</p>
+        <p v-if="!notes.length">{{ editable ? 'استمع للتسجيل وأضف ملاحظتك عند موضعها.' : ['submitted', 'in_review'].includes(review.status) ? 'ستظهر الملاحظات هنا بعد أن ينشر شريكك مراجعته.' : 'لم يضف شريكك ملاحظات زمنية.' }}</p>
         <article v-for="note in notes" :key="note.name" class="teacher-review-link">
           <div class="flex items-center justify-between gap-2">
             <strong>{{ noteLabels[note.category] }}{{ note.ayah ? ' · الآية ' + note.ayah : '' }}</strong>
