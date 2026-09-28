@@ -19,6 +19,7 @@ const props = withDefaults(
     spread?: boolean
     hifzContext?: QuranHifzReaderContext | null
     playbackWordLocation?: string | null
+    suspectedWordLocations?: string[]
   }>(),
   {
     savedVerseKey: null,
@@ -196,6 +197,7 @@ onBeforeUnmount(() => {
       :page="page"
       :spread="spread"
       :selected-word-location="playbackWordLocation !== undefined ? playbackWordLocation : selectedWordLocation"
+      :suspected-word-locations="suspectedWordLocations"
       :hifz-context="hifzContext"
       class="!my-0 !rounded-none !shadow-none"
       :class="

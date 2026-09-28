@@ -25,6 +25,11 @@
   outline: 2px solid var(--sqc-color-border-focus); outline-offset: 3px;
 }
 .teacher-review-page { max-width: 1200px; }
+.review-context { padding: 0 8px; display: grid; gap: 4px; }
+.review-context h1 { font-size: 20px; font-weight: 600; }
+.review-context p { font-size: 13px; color: var(--sqc-color-text-secondary); }
+.recitation-transport { position: static; display: grid; gap: 12px; padding: 16px; border-top: 1px solid var(--sqc-color-border-default); }
+.recitation-transport input[type=range] { accent-color: var(--sqc-color-text-brand); }
 .teacher-review-columns { display: grid; gap: 16px; }
 @media (min-width: 960px) {
   .teacher-review-columns { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }

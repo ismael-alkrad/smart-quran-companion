@@ -27,11 +27,13 @@ const props = withDefaults(
     page: MushafPageData
     spread?: boolean
     selectedWordLocation?: string | null
+    suspectedWordLocations?: string[]
     hifzContext?: QuranHifzReaderContext | null
   }>(),
   {
     spread: false,
     selectedWordLocation: null,
+    suspectedWordLocations: () => [],
     hifzContext: null,
   },
 )
@@ -406,9 +408,12 @@ onBeforeUnmount(() => {
               selectedWordLocation === word.location && !isVerseMarker(word)
                 ? 'bg-[var(--sqc-poc-accent-soft)] text-[color:var(--sqc-poc-accent-strong)]'
                 : '',
+              suspectedWordLocations.includes(word.location) && !isVerseMarker(word) ? 'mushaf-suspected-word' : '',
             ]"
             translate="no"
             :data-location="word.location"
+            :title="suspectedWordLocations.includes(word.location) ? 'اختلاف محتمل في التعرف على الصوت — يحتاج مراجعة' : undefined"
+            :data-suspected-difference="suspectedWordLocations.includes(word.location) ? 'true' : undefined"
             :data-verse-key="word.verseKey"
             :data-word-position="word.position"
             :data-verse-marker="isVerseMarker(word) ? 'true' : undefined"
@@ -456,3 +461,7 @@ onBeforeUnmount(() => {
     </div>
   </article>
 </template>
+
+<style scoped>
+.mushaf-suspected-word { background-color: #fee2e2 !important; color: #991b1b !important; text-decoration: underline dotted; text-underline-offset: 6px; }
+</style>

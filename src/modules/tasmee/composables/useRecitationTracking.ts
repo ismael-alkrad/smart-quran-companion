@@ -2,9 +2,16 @@ import { onBeforeUnmount, ref } from 'vue'
 import { getSmartQuranMethod, postSmartQuranFormData } from '@/shared/api'
 
 export interface TrackingSpan { start: number; end: number; ayah: number; word: number }
+export interface TrackingCandidate extends TrackingSpan {
+  id: string
+  kind: 'possible_substitution'
+  expected: string
+  heard: string
+}
 export interface TrackingResult {
   state: 'idle' | 'queued' | 'processing' | 'ready' | 'unmatched' | 'failed'
   spans: TrackingSpan[]
+  candidates?: TrackingCandidate[]
 }
 export function useRecitationTracking() {
   const tracking = ref<TrackingResult>({ state: 'idle', spans: [] })

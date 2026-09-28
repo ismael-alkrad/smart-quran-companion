@@ -28,8 +28,10 @@ Closed relationships cannot be reopened through the app in this version.
    assignment and cannot start AI analysis or apply a Hifz result. New local
    recordings carry an owner ID and are not opened under a different account.
 2. Preview and upload the recording, then select an accepted teacher relationship.
-3. The teacher opens the inbox, downloads the private audio, pauses at a passage,
-   presses **تثبيت موضع التشغيل**, and adds a note (optional ayah, category, text).
+3. Opening the review loads the private audio automatically. One **تشغيل التلاوة**
+   action starts listening and records the human review start. The Mushaf is the
+   primary surface, with transport controls in a separate row below the page.
+   **إضافة ملاحظة** pauses audio and preselects the current time/recognized ayah.
 4. Notes remain drafts visible only to the teacher. Publishing either approves
    this recording or requests another attempt. Published reviews are immutable.
 5. The student can listen from each note timestamp and record a new attempt.
@@ -68,12 +70,13 @@ erase audio that a recipient has already downloaded.
 - Inbox refresh is manual/re-entry; API pagination is 20 reviews per page.
 - This work reuses the Figma design language; it does not add new Figma frames.
 
-The current integration suite has 15 tests, including all 114 surah boundaries,
+The current integration suite has 16 tests, including all 114 surah boundaries,
 standalone upload/review/retry, immutable scope, and unchanged Hifz document counts.
 
 ## Review activity and automatic Mushaf tracking
 
-An explicit **بدء المراجعة**, first note, or first marker records the start time.
+Playback by the assigned reviewer, an explicit **بدء المراجعة**, first note, or
+first legacy marker records the start time.
 Reading the detail or downloading audio does not. Both participants see the named
 reviewer's started/published state; existing reviews do not get a fabricated start
 time. Notes carry their author's name and creation time (legacy notes use the
@@ -100,7 +103,7 @@ cached for 24 hours by review ID and recording hash; every status/prepare reques
 rechecks participant access. Tracking does not start/complete the human review or
 modify Tasmee analysis, Hifz or scores. Preparation/poll failures keep audio usable.
 
-Verification also includes five matcher tests for repetition, backwards jumps,
+Verification also includes seven matcher tests for repetition, backwards jumps,
 ambiguous text, invalid timing/confidence and silence evidence. An explicit
 `bench --site quran.localhost execute smart_quran.services.test_recitation_tracking.public_probe`
 uses a public [Alafasy 1:2 sample](https://everyayah.com/data/Alafasy_128kbps/001002.mp3),
@@ -112,3 +115,26 @@ preview reads untracked `tests/.tracking-sample.json` (probe stdout) and
 `tests/.tracking-sample.mp3` (the sample above). They are locally ignored and are
 not shipped or committed. Its account/review data are synthetic; timing is actual
 probe output. The default preview remains a silent synthetic UI fixture.
+
+## Reader controls and possible differences
+
+Private audio is fetched as the review opens, with abort/version guards against
+late responses from another recording. There is no initial download button. The
+custom transport provides play/pause, scrub, five-second rewind, speed, a contextual
+note action and a link to final review. It occupies normal document flow below
+the Mushaf, never a sticky layer over Quran text. Playback begins on a user gesture
+and uses the play promise/events rather than assuming autoplay succeeded; see
+[MDN playback guidance](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play).
+
+The reviewer may see **possible substitutions**, marked with a dotted red underline.
+These require an unmatched high-confidence timed word bracketed by two anchored
+words, exactly one expected word between them, and speech evidence. Silence,
+missing words or ambiguous positioning are not automatically colored red. This
+limited hypothesis detector is not a validated exhaustive error/tajweed detector,
+and the absence of red is not evidence that the recitation is correct.
+
+Suggestions are hidden from the student at the API level, even after publication.
+The reviewer can replay a suggestion and draft a note, then edit/save/publish it.
+Nothing is automatically published or graded. `/tests/teacher-review.html?case=difference#/tasmee/reviews/fixture-review`
+is an explicitly synthetic UI-only red-marker fixture, separate from the public
+recitation probe; it is not evidence of real-world detection accuracy.

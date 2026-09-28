@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { BaseAppBar, BaseBanner, BaseButton, BaseInput, BaseLoading } from '@/shared/components'
 import { smartQuranApiUrl } from '@/shared/api'
@@ -7,7 +7,7 @@ import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { getTeacherReview, teacherAction, reviewLabels, noteLabels, recordingTime, type TeacherReview } from '../api/teacherReview'
 import '../teacher-review.css'
 import RecitationMushaf from '../components/RecitationMushaf.vue'
-import { useRecitationTracking } from '../composables/useRecitationTracking'
+import { useRecitationTracking, type TrackingCandidate } from '../composables/useRecitationTracking'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +20,13 @@ const audioError = ref('')
 const audioLoading = ref(false)
 const audioUrl = ref('')
 const player = ref<HTMLAudioElement | null>(null)
+const playing = ref(false)
+const audioReady = ref(false)
+const audioDuration = ref(0)
+const playbackRate = ref('1')
+const noteComposerOpen = ref(false)
+const noteComposer = ref<HTMLElement | null>(null)
+const reviewSummary = ref<HTMLElement | null>(null)
 const seconds = ref(0)
 const noteTime = ref(0)
 const ayah = ref('')
@@ -32,6 +39,7 @@ const editable = computed(() => review.value?.is_reviewer &&
   ['submitted', 'in_review'].includes(review.value.status))
 const notes = computed(() => [...(review.value?.notes ?? [])].sort((a, b) => a.at_seconds - b.at_seconds))
 const dirty = computed(() => editable.value && (body.value.trim() || summary.value.trim()))
+const candidates = computed(() => editable.value ? tracking.value.candidates ?? [] : [])
 async function load() {
   const version = ++loadVersion
   loading.value = true
@@ -39,6 +47,12 @@ async function load() {
   review.value = null
   stopTracking()
   audioAbort?.abort()
+  audioLoading.value = false
+  audioReady.value = false
+  playing.value = false
+  audioError.value = ''
+  audioDuration.value = 0
+  noteComposerOpen.value = false
   if (audioUrl.value) URL.revokeObjectURL(audioUrl.value)
   audioUrl.value = ''
   body.value = ''
@@ -51,6 +65,7 @@ async function load() {
     if (version === loadVersion) {
       review.value = result
       void prepareTracking(result.name)
+      void loadAudio()
     }
   } catch { if (version === loadVersion) error.value = 'تعذر فتح المراجعة. تحقق من الاتصال وصلاحية الوصول.' }
   finally { if (version === loadVersion) loading.value = false }
@@ -59,19 +74,56 @@ async function loadAudio() {
   if (!review.value || audioLoading.value) return
   audioLoading.value = true
   audioError.value = ''
-  audioAbort = new AbortController()
+  const controller = new AbortController()
+  audioAbort = controller
   const name = review.value.name
   try {
     const response = await fetch(smartQuranApiUrl('teacher_review.recording') +
-      '?name=' + encodeURIComponent(name), { credentials: 'same-origin', signal: audioAbort.signal })
+      '?name=' + encodeURIComponent(name), { credentials: 'same-origin', signal: controller.signal })
     if (!response.ok) throw new Error()
     const blob = await response.blob()
-    if (review.value?.name !== name || audioAbort.signal.aborted) return
+    if (review.value?.name !== name || controller.signal.aborted) return
     if (audioUrl.value) URL.revokeObjectURL(audioUrl.value)
     audioUrl.value = URL.createObjectURL(blob)
   } catch (cause) {
-    if (!(cause instanceof DOMException && cause.name === 'AbortError')) audioError.value = 'تعذر تحميل التسجيل. أعد المحاولة.'
-  } finally { audioLoading.value = false }
+    if (!controller.signal.aborted && audioAbort === controller && !(cause instanceof DOMException && cause.name === 'AbortError')) audioError.value = 'تعذر تحميل التسجيل. أعد المحاولة.'
+  } finally { if (audioAbort === controller) audioLoading.value = false }
+}
+const duration = computed(() => audioDuration.value || review.value?.duration_seconds || 0)
+async function togglePlayback() {
+  if (!player.value || !audioReady.value) return
+  if (!player.value.paused) { player.value.pause(); return }
+  try { await player.value.play() } catch { audioError.value = 'تعذر بدء التشغيل. اضغط تشغيل مرة أخرى.' }
+}
+function scrub(at: number) {
+  if (!player.value || !audioReady.value) return
+  player.value.currentTime = Math.max(0, Math.min(duration.value, at))
+  seconds.value = player.value.currentTime
+}
+function setPlaybackRate() { if (player.value) player.value.playbackRate = Number(playbackRate.value) }
+function onPlayback() {
+  playing.value = true
+  if (review.value?.is_reviewer && review.value.status === 'submitted') void action('begin_review', {})
+}
+async function openNote(verse?: number) {
+  if (!body.value.trim()) {
+    markTime()
+    ayah.value = String(verse ?? tracking.value.spans.find(s => s.start <= seconds.value && seconds.value < s.end)?.ayah ?? '')
+  } else player.value?.pause()
+  noteComposerOpen.value = true
+  await nextTick()
+  noteComposer.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  noteComposer.value?.querySelector('textarea')?.focus({ preventScroll: true })
+}
+function finishListening() {
+  player.value?.pause()
+  reviewSummary.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+async function draftCandidate(candidate: TrackingCandidate) {
+  if (body.value.trim()) { await openNote(); return }
+  scrub(candidate.start)
+  await openNote(candidate.ayah)
+  body.value = `راجع موضع كلمة «${candidate.expected}». ظهر اختلاف محتمل في التفريغ: «${candidate.heard}».`
 }
 async function seek(at: number) {
   if (!player.value) return
@@ -80,7 +132,8 @@ async function seek(at: number) {
   try { await player.value.play() } catch { audioError.value = 'اضغط تشغيل للاستماع إلى الملاحظة.' }
 }
 function markTime() {
-  noteTime.value = seconds.value
+  noteTime.value = player.value?.currentTime ?? seconds.value
+  seconds.value = noteTime.value
   player.value?.pause()
 }
 function reviewDate(value: string) {
@@ -123,20 +176,42 @@ onBeforeUnmount(() => {
     <template v-if="review">
       <div class="teacher-review-columns">
       <div class="grid min-w-0 content-start gap-4">
-      <section class="teacher-card">
+      <section class="review-context">
         <span class="teacher-eyebrow">{{ reviewLabels[review.status] }}</span>
         <h1>سورة {{ getSurahNameArabic(review.surah_number) }}</h1>
         <p>الآيات {{ review.start_ayah }}–{{ review.end_ayah }} · {{ recordingTime(review.duration_seconds) }}</p>
         <p>{{ review.is_reviewer ? 'تسميع ' + review.student_name : 'يراجع لك ' + review.teacher_name }}</p>
         <RouterLink v-if="review.parent_review" :to="'/tasmee/reviews/' + review.parent_review" class="teacher-eyebrow underline">العودة للمحاولة السابقة وملاحظاتها</RouterLink>
       </section>
-      <section class="teacher-card sticky top-0 z-20" aria-label="مشغّل التسجيل">
-        <BaseButton v-if="!audioUrl" variant="secondary" :loading="audioLoading" @click="loadAudio">تحميل التسجيل للاستماع</BaseButton>
-        <audio v-else ref="player" :src="audioUrl" controls preload="metadata" class="w-full" aria-label="تسجيل التسميع" @timeupdate="seconds = player?.currentTime ?? 0" @error="audioError = 'تعذر تشغيل هذا التسجيل على المتصفح.'" />
-        <p v-if="audioError" role="alert">{{ audioError }}</p>
-      </section>
       <RecitationMushaf :key="review.name" :review="review" :seconds="seconds" :tracking="tracking"
-        @retry="prepareTracking(review.name)" @select-ayah="ayah = String($event); markTime()" />
+        @retry="prepareTracking(review.name)" @select-ayah="openNote($event)">
+        <template #transport>
+          <section class="recitation-transport" aria-label="أدوات الاستماع والمراجعة">
+            <audio v-if="audioUrl" ref="player" :src="audioUrl" preload="auto" class="hidden" aria-label="تسجيل التسميع"
+              @loadedmetadata="audioDuration = player?.duration ?? 0; audioReady = true; setPlaybackRate()"
+              @play="onPlayback" @pause="playing = false" @ended="playing = false"
+              @timeupdate="seconds = player?.currentTime ?? 0" @error="audioReady = false; audioError = 'تعذر تشغيل التسجيل. أعد المحاولة.'" />
+            <div dir="ltr" class="flex items-center gap-3">
+              <span class="text-xs tabular-nums">{{ recordingTime(seconds) }}</span>
+              <input type="range" min="0" :max="duration" step="0.1" :value="seconds" :disabled="!audioReady" class="min-w-0 flex-1" aria-label="موضع تشغيل التسجيل" @input="scrub(Number(($event.target as HTMLInputElement).value))">
+              <span class="text-xs tabular-nums">{{ recordingTime(duration) }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <BaseButton :disabled="!audioReady" :loading="audioLoading" @click="togglePlayback">{{ playing ? 'إيقاف مؤقت' : 'تشغيل التلاوة' }}</BaseButton>
+              <BaseButton variant="secondary" :disabled="!audioReady" @click="scrub(seconds - 5)">رجوع ٥ ثوانٍ</BaseButton>
+              <select v-model="playbackRate" class="teacher-field !min-h-10 !w-auto !p-2 text-sm" aria-label="سرعة التلاوة" @change="setPlaybackRate">
+                <option value="0.75">٠٫٧٥×</option><option value="1">١×</option><option value="1.25">١٫٢٥×</option><option value="1.5">١٫٥×</option>
+              </select>
+              <BaseButton v-if="editable" variant="secondary" :disabled="!audioReady" @click="openNote()">إضافة ملاحظة</BaseButton>
+              <BaseButton v-if="editable" variant="secondary" @click="finishListening">مراجعة ونشر</BaseButton>
+            </div>
+            <p v-if="audioLoading" class="text-center text-sm" role="status">جارٍ تجهيز الصوت تلقائيًا…</p>
+            <div v-if="audioError" role="alert" class="text-center text-sm">
+              <p>{{ audioError }}</p><BaseButton variant="secondary" :disabled="audioLoading" @click="loadAudio">إعادة تحميل الصوت</BaseButton>
+            </div>
+          </section>
+        </template>
+      </RecitationMushaf>
       </div>
       <div class="grid min-w-0 content-start gap-4">
       <section class="teacher-card" aria-label="نشاط المراجعة">
@@ -147,6 +222,18 @@ onBeforeUnmount(() => {
         <p v-else-if="review.status === 'in_review'">بدأ المراجعة. وقت البداية غير مسجّل للمراجعات السابقة.</p>
         <p v-else>لم يبدأ المراجعة بعد.</p>
         <BaseButton v-if="editable && review.status === 'submitted'" variant="secondary" :disabled="busy" @click="action('begin_review', {})">بدء المراجعة</BaseButton>
+      </section>
+      <section v-if="candidates.length" class="teacher-card" aria-label="اختلافات محتملة للمراجعة">
+        <h2>مواضع تحتاج انتباهك · {{ candidates.length }}</h2>
+        <p>الأحمر المنقّط اقتراح آلي، وليس حكمًا على الطالب. استمع قبل إضافته إلى ملاحظاتك.</p>
+        <article v-for="candidate in candidates" :key="candidate.id" class="teacher-review-link">
+          <strong>الآية {{ candidate.ayah }} · «{{ candidate.expected }}»</strong>
+          <p>التفريغ المحتمل: «{{ candidate.heard }}»</p>
+          <div class="flex flex-wrap gap-2">
+            <BaseButton variant="secondary" :disabled="!audioReady" @click="seek(Math.max(0, candidate.start - 0.5))">استمع للموضع {{ recordingTime(candidate.start) }}</BaseButton>
+            <BaseButton variant="secondary" :disabled="!audioReady" @click="draftCandidate(candidate)">صياغة ملاحظة</BaseButton>
+          </div>
+        </article>
       </section>
       <section class="teacher-card">
         <h2>ملاحظات {{ review.is_reviewer ? 'المراجعة' : 'الشريك' }}</h2>
@@ -163,7 +250,7 @@ onBeforeUnmount(() => {
         </article>
         <p v-if="review.summary" class="whitespace-pre-wrap">{{ review.summary }}</p>
       </section>
-      <section v-if="editable" class="teacher-card">
+      <section v-if="editable && noteComposerOpen" ref="noteComposer" class="teacher-card">
         <h2>إضافة ملاحظة</h2>
         <form class="grid gap-4" @submit.prevent="action('add_note', { at_seconds: noteTime, ayah, category, body })">
           <p>موضع الملاحظة: <b dir="ltr">{{ recordingTime(noteTime) }}</b></p>
@@ -178,7 +265,7 @@ onBeforeUnmount(() => {
           <BaseButton type="submit" :disabled="busy || !body.trim() || !audioUrl" :loading="busy">حفظ الملاحظة عند {{ recordingTime(noteTime) }}</BaseButton>
         </form>
       </section>
-      <section v-if="editable" class="teacher-card">
+      <section v-if="editable" ref="reviewSummary" class="teacher-card">
         <h2>نشر المراجعة</h2>
         <label for="review-summary">رسالة ختامية للطالب (اختيارية)</label>
         <textarea id="review-summary" v-model="summary" class="teacher-field" rows="3" maxlength="2000" />

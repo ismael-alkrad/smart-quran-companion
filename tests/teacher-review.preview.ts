@@ -52,7 +52,9 @@ window.fetch = async (input, init) => {
     const result = publicAudio
       ? await (await assetFetch('/tests/.tracking-sample.json')).json()
       : { spans: [{ start: 1, end: 3, ayah: review.start_ayah, word: 1 }, { start: 3, end: 5, ayah: review.start_ayah, word: 2 }] }
-    return new Response(JSON.stringify({ data: { state: 'ready', spans: result.spans } }), { headers: { 'Content-Type': 'application/json' } })
+    const candidates = new URLSearchParams(location.search).get('case') === 'difference' && !publicAudio
+      ? [{ id: 'synthetic-hypothesis', kind: 'possible_substitution', ayah: 7, word: 4, start: 8, end: 9, expected: 'عليهم', heard: 'إليهم' }] : []
+    return new Response(JSON.stringify({ data: { state: 'ready', spans: result.spans, candidates } }), { headers: { 'Content-Type': 'application/json' } })
   }
   const method = url.split('teacher_review.')[1]?.split('?')[0]
   const values = init?.body instanceof FormData ? init.body : new FormData()
@@ -119,7 +121,7 @@ createApp({ render: () => h('div', [
       audio.currentTime = 0
       audio.playbackRate = 0.5
       await audio.play()
-    } }, 'إعادة المثال ببطء (بعد تحميل التسجيل)'),
+    } }, 'إعادة المثال ببطء'),
   ]) : null,
   h(RouterView),
 ]) }).use(pinia).use(VueQueryPlugin).use(router).mount('#app')
