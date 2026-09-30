@@ -1,12 +1,34 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getSurahNameArabic } from '@/modules/quran/data/surahNames'
 import { BaseAppBar, BaseBanner, BaseBottomNav, BaseButton, BaseInput, BaseLoading, BaseSegmentedControl } from '@/shared/components'
 import { getTeacherDashboard, teacherAction, reviewLabels, type TeacherDashboard } from '../api/teacherReview'
 import '../teacher-review.css'
+import { useAuthSessionStore } from '@/modules/auth/stores'
+import { listOwnedTasmeeRecordings, type TasmeeRecordingSummary } from '../repositories/tasmeeRecording.repository'
 
 const router = useRouter()
+const route = useRoute()
+const partners = ref<HTMLElement | null>(null)
+function showPartners() { partners.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+const auth = useAuthSessionStore()
+const localRecordings = ref<TasmeeRecordingSummary[]>([])
+const localError = ref('')
+const localLimit = ref(5)
+const visibleLocal = computed(() => localRecordings.value.slice(0, localLimit.value))
+const pendingInvites = computed(() => data.value?.links.filter(link => link.can_respond) ?? [])
+let localVersion = 0
+async function loadLocal() {
+  const version = ++localVersion
+  localRecordings.value = []
+  localError.value = ''
+  try {
+    const items = await listOwnedTasmeeRecordings(auth.user?.name ?? '')
+    if (version === localVersion) localRecordings.value = items
+  } catch { if (version === localVersion) localError.value = 'تعذر قراءة تسجيلات هذا الجهاز. تسجيلاتك المرسلة تبقى متاحة في القائمة.' }
+}
+watch(() => auth.user?.name, loadLocal, { immediate: true })
 const data = ref<TeacherDashboard | null>(null)
 const loading = ref(true)
 const busy = ref(false)
@@ -28,6 +50,7 @@ async function load(more = false) {
     if (more && data.value) next.reviews = [...data.value.reviews, ...next.reviews]
     data.value = next
     offset.value = nextOffset
+    if (!more && route.query.section === 'partners') { await nextTick(); showPartners() }
   } catch { if (version === loadVersion) error.value = 'تعذر تحميل التسميعات. تحقق من الاتصال وأعد المحاولة.' }
   finally { if (version === loadVersion) loading.value = false }
 }
@@ -53,6 +76,19 @@ watch([scope, filter], () => load(), { immediate: true })
       <p>سمّع لمدرّسك أو صاحبك، واسمع له عندما يأتي دوره. لكل تسجيل قارئ ومراجع، ويمكنك القيام بالدورين.</p>
       <BaseButton size="large" @click="router.push('/tasmee/select')">اختيار مقطع وتسجيله</BaseButton>
       <BaseButton variant="secondary" @click="router.push('/quran/hifz/daily-plan')">تسجيل مقرر اليوم</BaseButton>
+      <BaseButton variant="secondary" :disabled="!data" @click="showPartners">شركاء التسميع<span v-if="pendingInvites.length"> · {{ pendingInvites.length }} طلب بانتظارك</span></BaseButton>
+    </section>
+    <section v-if="localRecordings.length || localError" class="teacher-card" aria-label="تسجيلات هذا الجهاز">
+      <h2>كمّل من وين وقفت</h2>
+      <p>تسجيلات حسابك المحفوظة على هذا الجهاز. افتح التسجيل لإكمال رفعه أو إرساله أو عرض مراجعته.</p>
+      <p v-if="localError" role="alert">{{ localError }}</p>
+      <RouterLink v-for="item in visibleLocal" :key="item.id" :to="{ name: 'tasmee-solo-session', params: { recordingId: item.id } }" class="teacher-review-link">
+        <strong>سورة {{ getSurahNameArabic(item.surahNumber) }} · {{ item.startAyah }}–{{ item.endAyah }}</strong>
+        <span>{{ item.uploadedAt ? 'مرفوع · افتح للإرسال أو متابعة المراجعة' : 'لم يُرفع بعد · أكمل الرفع والإرسال' }}</span>
+        <small>{{ new Date(item.createdAt).toLocaleDateString('ar') }}</small>
+      </RouterLink>
+      <BaseButton v-if="localRecordings.length > localLimit" variant="secondary" @click="localLimit += 5">عرض تسجيلات أقدم</BaseButton>
+      <BaseButton v-if="localError" variant="secondary" @click="loadLocal">إعادة تحميل تسجيلات الجهاز</BaseButton>
     </section>
     <BaseBanner v-if="error" tone="error" title="تعذر إكمال الطلب" :body="error" />
     <BaseButton v-if="error" variant="secondary" @click="load()">إعادة المحاولة</BaseButton>
@@ -61,6 +97,7 @@ watch([scope, filter], () => load(), { immediate: true })
       <section class="teacher-card">
         <h2>التسجيلات</h2>
         <BaseSegmentedControl v-model="scope" class="!w-full" :options="[{ value: 'mine', label: 'تسميعاتي' }, { value: 'reviewing', label: 'أراجع لغيري' }]" />
+        <p>{{ scope === 'mine' ? 'بعد نشر المراجعة، افتح تسميعك للاستماع للملاحظات وإعادة التسجيل إذا طُلب منك.' : 'افتح التسجيل، استمع مع المصحف، ثم احفظ ملاحظاتك وانشر المراجعة ليشاهدها صاحب التسميع.' }}</p>
         <label for="review-filter" class="sr-only">تصفية التسميعات</label>
         <select id="review-filter" v-model="filter" class="teacher-field">
           <option value="all">كل الحالات</option>
@@ -81,7 +118,7 @@ watch([scope, filter], () => load(), { immediate: true })
         <BaseButton v-if="data.has_more" variant="secondary" :disabled="loading" :loading="loading" @click="load(true)">تحميل المزيد</BaseButton>
         <BaseButton variant="secondary" :disabled="loading" @click="load()">تحديث القائمة</BaseButton>
       </section>
-      <section class="teacher-card">
+      <section ref="partners" class="teacher-card scroll-mt-4">
         <h2>شركاء التسميع</h2>
         <p>يمكن أن يكون شريكك مدرّسًا أو صاحبًا لديه حساب. الربط يحتاج موافقته، ولا يشارَك أي تسجيل إلا عندما ترسله.</p>
         <form class="grid gap-3" @submit.prevent="action('request_link', { teacher: email, mode })">

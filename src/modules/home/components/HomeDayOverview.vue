@@ -117,7 +117,7 @@ function resumeQuran() {
       <div
         class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
-        <HomeTasmeeCta @start="openDailyHifzPlan" />
+        <HomeTasmeeCta @start="router.push('/tasmee')" />
 
         <section
           v-if="showReading && readingLocationText && readingPageNumber"

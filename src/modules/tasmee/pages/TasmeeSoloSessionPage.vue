@@ -69,6 +69,7 @@ const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
+const previewUrl = ref('')
 const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 const analysisErrorCode = ref('')
@@ -718,6 +719,8 @@ async function loadRecording() {
     }
 
     recording.value = stored
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = URL.createObjectURL(stored.blob)
 
     if (
       stored.uploadedAt
@@ -972,6 +975,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopAnalysisPolling()
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
 })
 </script>
 
@@ -1010,11 +1014,15 @@ onBeforeUnmount(() => {
         class="w-full"
         @click="returnLater"
       >
-        العودة لخطة اليوم
+        العودة للتسميع
       </BaseButton>
     </section>
 
     <template v-else-if="recording">
+      <section v-if="previewUrl && ['ended', 'uploaded', 'upload-failed'].includes(state)" class="grid gap-3 rounded-xl bg-[var(--sqc-color-background-elevated)] p-4">
+        <h2 class="text-base font-semibold">استمع لتسجيلك قبل إرساله</h2>
+        <audio :src="previewUrl" controls preload="metadata" class="w-full" aria-label="معاينة تسجيلك" />
+      </section>
       <template v-if="state === 'ended'">
         <TasmeeStateHeader
           state="session-ended"
@@ -1185,7 +1193,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
@@ -1219,7 +1227,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
@@ -1346,7 +1354,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
       </template>
     </template>

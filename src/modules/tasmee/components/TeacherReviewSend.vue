@@ -24,7 +24,7 @@ async function load() {
     if (props.parentReview) retryLink.value = (await getTeacherReview(props.parentReview)).relationship
     selected.value = active.value[0]?.name ?? ''
     existing.value = submission.review
-  } catch { error.value = 'تعذر تحميل المدرّسين. أعد المحاولة.' }
+  } catch { error.value = 'تعذر تحميل شركاء التسميع. أعد المحاولة.' }
   finally { loading.value = false }
 }
 async function send() {
@@ -47,7 +47,7 @@ onMounted(load)
   <section class="flex flex-col gap-4 rounded-xl bg-[var(--sqc-color-background-elevated)] p-4">
     <h2 class="text-base font-semibold">إرسال للمراجعة</h2>
     <p class="text-sm leading-6 text-[var(--sqc-color-text-secondary)]">اختر مدرّسك أو صاحبك ليسمع تسجيلك ويترك ملاحظاته عند مواضعها.</p>
-    <BaseLoading v-if="loading" label="جارٍ تحميل المدرّسين" />
+    <BaseLoading v-if="loading" label="جارٍ تحميل شركاء التسميع" />
     <template v-else-if="existing">
       <BaseButton @click="router.push('/tasmee/reviews/' + existing.name)">عرض التسميع المرسل</BaseButton>
     </template>
@@ -60,7 +60,8 @@ onMounted(load)
     </template>
     <template v-else>
       <p class="text-sm">اربط حسابك بمدرّس أو صاحب، وبعد قبوله الطلب تقدر ترسل هذا التسجيل.</p>
-      <BaseButton variant="secondary" @click="router.push('/tasmee')">إضافة شريك تسميع</BaseButton>
+      <p class="text-sm">تسجيلك محفوظ. ارجع إلى «كمّل من وين وقفت» في صفحة التسميع بعد قبول الربط.</p>
+      <BaseButton variant="secondary" @click="router.push('/tasmee?section=partners')">إضافة شريك تسميع</BaseButton>
     </template>
     <BaseBanner v-if="error" tone="error" title="تعذر إكمال الطلب" :body="error" />
     <BaseButton v-if="error && !active.length" variant="secondary" @click="load">إعادة المحاولة</BaseButton>

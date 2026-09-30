@@ -174,6 +174,9 @@ onBeforeUnmount(() => {
     <BaseBanner v-if="error" tone="error" title="تعذر إكمال الطلب" :body="error" />
     <BaseButton v-if="error && !review" variant="secondary" @click="load">إعادة المحاولة</BaseButton>
     <template v-if="review">
+      <BaseBanner v-if="!review.is_reviewer" tone="info"
+        :title="review.status === 'changes_requested' ? 'مراجعتك جاهزة — تدرّب ثم أعد التسميع' : review.status === 'approved' ? 'اكتملت مراجعة تسميعك' : 'تم إرسال تسجيلك للمراجعة'"
+        :body="['approved', 'changes_requested'].includes(review.status) ? 'استمع للملاحظات من أوقاتها أدناه واقرأ رسالة المراجع.' : 'تسجيلك عند ' + review.teacher_name + '. ستظهر ملاحظاته هنا بعد نشر المراجعة. تقدر ترجع لهذه الصفحة من تسميعاتي.'" />
       <div class="teacher-review-columns">
       <div class="grid min-w-0 content-start gap-4">
       <section class="review-context">

@@ -138,3 +138,12 @@ The reviewer can replay a suggestion and draft a note, then edit/save/publish it
 Nothing is automatically published or graded. `/tests/teacher-review.html?case=difference#/tasmee/reviews/fixture-review`
 is an explicitly synthetic UI-only red-marker fixture, separate from the public
 recitation probe; it is not evidence of real-world detection accuracy.
+# Recording recovery and navigation
+
+The `/tasmee` hub includes account-owned recordings from this device under «كمّل من وين وقفت», newest first with five initially visible. This includes uploaded recordings: the session screen checks the server for an existing submission rather than assuming upload means sent. Legacy local records without an explicit owner are not listed. IndexedDB v2 adds the owner index without deleting audio; listing returns metadata only. Storage failure does not block the server inbox.
+
+Before upload or submission, the session screen offers a local audio preview. Leaving to link a partner keeps the recording recoverable from the hub. `/tasmee?section=partners` opens the partner section after the dashboard loads, and incoming consent requests are counted on its shortcut. Student review details explain waiting, published feedback and retry states.
+
+Regression: open `/tests/recording-library.html` to test schema migration, retained synthetic audio, newest-first ordering, account isolation, anonymous exclusion and metadata-only results. It redirects repository storage to a unique disposable test database and never reads real recordings. All five checks passed. The 16 backend integration tests passed with rollback, including submission, publication and range-preserving retries.
+
+Authenticated Chrome verification covered home → Tasmee hub → range selection → recording preparation. Both home layouts now route their recording CTA to the hub. The current account has no partner, so live two-account sending/publication still needs an accepted partner and a new recording; existing user recordings were not opened or submitted.
