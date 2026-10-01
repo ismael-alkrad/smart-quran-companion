@@ -52,9 +52,7 @@ function openDailyHifzPlan() {
 }
 
 function resumeQuran() {
-  if (!props.readingPageNumber) return
-
-  void router.push(`/quran/${props.readingPageNumber}`)
+  void router.push(`/quran/${props.readingPageNumber || 1}`)
 }
 </script>
 
@@ -80,6 +78,8 @@ function resumeQuran() {
           <HomeTodayTaskRow
             type="wird"
             :state="props.wirdState"
+            interactive
+            @select="resumeQuran"
           />
 
           <HomeTodayTaskRow
@@ -92,6 +92,8 @@ function resumeQuran() {
           <HomeTodayTaskRow
             type="murajaah"
             :state="props.murajaahState"
+            interactive
+            @select="router.push({ path: '/quran', query: { filter: 'review' } })"
           />
         </section>
 
@@ -115,7 +117,7 @@ function resumeQuran() {
       <div
         class="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-[24px]"
       >
-        <HomeTasmeeCta @start="openDailyHifzPlan" />
+        <HomeTasmeeCta @start="router.push('/tasmee')" />
 
         <section
           v-if="showReading && readingLocationText && readingPageNumber"

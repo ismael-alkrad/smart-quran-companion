@@ -9,6 +9,26 @@ import { useAuthSessionStore } from '@/modules/auth/stores'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/tasmee/select', name: 'tasmee-select-range', meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeSelectRangePage.vue'),
+    },
+    {
+      path: '/profile', name: 'profile', meta: { requiresOnboarding: true },
+      component: () => import('@/modules/profile/pages/ProfilePage.vue'),
+    },
+    {
+      path: '/tasmee',
+      name: 'tasmee-teacher-hub',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeTeacherHubPage.vue'),
+    },
+    {
+      path: '/tasmee/reviews/:name',
+      name: 'tasmee-teacher-review',
+      meta: { requiresOnboarding: true },
+      component: () => import('@/modules/tasmee/pages/TasmeeTeacherReviewPage.vue'),
+    },
     { path: '/', redirect: '/home' },
     {
       path: '/auth',

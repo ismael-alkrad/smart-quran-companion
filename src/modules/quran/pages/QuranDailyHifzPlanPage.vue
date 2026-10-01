@@ -11,7 +11,7 @@ import QuranStrengthIndicator from '@/modules/quran/components/QuranStrengthIndi
 import QuranSurahRow from '@/modules/quran/components/QuranSurahRow.vue'
 import { useDailyHifzPlan } from '@/modules/quran/composables/useDailyHifzPlan'
 import { getMushafPageNumberForAyah } from '@/modules/quran/repositories/quran.repository'
-import { getHifzStatusLabel } from '@/modules/quran/utils/hifz'
+import { toArabicNumber } from '@/modules/quran/utils/number'
 import {
   BaseAppBar,
   BaseBanner,
@@ -276,7 +276,7 @@ onMounted(() => {
           :completed-ayahs="0"
           :ayah-count="metadata.ayahCount"
           :status="assignmentStatus"
-          :progress-text="getHifzStatusLabel(assignmentStatus)"
+          :progress-text="`من الآية ${toArabicNumber(plan.assignment.start_ayah)} إلى ${toArabicNumber(plan.assignment.end_ayah)}`"
           interactive
           @select="openSurahProgress"
         />

@@ -5,7 +5,8 @@ import {
   ref,
   watch,
 } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
@@ -30,7 +31,9 @@ type LiveSessionState =
   | 'ended'
   | 'error'
 
+const route = useRoute()
 const router = useRouter()
+const authSession = useAuthSessionStore()
 
 const {
   assignment,
@@ -378,6 +381,9 @@ async function endSession() {
 
     await saveTasmeeRecording({
       id: recordingId,
+      parentReview: typeof route.query.retry === 'string' ? route.query.retry : undefined,
+      isPractice: currentAssignment.is_practice ?? false,
+      ownerUser: authSession.user?.name,
       assignmentName: currentAssignment.name,
       surahNumber: currentAssignment.surah_number,
       startAyah: currentAssignment.start_ayah,
@@ -396,6 +402,7 @@ async function endSession() {
         recordingId,
       },
       query: {
+      ...route.query,
         assignment: currentAssignment.name,
       },
     })
@@ -409,7 +416,7 @@ async function endSession() {
 }
 
 function returnLater() {
-  void router.push('/quran/hifz/daily-plan')
+  void router.push('/tasmee')
 }
 
 function returnToReady() {
@@ -418,7 +425,7 @@ function returnToReady() {
   void router.push({
     name: 'tasmee-solo-ready',
     query: current
-      ? { assignment: current.name }
+      ? { ...route.query, assignment: current.name }
       : {},
   })
 }
@@ -472,7 +479,7 @@ onBeforeUnmount(() => {
       <TasmeeStateHeader
         state="session-ended"
         title="انتهت الجلسة"
-        subtitle="تم حفظ القراءة محليًا. يمكنك بدء التحليل لاحقًا بعد ربط خدمة التحليل."
+        subtitle="تم حفظ القراءة محليًا. راجع تسجيلك ثم ارفعه لإرساله إلى المدرّس."
       />
 
       <TasmeeSessionTimer
@@ -484,7 +491,7 @@ onBeforeUnmount(() => {
 
       <BaseBanner
         tone="info"
-        title="جاهزة للتحليل"
+        title="التسجيل محفوظ"
         body="التسجيل محفوظ على هذا الجهاز ولم يتم تقييم الحفظ أو تغيير حالته تلقائيًا."
       />
 
@@ -505,7 +512,7 @@ onBeforeUnmount(() => {
         class="w-full"
         disabled
       >
-        بدء التحليل
+        مراجعة التسجيل
       </BaseButton>
     </template>
 

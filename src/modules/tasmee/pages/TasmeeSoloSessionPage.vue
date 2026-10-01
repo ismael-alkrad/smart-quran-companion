@@ -23,6 +23,9 @@ import {
   type TasmeeSession,
 } from '@/modules/tasmee/api'
 import TasmeeIssueRow from '@/modules/tasmee/components/TasmeeIssueRow.vue'
+import TeacherReviewSend from '@/modules/tasmee/components/TeacherReviewSend.vue'
+import { teacherAction } from '@/modules/tasmee/api/teacherReview'
+import { useAuthSessionStore } from '@/modules/auth/stores'
 import TasmeeSessionTimer from '@/modules/tasmee/components/TasmeeSessionTimer.vue'
 import TasmeeStateHeader from '@/modules/tasmee/components/TasmeeStateHeader.vue'
 import TasmeeVerificationBadge, {
@@ -66,6 +69,7 @@ const dailyPlanCall = useEnsureHifzDailyAssignmentMutation()
 
 const state = ref<PostRecordingState>('loading')
 const recording = ref<StoredTasmeeRecording | null>(null)
+const previewUrl = ref('')
 const serverSession = ref<TasmeeSession | null>(null)
 const uploadError = ref('')
 const analysisErrorCode = ref('')
@@ -708,13 +712,15 @@ async function loadRecording() {
   try {
     const stored = await getTasmeeRecording(recordingId.value)
 
-    if (!stored) {
+    if (!stored || (stored.ownerUser && stored.ownerUser !== useAuthSessionStore().user?.name)) {
       recording.value = null
       state.value = 'missing'
       return
     }
 
     recording.value = stored
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = URL.createObjectURL(stored.blob)
 
     if (
       stored.uploadedAt
@@ -771,6 +777,7 @@ async function reconcileRecordingAssignment(
   if (current.serverSessionName) {
     return current
   }
+  if (current.parentReview || current.isPractice) return current
 
   const response = await dailyPlanCall.submit()
   const currentAssignment = response?.assignment
@@ -819,11 +826,20 @@ async function ensureServerSession(current: StoredTasmeeRecording) {
     return current.serverSessionName
   }
 
-  const response = await createSessionCall.submit({
-    assignment_name: current.assignmentName,
-    client_session_id: current.id,
-    session_mode: 'solo',
-  })
+  const response = current.parentReview
+    ? await teacherAction<{ session: { name: string } }>('create_retry', {
+        name: current.parentReview, client_session_id: current.id,
+      })
+    : current.isPractice
+      ? await teacherAction<{ session: { name: string } }>('create_practice', {
+          surah: current.surahNumber, start: current.startAyah, end: current.endAyah,
+          client_session_id: current.id,
+        })
+      : await createSessionCall.submit({
+        assignment_name: current.assignmentName,
+        client_session_id: current.id,
+        session_mode: 'solo',
+      })
 
   if (!response?.session) {
     throw new Error('تعذر إنشاء جلسة التسميع على الخادم.')
@@ -950,7 +966,7 @@ function startNewTasmee() {
 }
 
 function returnLater() {
-  void router.push('/quran/hifz/daily-plan')
+  void router.push('/tasmee')
 }
 
 onMounted(() => {
@@ -959,6 +975,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopAnalysisPolling()
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
 })
 </script>
 
@@ -997,11 +1014,15 @@ onBeforeUnmount(() => {
         class="w-full"
         @click="returnLater"
       >
-        العودة لخطة اليوم
+        العودة للتسميع
       </BaseButton>
     </section>
 
     <template v-else-if="recording">
+      <section v-if="previewUrl && ['ended', 'uploaded', 'upload-failed'].includes(state)" class="grid gap-3 rounded-xl bg-[var(--sqc-color-background-elevated)] p-4">
+        <h2 class="text-base font-semibold">استمع لتسجيلك قبل إرساله</h2>
+        <audio :src="previewUrl" controls preload="metadata" class="w-full" aria-label="معاينة تسجيلك" />
+      </section>
       <template v-if="state === 'ended'">
         <TasmeeStateHeader
           state="session-ended"
@@ -1104,10 +1125,10 @@ onBeforeUnmount(() => {
 
         <TasmeeVerificationBadge label="التسجيل مرفوع" />
 
-        <BaseBanner
-          tone="info"
-          title="الخطوة التالية: التحليل"
-          body="نجاح الرفع لا يعني اعتماد الحفظ أو تغيير تقدّمك. سنربط محرك التحليل في الخطوة التالية."
+        <TeacherReviewSend
+          v-if="recording.serverSessionName"
+          :session-name="recording.serverSessionName"
+          :parent-review="recording.parentReview"
         />
 
         <div class="min-h-[16px] flex-1" />
@@ -1118,16 +1139,16 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
           size="large"
           variant="primary"
           class="w-full"
-          @click="startAnalysis"
+          @click="router.push('/tasmee')"
         >
-          بدء التحليل
+          تسميعاتي ومراجعات الشركاء
         </BaseButton>
       </template>
 
@@ -1172,7 +1193,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
@@ -1206,7 +1227,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
 
         <BaseButton
@@ -1333,7 +1354,7 @@ onBeforeUnmount(() => {
           class="w-full"
           @click="returnLater"
         >
-          العودة لخطة اليوم
+          العودة للتسميع
         </BaseButton>
       </template>
     </template>

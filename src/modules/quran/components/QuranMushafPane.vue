@@ -18,6 +18,8 @@ const props = withDefaults(
     markerLabel?: string
     spread?: boolean
     hifzContext?: QuranHifzReaderContext | null
+    playbackWordLocation?: string | null
+    suspectedWordLocations?: string[]
   }>(),
   {
     savedVerseKey: null,
@@ -194,7 +196,8 @@ onBeforeUnmount(() => {
     <MushafPage
       :page="page"
       :spread="spread"
-      :selected-word-location="selectedWordLocation"
+      :selected-word-location="playbackWordLocation !== undefined ? playbackWordLocation : selectedWordLocation"
+      :suspected-word-locations="suspectedWordLocations"
       :hifz-context="hifzContext"
       class="!my-0 !rounded-none !shadow-none"
       :class="

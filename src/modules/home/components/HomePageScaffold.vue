@@ -17,6 +17,7 @@ withDefaults(
 const navRoutes: BaseBottomNavRoutes = {
   home: '/home',
   quran: '/quran',
+  tasmee: '/tasmee',
 }
 </script>
 
@@ -53,11 +54,11 @@ const navRoutes: BaseBottomNavRoutes = {
             </p>
           </div>
 
-          <BaseAvatar
+          <RouterLink to="/profile" aria-label="فتح حسابي"><BaseAvatar
             type="placeholder"
             size="medium"
             aria-label="صورة الحساب"
-          />
+          /></RouterLink>
         </header>
 
         <div class="mt-[16px] lg:mt-[24px]">

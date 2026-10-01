@@ -59,6 +59,7 @@ function exploreQuran() {
       <HomeTasmeeCta
         dir="rtl"
         class="lg:col-start-2 lg:row-start-2"
+        @start="router.push('/tasmee')"
       />
     </div>
   </HomePageScaffold>
