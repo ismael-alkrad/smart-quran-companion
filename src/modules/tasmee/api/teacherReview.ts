@@ -75,6 +75,7 @@ export function teacherAction<T>(action: string, params: Record<string, string |
   return postSmartQuranFormData<T>('teacher_review.' + action, data)
 }
 export function recordingTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
   return Math.floor(seconds / 60).toString().padStart(2, '0') + ':' +
     Math.floor(seconds % 60).toString().padStart(2, '0')
 }

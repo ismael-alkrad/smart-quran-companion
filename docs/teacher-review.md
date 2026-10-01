@@ -140,6 +140,8 @@ is an explicitly synthetic UI-only red-marker fixture, separate from the public
 recitation probe; it is not evidence of real-world detection accuracy.
 # Recording recovery and navigation
 
+Live two-account verification (2026-10-01): reciprocal consent and a newly submitted 35-second recording reached the review inbox. Playback marked the review started; a clearly labeled technical test note was saved and published with a test-only retry request. This is not a recitation correctness assessment. Browser recording metadata initially returned infinite duration; playback now falls back to stored duration until finite media duration is available and listens for duration changes. Opening tracking now reads cached status before requesting preparation, avoiding redundant POSTs and their rate limit. The local matcher produced only four word spans for this recording: full-recording tracking accuracy remains unresolved.
+
 The `/tasmee` hub includes account-owned recordings from this device under «كمّل من وين وقفت», newest first with five initially visible. This includes uploaded recordings: the session screen checks the server for an existing submission rather than assuming upload means sent. Legacy local records without an explicit owner are not listed. IndexedDB v2 adds the owner index without deleting audio; listing returns metadata only. Storage failure does not block the server inbox.
 
 Before upload or submission, the session screen offers a local audio preview. Leaving to link a partner keeps the recording recoverable from the hub. `/tasmee?section=partners` opens the partner section after the dashboard loads, and incoming consent requests are counted on its shortcut. Student review details explain waiting, published feedback and retry states.

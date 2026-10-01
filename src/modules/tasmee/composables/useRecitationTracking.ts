@@ -36,7 +36,13 @@ export function useRecitationTracking() {
         }, 2000)
       } else if (result.state === 'idle') tracking.value = { state: 'failed', spans: [] }
     }
-    try { await receive(await postSmartQuranFormData<TrackingResult>('recitation_tracking.prepare', data)) }
+    try {
+      // Reopening a review should reuse its result, not consume another preparation request.
+      const cached = await getSmartQuranMethod<TrackingResult>('recitation_tracking.status', { name })
+      if (requestVersion !== version) return
+      if (['queued', 'processing', 'ready', 'unmatched'].includes(cached.state)) await receive(cached)
+      else await receive(await postSmartQuranFormData<TrackingResult>('recitation_tracking.prepare', data))
+    }
     catch { if (requestVersion === version) tracking.value = { state: 'failed', spans: [] } }
   }
   onBeforeUnmount(stop)

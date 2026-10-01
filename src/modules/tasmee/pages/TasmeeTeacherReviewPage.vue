@@ -89,7 +89,8 @@ async function loadAudio() {
     if (!controller.signal.aborted && audioAbort === controller && !(cause instanceof DOMException && cause.name === 'AbortError')) audioError.value = 'تعذر تحميل التسجيل. أعد المحاولة.'
   } finally { if (audioAbort === controller) audioLoading.value = false }
 }
-const duration = computed(() => audioDuration.value || review.value?.duration_seconds || 0)
+const duration = computed(() => Number.isFinite(audioDuration.value) && audioDuration.value > 0
+  ? audioDuration.value : review.value?.duration_seconds || 0)
 async function togglePlayback() {
   if (!player.value || !audioReady.value) return
   if (!player.value.paused) { player.value.pause(); return }
@@ -192,6 +193,7 @@ onBeforeUnmount(() => {
           <section class="recitation-transport" aria-label="أدوات الاستماع والمراجعة">
             <audio v-if="audioUrl" ref="player" :src="audioUrl" preload="auto" class="hidden" aria-label="تسجيل التسميع"
               @loadedmetadata="audioDuration = player?.duration ?? 0; audioReady = true; setPlaybackRate()"
+              @durationchange="audioDuration = player?.duration ?? 0"
               @play="onPlayback" @pause="playing = false" @ended="playing = false"
               @timeupdate="seconds = player?.currentTime ?? 0" @error="audioReady = false; audioError = 'تعذر تشغيل التسجيل. أعد المحاولة.'" />
             <div dir="ltr" class="flex items-center gap-3">
